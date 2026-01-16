@@ -11,7 +11,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Asegurar que el servicio de vistas esté registrado
+        if (! $this->app->bound('view')) {
+            $this->app->register(\Illuminate\View\ViewServiceProvider::class);
+        }
     }
 
     /**
