@@ -159,16 +159,32 @@ class ExcelController extends Controller
                 // Si hay código de competencia, actualizar la competencia actual
                 if (!empty($cod_comp)) {
                     $competenciaActual = $cod_comp;
-                    
-                    // Insertar competencia si no existe
+
+                    // Crear o reutilizar competencia globalmente por código y enlazar vía pivote
                     if (!isset($competenciasInsertadas[$cod_comp])) {
-                        $competencia = new Competencia();
-                        $competencia->cod_comp = $cod_comp;
-                        $competencia->nombre = $nombre_comp;
-                        $competencia->duracion_hora = $sheet->getCell("G$fila")->getValue();
-                        $competencia->id_prog_fk = $programa->id_prog;
-                        $competencia->save();
-                        
+                        $compDb = Competencia::where('cod_comp', $cod_comp)->first();
+                        if (!$compDb) {
+                            $compDb = new Competencia();
+                            $compDb->cod_comp = $cod_comp;
+                            $compDb->nombre = $nombre_comp;
+                            $compDb->duracion_hora = $sheet->getCell("G$fila")->getValue();
+                            // mantener id_prog_fk del primer programa por compatibilidad
+                            $compDb->id_prog_fk = $programa->id_prog;
+                            $compDb->save();
+                        }
+
+                        // Enlazar en tabla pivote si no existe el enlace
+                        $pivotExiste = DB::table('programa_competencia')
+                            ->where('id_prog_fk', $programa->id_prog)
+                            ->where('cod_comp_fk', $cod_comp)
+                            ->exists();
+                        if (!$pivotExiste) {
+                            DB::table('programa_competencia')->insert([
+                                'id_prog_fk' => $programa->id_prog,
+                                'cod_comp_fk' => $cod_comp
+                            ]);
+                        }
+
                         $competenciasInsertadas[$cod_comp] = true;
                     }
                 }
@@ -176,20 +192,27 @@ class ExcelController extends Controller
                 // Insertar resultado (usar competencia actual si la celda está fusionada)
                 $nombre_resultado = trim($sheet->getCell("H$fila")->getValue());
                 if (!empty($nombre_resultado) && $competenciaActual !== null) {
-                    $resultado = new Resultado();
-                    $resultado->cod_resu = 0;
-                    $resultado->nombre = substr($nombre_resultado, 0, 255);
-                    $resultado->duracion_hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
-                    $resultado->duracion_hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
-                    $resultado->trim_prog = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
-                    $l_val = $sheet->getCell("L$fila")->getCalculatedValue();
-                    $resultado->hora_sema_programar = ($l_val === null || $l_val === '') ? null : $l_val;
-                    // Calcular hora_trim_programar (L * 11) sólo si hay H/Sem
-                    $resultado->hora_trim_programar = ($resultado->hora_sema_programar !== null)
-                        ? ($resultado->hora_sema_programar * 11)
-                        : null;
-                    $resultado->cod_comp_fk = $competenciaActual;
-                    $resultado->save();
+                    // Evitar duplicar resultados por competencia (mismo nombre)
+                    $nombreCorto = substr($nombre_resultado, 0, 255);
+                    $existeRes = Resultado::where('cod_comp_fk', $competenciaActual)
+                        ->where('nombre', $nombreCorto)
+                        ->exists();
+                    if (!$existeRes) {
+                        $resultado = new Resultado();
+                        $resultado->cod_resu = 0;
+                        $resultado->nombre = $nombreCorto;
+                        $resultado->duracion_hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
+                        $resultado->duracion_hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
+                        $resultado->trim_prog = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
+                        $l_val = $sheet->getCell("L$fila")->getCalculatedValue();
+                        $resultado->hora_sema_programar = ($l_val === null || $l_val === '') ? null : $l_val;
+                        // Calcular hora_trim_programar (L * 11) sólo si hay H/Sem
+                        $resultado->hora_trim_programar = ($resultado->hora_sema_programar !== null)
+                            ? ($resultado->hora_sema_programar * 11)
+                            : null;
+                        $resultado->cod_comp_fk = $competenciaActual;
+                        $resultado->save();
+                    }
                 }
             }
             

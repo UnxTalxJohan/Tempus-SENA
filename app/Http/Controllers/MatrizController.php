@@ -24,10 +24,14 @@ class MatrizController extends Controller
     {
         $programa = Programa::where('id_prog', $id_prog)->firstOrFail();
         
-        // Obtener competencias con sus resultados
-        $competencias = Competencia::where('id_prog_fk', $id_prog)
-            ->orderBy('cod_comp')
-            ->get();
+                // Obtener competencias asociadas al programa vía tabla pivote (reutilizables entre programas)
+                $competencias = Competencia::whereIn('cod_comp', function($q) use ($id_prog) {
+                                $q->select('cod_comp_fk')
+                                    ->from('programa_competencia')
+                                    ->where('id_prog_fk', $id_prog);
+                        })
+                        ->orderBy('cod_comp')
+                        ->get();
         
         foreach ($competencias as $competencia) {
             $competencia->resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
@@ -42,9 +46,13 @@ class MatrizController extends Controller
     {
         $programa = Programa::where('id_prog', $id_prog)->firstOrFail();
         
-        $competencias = Competencia::where('id_prog_fk', $id_prog)
-            ->orderBy('cod_comp')
-            ->get();
+                $competencias = Competencia::whereIn('cod_comp', function($q) use ($id_prog) {
+                                $q->select('cod_comp_fk')
+                                    ->from('programa_competencia')
+                                    ->where('id_prog_fk', $id_prog);
+                        })
+                        ->orderBy('cod_comp')
+                        ->get();
         
         foreach ($competencias as $competencia) {
             $competencia->resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
