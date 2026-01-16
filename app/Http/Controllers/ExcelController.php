@@ -8,6 +8,7 @@ use App\Models\Programa;
 use App\Models\Competencia;
 use App\Models\Resultado;
 use DB;
+use Illuminate\Support\Facades\Schema;
 
 class ExcelController extends Controller
 {
@@ -160,7 +161,7 @@ class ExcelController extends Controller
                 if (!empty($cod_comp)) {
                     $competenciaActual = $cod_comp;
 
-                    // Crear o reutilizar competencia globalmente por código y enlazar vía pivote
+                    // Crear o reutilizar competencia globalmente por código y (si existe) enlazar vía pivote
                     if (!isset($competenciasInsertadas[$cod_comp])) {
                         $compDb = Competencia::where('cod_comp', $cod_comp)->first();
                         if (!$compDb) {
@@ -173,16 +174,23 @@ class ExcelController extends Controller
                             $compDb->save();
                         }
 
-                        // Enlazar en tabla pivote si no existe el enlace
-                        $pivotExiste = DB::table('programa_competencia')
-                            ->where('id_prog_fk', $programa->id_prog)
-                            ->where('cod_comp_fk', $cod_comp)
-                            ->exists();
-                        if (!$pivotExiste) {
-                            DB::table('programa_competencia')->insert([
-                                'id_prog_fk' => $programa->id_prog,
-                                'cod_comp_fk' => $cod_comp
-                            ]);
+                        // Enlazar en tabla pivote si existe; si no, seguimos usando id_prog_fk legacy
+                        if (Schema::hasTable('programa_competencia')) {
+                            $pivotExiste = DB::table('programa_competencia')
+                                ->where('id_prog_fk', $programa->id_prog)
+                                ->where('cod_comp_fk', $cod_comp)
+                                ->exists();
+                            if (!$pivotExiste) {
+                                DB::table('programa_competencia')->insert([
+                                    'id_prog_fk' => $programa->id_prog,
+                                    'cod_comp_fk' => $cod_comp
+                                ]);
+                            }
+                        } else {
+                            // Si el modelo fue creado antes, ya tiene id_prog_fk asignado; si existía, actualizar propietario si no coincide
+                            if ($compDb->id_prog_fk !== $programa->id_prog) {
+                                // No cambiamos propietario para no romper referencias, solo dejamos el existente
+                            }
                         }
 
                         $competenciasInsertadas[$cod_comp] = true;
