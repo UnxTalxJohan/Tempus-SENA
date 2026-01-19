@@ -23,8 +23,8 @@ body.login-page {
     position: fixed;
     inset: 0;
     /* Variables para ajustar la línea diagonal (top y bottom X%) */
-    --cut-top: 47%;
-    --cut-bottom: 53%;
+    --cut-top: 48%;
+    --cut-bottom: 52%;
     pointer-events: none;
     z-index: 0; /* detrás del contenido pero encima del fondo del body */
 }
