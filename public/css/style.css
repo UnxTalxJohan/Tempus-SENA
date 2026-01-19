@@ -245,19 +245,25 @@ body {
 }
 
 /* ============================================
-   FOOTER GLOBAL (línea gris + barra verde)
-   ============================================ */
-.global-footer { margin-top: 20px; }
-.footer-sep { height: 2px; background: #e0e0e0; }
+    FOOTER GLOBAL (línea gris + barra verde)
+    ============================================ */
+.global-footer { margin-top: 28px; }
+/* -----------------------------------
+    Línea separadora más delgada
+    ----------------------------------- */
+.footer-sep { height: 1px; background: #d6d6d6; }
 .footer-bar {
     background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
     color: #ffffff;
 }
 .footer-container {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 10px 16px;
+     width: 100%;
+     max-width: 1400px;
+     margin: 0 auto;
+     /* -----------------------------------
+         Más espacio vertical en la barra verde
+         ----------------------------------- */
+     padding: 18px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
