@@ -18,8 +18,6 @@ body {
 .bg-carousel {
     position: fixed;
     inset: 0;
-    /* Mitad diagonal centrada, de esquina a esquina (TL -> BR) */
-    clip-path: polygon(0 0, 100% 0, 100% 100%);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -27,6 +25,23 @@ body {
     pointer-events: none;
     z-index: 0; /* contenido encima */
     opacity: 1;
+}
+/* Capas del carrusel: mostrar dos imágenes a la vez con corte diagonal centrado */
+.bgc-layer {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transition: opacity .6s ease, filter .6s ease;
+    opacity: .65; /* transparencia para ver el verde del fondo */
+    filter: blur(2px);
+}
+.bgc-left { /* triángulo superior-izquierda → inferior-derecha */
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.bgc-right { /* triángulo inferior-derecha complementario */
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 
 /* ============================================
