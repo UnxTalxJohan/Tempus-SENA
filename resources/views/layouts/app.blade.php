@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'App CIDE - SENA')</title>
+        <!-- -----------------------------------
+            Favicon: usar el logo SENA (SVG) en la pestaña
+            Se agrega `rel="icon"` apuntando a images/logo-sena.svg
+            y un fallback al favicon.ico para navegadores antiguos
+            ----------------------------------- -->
+        <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo-sena.svg') }}">
+        <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        <!-- -----------------------------------
+            Safari pinned tab: color verde institucional
+            (usa el mismo SVG como máscara)
+            ----------------------------------- -->
+        <link rel="mask-icon" href="{{ asset('images/logo-sena.svg') }}" color="#00A859">
+        <!-- -----------------------------------
+            Accent de navegador en móviles: tema verde
+            ----------------------------------- -->
+        <meta name="theme-color" content="#00A859">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
