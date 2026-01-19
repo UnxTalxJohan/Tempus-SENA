@@ -223,7 +223,7 @@ body {
     width: 100%;
     max-width: none;
     margin: 0; /* evita centrado del contenedor */
-    padding: 0 16px 0 5px; /* relleno 5px al borde izquierdo */
+    padding: 0 16px 0 12px; /* relleno 12px al borde izquierdo (más visible) */
     height: 100%;
     display: flex;
     align-items: center;
