@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'App CIDE - SENA')</title>
+    <title>@yield('title', 'Tempus-SENA')</title>
         <!-- -----------------------------------
             Favicon: usar el logo SENA (SVG) en la pestaña
             Se agrega `rel="icon"` apuntando a images/logo-sena.svg
@@ -37,7 +37,7 @@
         <div class="header-container">
             <div class="logo-section">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">
-                <span class="logo-text">CIDE                                            </span>
+                <span class="logo-text">Tempus-SENA</span>
             </div>
 
             @php($appAuthHeader = session('app_auth'))
