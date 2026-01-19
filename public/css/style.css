@@ -1205,7 +1205,7 @@ table td {
        Centrado del login en la pantalla
        y ancho del contenedor general
        ----------------------------------- */
-    max-width: 1240px; /* permite que .auth-split-card (1240px) crezca */
+    max-width: 1200px; /* ajustado: un poco menos ancho */
     margin: 0 auto;
     padding: 10px;
     min-height: calc(100vh - 120px); /* resta header y margen superior */
@@ -2027,10 +2027,10 @@ input[type="file"] {
    ============================================ */
 .auth-split-card {
      /* -----------------------------------
-         Ancho del cuadro de login (fluido + tope mayor)
+         Ancho del cuadro de login (ligeramente más corto)
          ----------------------------------- */
-     width: min(96vw, 1360px); /* ocupar más espacio en pantallas grandes */
-     max-width: 1360px;
+     width: min(88vw, 1200px);
+     max-width: 1200px;
     margin: 0 auto;
     background: #ffffff;
     border-radius: 16px;
