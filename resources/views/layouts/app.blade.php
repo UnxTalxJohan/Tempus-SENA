@@ -25,10 +25,10 @@
             Versionado CSS para evitar caché del navegador
             (si cambian estilos, agrega un sufijo distinto)
             ----------------------------------- -->
-        <link href="{{ asset('css/style.css') }}?v=login-art-12" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=login-art-13" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body>
+<body class="{{ request()->routeIs('login') ? 'login-page' : '' }}">
     <!-- Pantalla de Carga Global -->
     <div class="global-loader" id="globalLoader">
         <div class="loader-content">
