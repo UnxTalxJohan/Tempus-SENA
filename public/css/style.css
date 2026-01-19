@@ -23,22 +23,25 @@ body.login-page {
     position: fixed;
     inset: 0;
     /* Variables para ajustar la línea diagonal (top y bottom X%) */
-    --cut-top: 50%;
-    --cut-bottom: 50%;
+    --cut-top: 47%;
+    --cut-bottom: 53%;
     pointer-events: none;
-    z-index: -1; /* siempre detrás de todo, footer incluido */
+    z-index: 0; /* detrás del contenido pero encima del fondo del body */
 }
 /* Capas del carrusel: dos imágenes simultáneas con corte diagonal centrado */
 .bgc-layer {
     position: absolute;
     inset: 0;
-    /* Sin imágenes de fondo: colores suaves para mostrar el corte */
-    background-image: none;
-    background-color: rgba(255,255,255,0.92);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     transition: opacity .6s ease, filter .6s ease;
-    opacity: 1;
-    filter: blur(0);
+    opacity: .70;
+    filter: blur(2px);
 }
+
+/* Asegurar que el footer quede por encima del fondo */
+.global-footer { position: relative; z-index: 2; }
 .bgc-left { /* área izquierda hasta la línea diagonal */
     clip-path: polygon(0 0, var(--cut-top) 0, var(--cut-bottom) 100%, 0 100%);
 }

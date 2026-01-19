@@ -79,6 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
     (left || document.body).appendChild(wm);
 });
 
-// === Fondo login: sin imágenes y corte diagonal centrado (estilos vía CSS) ===
+// === Fondo login: dos capas con imágenes de sedes y blur al cambiar ===
+document.addEventListener('DOMContentLoaded', () => {
+    const left = document.getElementById('bgcLeft');
+    const right = document.getElementById('bgcRight');
+    if (!left || !right) return;
+    const images = [
+        '{{ asset('images/Sede_Principal_Soacha.jpg') }}',
+        '{{ asset('images/Sena cide ciudad verde.jpg') }}',
+        '{{ asset('images/sena cide ciudad verde 2.jpg') }}',
+        '{{ asset('images/sede cazuca sena.jpeg') }}'
+    ];
+    let idx = 0;
+    const apply = (el, url) => {
+        el.style.filter = 'blur(6px)';
+        el.style.opacity = '.45';
+        setTimeout(() => {
+            el.style.backgroundImage = `url(\"${url}\")`;
+            el.style.filter = 'blur(2px)';
+            el.style.opacity = '.70';
+        }, 220);
+    };
+    // Inicial: dos imágenes distintas simultáneamente
+    apply(left, images[idx]);
+    apply(right, images[(idx + 1) % images.length]);
+    setInterval(() => {
+        idx = (idx + 1) % images.length;
+        apply(left, images[idx]);
+        apply(right, images[(idx + 1) % images.length]);
+    }, 6000);
+});
 </script>
 @endsection
