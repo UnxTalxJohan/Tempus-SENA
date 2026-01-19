@@ -267,12 +267,20 @@
             if (!box || !codComp) return;
             const total = sumHmaxByComp(codComp);
             box.classList.add('summary-badge');
-            box.textContent = `Suma Horas de Resultado (${codComp}) = ${total}`;
+            box.innerHTML = `
+                <span class="summary-label">Suma Horas de Resultado (<strong>${codComp}</strong>)</span>
+                <span class="summary-value" title="Total horas">${total}</span>
+                <span class="summary-chip" title="Total sumado">Total sumado</span>
+            `;
             box.style.display = '';
             const headerBox = document.getElementById('compHmaxSummary');
             if (headerBox) {
                 headerBox.classList.add('summary-badge');
-                headerBox.textContent = `Suma Horas de Resultado (${codComp}) = ${total}`;
+                headerBox.innerHTML = `
+                    <span class="summary-label">Suma Horas de Resultado (<strong>${codComp}</strong>)</span>
+                    <span class="summary-value" title="Total horas">${total}</span>
+                    <span class="summary-chip" title="Total sumado">Total sumado</span>
+                `;
                 headerBox.style.display = '';
             }
         }
@@ -305,6 +313,7 @@
         })->keyBy('cod_comp')) !!};
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const currentProgId = {{ $programa->id_prog }};
 
         async function guardarCompetencia(codComp) {
             const nombre = document.getElementById(`grid-comp-nombre-${codComp}`).value.trim();
@@ -397,6 +406,7 @@
             captureInitialState();
             bindChangeTracking();
             updateSaveButtonsUI();
+            attachCompRowClickHandlers();
         }, 0);
 
         // Eventos de enfoque/validación para H Máx
@@ -474,13 +484,27 @@
             const target = e.target;
             const isHmax = target.closest && target.closest("input[id^='grid-res-hmax-']");
             const inBadges = target.closest && (target.closest('#compHmaxSummary') || target.closest('#miniMetrics'));
-            if (!isHmax && !inBadges) hideMiniMetrics();
+            const inCompArea = target.closest && target.closest("#excelGrid tbody tr[data-comp-codigo]");
+            if (!isHmax && !inBadges && !inCompArea) hideMiniMetrics();
 
             // limpiar resaltado si el clic es fuera del bloque resaltado
             const inHighlighted = currentHighlightCod && target.closest && target.closest(`tr[data-comp-codigo='${currentHighlightCod}']`);
             const inCompEdit = currentHighlightCod && target.closest && target.closest(`#grid-comp-edit-${currentHighlightCod}`);
             if (!inHighlighted && !inCompEdit) clearCompetenciaHighlight();
         });
+
+        // Permitir mostrar la suma de H/Máx al hacer clic en cualquier fila de la competencia
+        function attachCompRowClickHandlers() {
+            const table = document.getElementById('excelGrid');
+            if (!table) return;
+            table.addEventListener('click', (ev) => {
+                const row = ev.target.closest && ev.target.closest("tbody tr[data-comp-codigo]");
+                if (!row) return;
+                const cod = row.getAttribute('data-comp-codigo');
+                updateMiniMetrics(cod);
+                highlightCompetencia(cod);
+            });
+        }
 
         async function guardarHorasResultadoGrid(idResu, codComp) {
             const hmax = parseInt(document.getElementById(`grid-res-hmax-${idResu}`).value, 10) || 0;
@@ -493,7 +517,8 @@
                 duracion_hora_min: hmin,
                 hora_sema_programar: hsem,
                 hora_trim_programar: htrim,
-                trim_prog: tri
+                trim_prog: tri,
+                id_prog: currentProgId
             };
             const resp = await fetch(`{{ route('matriz.resultado.update', ['id_resu' => 'ID_PLACE']) }}`.replace('ID_PLACE', idResu), {
                 method: 'PUT',
@@ -531,7 +556,8 @@
                     duracion_hora_min: hmin,
                     hora_sema_programar: hsem,
                     hora_trim_programar: htrim,
-                    trim_prog: tri
+                    trim_prog: tri,
+                    id_prog: currentProgId
                 };
                 try {
                     const resp = await fetch(`{{ route('matriz.resultado.update', ['id_resu' => 'ID_PLACE']) }}`.replace('ID_PLACE', idResu), {

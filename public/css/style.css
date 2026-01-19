@@ -226,7 +226,12 @@ body {
     justify-content: space-between;
     gap: 30px;
 }
-
+/* User section additions */
+.user-menu{ position:relative; }
+.user-avatar{ background:transparent; border:none; cursor:pointer; padding:6px; border-radius:999px; color:#1f2937; }
+.user-avatar:hover{ background:rgba(0,0,0,.06); }
+.user-dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:220px; z-index:1000; padding:6px; }
+.user-dropdown .dropdown-item:hover{ background:#f4f4f5; }
 .logo-section {
     display: flex;
     align-items: center;
@@ -1476,12 +1481,49 @@ input[type="file"] {
     color: #00853F;
 }
 
-/* Resumen (suma horas) en verde */
+/* Resumen (suma horas) en verde, bien visible */
 .summary-badge {
-    background: #e8f5e9; /* verde suave */
-    border: 2px solid #39A900; /* marco verde visible */
-    color: #2e7d32;
-    border-radius: 20px;
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%); /* verde como el fondo */
+    border: 2px solid #00853F;
+    color: #ffffff; /* letras blancas */
+    border-radius: 14px;
+    padding: 8px 14px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 133, 63, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Etiqueta del resumen */
+.summary-badge .summary-label {
+    line-height: 1;
+}
+
+/* Recuadro del número total (muy destacado) */
+.summary-badge .summary-value {
+    background: #ffffff;
+    color: #0b6b2f;
+    border: 2px solid #0b6b2f;
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-weight: 800;
+    min-width: 48px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.05);
+}
+
+/* Chip pequeño a la derecha */
+.summary-badge .summary-chip {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 /* Píldoras para resumen/alerta de horas */
@@ -1693,9 +1735,12 @@ input[type="file"] {
     font-size: 12px;
     padding: 6px 10px;
     border-radius: 8px;
-    background: transparent; /* deja que summary-badge pinte */
     border: none;
-    color: inherit;
+}
+/* Si mini-metrics también tiene summary-badge, respetar su estilo verde */
+.mini-metrics.summary-badge {
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
+    color: #ffffff;
 }
 
 @media (max-width: 1366px) {

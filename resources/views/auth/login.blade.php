@@ -24,8 +24,8 @@
             <form method="POST" action="{{ route('login.post') }}" class="auth-form">
                 @csrf
                 <div class="auth-field">
-                    <label for="email">Correo</label>
-                    <input type="email" id="email" name="email" class="auth-input" value="{{ old('email') }}" required autofocus placeholder="tucorreo@ejemplo.com">
+                    <label for="email">Correo o usuario</label>
+                    <input type="text" id="email" name="email" class="auth-input" value="{{ old('email') }}" required autofocus placeholder="tucorreo@ejemplo.com o tu usuario">
                 </div>
                 <div class="auth-field">
                     <label for="password">Contraseña</label>

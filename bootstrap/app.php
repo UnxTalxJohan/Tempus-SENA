@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Alias de middleware de autenticación propia basada en sesión
+        $middleware->alias([
+            'app.auth' => \App\Http\Middleware\AppAuth::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

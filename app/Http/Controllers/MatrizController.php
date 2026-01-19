@@ -40,10 +40,53 @@ class MatrizController extends Controller
                     ->get();
                 }
         
+        $usaDuracion = \Illuminate\Support\Facades\Schema::hasTable('duracion');
+        $usaMatrsExt = \Illuminate\Support\Facades\Schema::hasTable('matrs_ext');
         foreach ($competencias as $competencia) {
-            $competencia->resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
-                ->orderBy('id_resu')
-                ->get();
+            if ($usaMatrsExt) {
+                // Sólo resultados vinculados a este programa y competencia
+                $resultados = Resultado::whereIn('id_resu', function($q) use ($id_prog, $competencia) {
+                        $q->select('id_resu_fk')
+                          ->from('matrs_ext')
+                          ->where('cod_prog_fk', $id_prog)
+                          ->where('cod_com_fk', $competencia->cod_comp);
+                    })
+                    ->orderBy('id_resu')
+                    ->get();
+            } else {
+                // Esquema legado: listar todos por competencia
+                $resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
+                    ->orderBy('id_resu')
+                    ->get();
+            }
+            if ($usaDuracion) {
+                // Mapear duraciones por resultado para este programa
+                foreach ($resultados as $res) {
+                    // Si la tabla duracion tiene id_prog_fk, filtrar por programa. Si no, usar join con matrs_ext
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('duracion', 'id_prog_fk')) {
+                        $dur = \DB::table('duracion')
+                            ->where('cod_resu_fk', $res->id_resu)
+                            ->where('id_prog_fk', $id_prog)
+                            ->orderByDesc('id_dura')
+                            ->first();
+                    } else {
+                        $dur = \DB::table('duracion as d')
+                            ->join('matrs_ext as m', 'm.id_resu_fk', '=', 'd.cod_resu_fk')
+                            ->where('m.cod_prog_fk', $id_prog)
+                            ->where('m.cod_com_fk', $competencia->cod_comp)
+                            ->where('d.cod_resu_fk', $res->id_resu)
+                            ->orderByDesc('d.id_dura')
+                            ->select('d.*')
+                            ->first();
+                    }
+                    $res->duracion_hora_max = $dur->duracion_hora_max ?? null;
+                    $res->duracion_hora_min = $dur->duracion_hora_min ?? null;
+                    $res->trim_prog = $dur->trim_prog ?? null;
+                    $res->hora_sema_programar = $dur->hora_sema_programar ?? null;
+                    $res->hora_trim_programar = $dur->hora_trim_programar ?? null;
+                }
+            }
+            $competencia->resultados = $resultados;
         }
         
         return view('matriz.show', compact('programa', 'competencias'));
@@ -67,10 +110,49 @@ class MatrizController extends Controller
                     ->get();
                 }
         
+        $usaDuracion = \Illuminate\Support\Facades\Schema::hasTable('duracion');
+        $usaMatrsExt = \Illuminate\Support\Facades\Schema::hasTable('matrs_ext');
         foreach ($competencias as $competencia) {
-            $competencia->resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
-                ->orderBy('id_resu')
-                ->get();
+            if ($usaMatrsExt) {
+                $resultados = Resultado::whereIn('id_resu', function($q) use ($id_prog, $competencia) {
+                        $q->select('id_resu_fk')
+                          ->from('matrs_ext')
+                          ->where('cod_prog_fk', $id_prog)
+                          ->where('cod_com_fk', $competencia->cod_comp);
+                    })
+                    ->orderBy('id_resu')
+                    ->get();
+            } else {
+                $resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
+                    ->orderBy('id_resu')
+                    ->get();
+            }
+            if ($usaDuracion) {
+                foreach ($resultados as $res) {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('duracion', 'id_prog_fk')) {
+                        $dur = \DB::table('duracion')
+                            ->where('cod_resu_fk', $res->id_resu)
+                            ->where('id_prog_fk', $id_prog)
+                            ->orderByDesc('id_dura')
+                            ->first();
+                    } else {
+                        $dur = \DB::table('duracion as d')
+                            ->join('matrs_ext as m', 'm.id_resu_fk', '=', 'd.cod_resu_fk')
+                            ->where('m.cod_prog_fk', $id_prog)
+                            ->where('m.cod_com_fk', $competencia->cod_comp)
+                            ->where('d.cod_resu_fk', $res->id_resu)
+                            ->orderByDesc('d.id_dura')
+                            ->select('d.*')
+                            ->first();
+                    }
+                    $res->duracion_hora_max = $dur->duracion_hora_max ?? null;
+                    $res->duracion_hora_min = $dur->duracion_hora_min ?? null;
+                    $res->trim_prog = $dur->trim_prog ?? null;
+                    $res->hora_sema_programar = $dur->hora_sema_programar ?? null;
+                    $res->hora_trim_programar = $dur->hora_trim_programar ?? null;
+                }
+            }
+            $competencia->resultados = $resultados;
         }
         
         // Crear Excel
@@ -235,20 +317,46 @@ class MatrizController extends Controller
 
     public function updateResultado(Request $request, $id_resu)
     {
-        // Permitir actualizar horas y trimestre; nombre se mantiene sin cambios
         $data = $request->validate([
-            'duracion_hora_max' => 'sometimes|integer|min:0',
-            'duracion_hora_min' => 'sometimes|integer|min:0',
-            'hora_sema_programar' => 'sometimes|integer|min:0',
-            'hora_trim_programar' => 'sometimes|integer|min:0',
-            'trim_prog' => 'sometimes|integer|min:1|max:7'
+            'duracion_hora_max' => 'required|integer|min:0',
+            'duracion_hora_min' => 'required|integer|min:0',
+            'hora_sema_programar' => 'nullable|integer|min:0',
+            'hora_trim_programar' => 'nullable|integer|min:0',
+            'trim_prog' => 'required|integer|min:1|max:7',
+            'id_prog' => 'nullable|integer' // id del programa desde la vista
         ]);
 
-        $resultado = Resultado::where('id_resu', $id_resu)->firstOrFail();
-        $resultado->fill($data);
-        $resultado->save();
+        // Insertar/actualizar horas en tabla duracion por programa
+        $usaDuracion = \Illuminate\Support\Facades\Schema::hasTable('duracion');
+        if (!$usaDuracion) {
+            return response()->json(['ok' => false, 'msg' => 'Tabla duracion no disponible']);
+        }
 
-        return response()->json(['ok' => true, 'resultado' => $resultado]);
+        $idProg = $data['id_prog'] ?? null;
+        if (!$idProg) {
+            // Si no llega en el request, inferir por matrs_ext (contexto del programa en la vista)
+            $idProg = \DB::table('matrs_ext')->where('id_resu_fk', $id_resu)->value('cod_prog_fk');
+        }
+
+        $payload = [
+            'duracion_hora_max' => $data['duracion_hora_max'],
+            'duracion_hora_min' => $data['duracion_hora_min'],
+            'trim_prog' => $data['trim_prog'],
+            'hora_sema_programar' => $data['hora_sema_programar'] ?? null,
+            'hora_trim_programar' => $data['hora_trim_programar'] ?? (($data['hora_sema_programar'] ?? null) !== null ? (($data['hora_sema_programar']) * 11) : null),
+            'cod_resu_fk' => $id_resu,
+        ];
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('duracion', 'id_prog_fk') && $idProg) {
+            $payload['id_prog_fk'] = $idProg;
+            // Insertar un nuevo registro (histórico) para este programa y resultado
+            \DB::table('duracion')->insert($payload);
+        } else {
+            // Esquema legado sin id_prog_fk: insert simple (afectará globalmente)
+            \DB::table('duracion')->insert($payload);
+        }
+
+        return response()->json(['ok' => true]);
     }
 }
 

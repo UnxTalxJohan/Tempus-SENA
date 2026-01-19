@@ -24,6 +24,8 @@
                 <span class="logo-text">CIDE                                            </span>
             </div>
 
+            @php($appAuthHeader = session('app_auth'))
+            @if($appAuthHeader && ($appAuthHeader['rol_id'] ?? 0) == 1)
             <div class="search-section">
                 <div class="header-search-box">
                     <i class="bi bi-search header-search-icon"></i>
@@ -37,33 +39,46 @@
                 </div>
                 <div class="global-suggestions" id="globalSuggestions" style="display: none;"></div>
             </div>
+            @endif
 
             <nav class="nav-section">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        Inicio
-                    </a>
-                    <a href="{{ route('matriz.index') }}" class="nav-link {{ request()->routeIs('matriz.*') ? 'active' : '' }}">
-                        Matriz
-                    </a>
-                    <a href="{{ route('excel.upload') }}" class="nav-link {{ request()->routeIs('excel.*') ? 'active' : '' }}">
-                        Cargar Excel
-                    </a>
+                @php($appAuth = session('app_auth'))
+                @if($appAuth && ($appAuth['rol_id'] ?? 0) == 1)
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Inicio</a>
+                    <a href="{{ route('matriz.index') }}" class="nav-link {{ request()->routeIs('matriz.*') ? 'active' : '' }}">Matriz</a>
+                    <a href="{{ route('excel.upload') }}" class="nav-link {{ request()->routeIs('excel.*') ? 'active' : '' }}">Cargar Excel</a>
                 @else
-                    <a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">
-                        Iniciar sesión
-                    </a>
-                @endauth
+                    @if(!request()->routeIs('login'))
+                        <a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">Iniciar sesión</a>
+                    @endif
+                @endif
             </nav>
 
             <div class="user-section" style="display:flex; align-items:center; gap:12px;">
-                @auth
-                    <span class="nav-link" style="opacity:0.8;">Hola, {{ auth()->user()->name }}</span>
-                    <form id="logoutForm" method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="nav-link" style="border:none; background:none; cursor:pointer;">Cerrar sesión</button>
-                    </form>
-                @endauth
+                @php($appAuth = session('app_auth'))
+                @if($appAuth && ($appAuth['rol_id'] ?? 0) == 1)
+                    <div class="user-menu" id="userMenu">
+                        <button class="user-avatar" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" title="Cuenta">
+                            <i class="bi bi-person-circle" aria-hidden="true" style="font-size:22px;"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown" style="display:none;">
+                            <div class="user-info" style="padding:6px 10px 8px 10px;">
+                                <div class="user-name" style="font-weight:600;">{{ $appAuth['nombre'] ?? 'admin' }}</div>
+                                @if(!empty($appAuth['email']))
+                                <div class="user-mail" style="opacity:.75; font-size:12px;">{{ $appAuth['email'] }}</div>
+                                @endif
+                            </div>
+                            <div style="height:1px; background:#eee; margin:6px 0;"></div>
+                            <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="dropdown-item" style="width:100%; text-align:left; background:none; border:none; padding:8px 10px; border-radius:8px; cursor:pointer;">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true" style="margin-right:8px;"></i>
+                                    Cerrar sesión
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </header>
@@ -180,6 +195,25 @@
             toast.querySelector('.toast-close').addEventListener('click', remove);
             setTimeout(remove, 3500);
         };
+
+        // === MENÚ DE USUARIO ===
+        (function(){
+            const btn = document.getElementById('userMenuBtn');
+            const dd = document.getElementById('userDropdown');
+            if (!btn || !dd) return;
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const open = dd.style.display === 'block';
+                dd.style.display = open ? 'none' : 'block';
+                btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+            });
+            document.addEventListener('click', (e) => {
+                if (!dd.contains(e.target) && !btn.contains(e.target)) {
+                    dd.style.display = 'none';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
     </script>
 </body>
 </html>

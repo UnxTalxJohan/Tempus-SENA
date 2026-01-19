@@ -7,7 +7,7 @@ CREATE TABLE programa (
     nombre VARCHAR(255),
     version INT(255),
     nivel VARCHAR(255),
-    cant VARCHAR(255),
+    cant_trim VARCHAR(255),
     PRIMARY KEY (id_prog),
     INDEX(id_prog)
 ) ENGINE=InnoDB;
@@ -42,13 +42,25 @@ CREATE TABLE resultado (
     id_resu INT NOT NULL AUTO_INCREMENT,
     cod_resu INT NOT NULL,
     nombre VARCHAR(255),
-    horas INT,
     cod_comp_fk INT NOT NULL,
     PRIMARY KEY (id_resu),
     INDEX(id_resu),
     INDEX(cod_resu),
     INDEX(cod_comp_fk),
     FOREIGN KEY (cod_comp_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+create Table duracion (
+    id_dura int not NULL AUTO_INCREMENT PRIMARY KEY,
+    duracion_hora_max INT,
+    duracion_hora_min INT,
+    trim_prog INT,
+    hora_sema_programar INT,
+    hora_trim_programar INT,
+    cod_resu_fk INT NOT NULL, INDEX(cod_resu_fk),
+    id_prog_fk INT NOT NULL, INDEX(id_prog_fk),
+    FOREIGN KEY (cod_resu_fk) REFERENCES resultado(id_resu) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_prog_fk) REFERENCES programa(id_prog) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE matrs_ext (
@@ -61,6 +73,7 @@ CREATE TABLE matrs_ext (
     INDEX(cod_prog_fk),
     INDEX(cod_com_fk),
     INDEX(id_resu_fk),
+    UNIQUE KEY uniq_matrs_ext (cod_prog_fk, cod_com_fk, id_resu_fk),
     FOREIGN KEY (cod_prog_fk) REFERENCES programa(id_prog) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (cod_com_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_resu_fk) REFERENCES resultado(id_resu) ON DELETE CASCADE ON UPDATE CASCADE
@@ -127,5 +140,15 @@ CREATE TABLE evento (
     FOREIGN KEY (cc_fk) REFERENCES usuario(cc) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (cod_amb_fk) REFERENCES ambiente(cod_amb) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_resu_fk) REFERENCES resultado(id_resu) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB; 
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS programa_competencia (
+  id_prog_fk INT NOT NULL,
+  cod_comp_fk INT NOT NULL,
+  PRIMARY KEY (id_prog_fk, cod_comp_fk),
+  INDEX (id_prog_fk),
+  INDEX (cod_comp_fk)
+);
+INSERT IGNORE INTO programa_competencia (id_prog_fk, cod_comp_fk)
+  SELECT id_prog_fk, cod_comp FROM competencia;
 

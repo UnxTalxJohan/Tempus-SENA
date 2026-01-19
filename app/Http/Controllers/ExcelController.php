@@ -66,6 +66,9 @@ class ExcelController extends Controller
             $competencias = [];
             $competenciaActual = null; // Para manejar celdas fusionadas
             
+            $usaTablaDuracion = Schema::hasTable('duracion');
+            $usaMatrsExt = Schema::hasTable('matrs_ext');
+
             for ($fila = 4; $fila <= $filaMaxima; $fila++) {
                 // Leer datos de competencia
                 $nombre_comp = trim($sheet->getCell("E$fila")->getValue());
@@ -137,6 +140,10 @@ class ExcelController extends Controller
             
             $spreadsheet = IOFactory::load($fullPath);
             $sheet = $spreadsheet->getActiveSheet();
+
+            // Detectar tablas auxiliares presentes en la BD
+            $usaTablaDuracion = Schema::hasTable('duracion');
+            $usaMatrsExt = Schema::hasTable('matrs_ext');
             
             // Insertar programa (fila 4, columnas A-D)
             $programa = new Programa();
@@ -200,26 +207,72 @@ class ExcelController extends Controller
                 // Insertar resultado (usar competencia actual si la celda está fusionada)
                 $nombre_resultado = trim($sheet->getCell("H$fila")->getValue());
                 if (!empty($nombre_resultado) && $competenciaActual !== null) {
-                    // Evitar duplicar resultados por competencia (mismo nombre)
-                    $nombreCorto = substr($nombre_resultado, 0, 255);
-                    $existeRes = Resultado::where('cod_comp_fk', $competenciaActual)
+                    // Normalizar nombre: trim + colapsar espacios
+                    $nombreNormalizado = preg_replace('/\s+/u', ' ', trim($nombre_resultado));
+                    $nombreCorto = mb_substr($nombreNormalizado, 0, 255);
+                    // Obtener o crear resultado por competencia + nombre
+                    $resultado = Resultado::where('cod_comp_fk', $competenciaActual)
                         ->where('nombre', $nombreCorto)
-                        ->exists();
-                    if (!$existeRes) {
+                        ->first();
+                    if (!$resultado) {
                         $resultado = new Resultado();
                         $resultado->cod_resu = 0;
                         $resultado->nombre = $nombreCorto;
-                        $resultado->duracion_hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
-                        $resultado->duracion_hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
-                        $resultado->trim_prog = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
-                        $l_val = $sheet->getCell("L$fila")->getCalculatedValue();
-                        $resultado->hora_sema_programar = ($l_val === null || $l_val === '') ? null : $l_val;
-                        // Calcular hora_trim_programar (L * 11) sólo si hay H/Sem
-                        $resultado->hora_trim_programar = ($resultado->hora_sema_programar !== null)
-                            ? ($resultado->hora_sema_programar * 11)
-                            : null;
                         $resultado->cod_comp_fk = $competenciaActual;
+                        if (!$usaTablaDuracion) {
+                            // Esquema legado: guardar horas en la misma tabla
+                            $resultado->duracion_hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
+                            $resultado->duracion_hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
+                            $resultado->trim_prog = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
+                            $l_val2 = $sheet->getCell("L$fila")->getCalculatedValue();
+                            $resultado->hora_sema_programar = ($l_val2 === null || $l_val2 === '') ? null : $l_val2;
+                            $resultado->hora_trim_programar = ($resultado->hora_sema_programar !== null)
+                                ? ($resultado->hora_sema_programar * 11)
+                                : null;
+                        }
                         $resultado->save();
+                    }
+
+                    // Enlazar en matrs_ext para este programa-competencia-resultado
+                    if ($usaMatrsExt) {
+                        $existeMx = DB::table('matrs_ext')
+                            ->where('cod_prog_fk', $programa->id_prog)
+                            ->where('cod_com_fk', $competenciaActual)
+                            ->where('id_resu_fk', $resultado->id_resu)
+                            ->exists();
+                        if (!$existeMx) {
+                            DB::table('matrs_ext')->insert([
+                                'cod_prog_fk' => $programa->id_prog,
+                                'cod_com_fk' => $competenciaActual,
+                                'id_resu_fk' => $resultado->id_resu,
+                            ]);
+                        }
+                    }
+
+                    // Guardar horas específicas de esta matriz en tabla 'duracion' si existe
+                    if ($usaTablaDuracion) {
+                        $d_i = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
+                        $d_j = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
+                        $d_k = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
+                        $l_val = $sheet->getCell("L$fila")->getCalculatedValue();
+                        $h_sem = ($l_val === null || $l_val === '') ? null : $l_val;
+                        $h_trim = ($h_sem !== null) ? ($h_sem * 11) : null;
+
+                        $payload = [
+                            'duracion_hora_max' => $d_i,
+                            'duracion_hora_min' => $d_j,
+                            'trim_prog' => $d_k,
+                            'hora_sema_programar' => $h_sem,
+                            'hora_trim_programar' => $h_trim,
+                            'cod_resu_fk' => $resultado->id_resu,
+                        ];
+                        // Si existe columna id_prog_fk en duracion, la registramos
+                        if (Schema::hasColumn('duracion', 'id_prog_fk')) {
+                            $payload['id_prog_fk'] = $programa->id_prog;
+                        }
+                        // Insertar siempre la fila de duracion, aun si viene vacía,
+                        // para permitir completar horas luego desde el sistema.
+                        DB::table('duracion')->insert($payload);
                     }
                 }
             }
@@ -231,7 +284,7 @@ class ExcelController extends Controller
                 unlink($fullPath);
             }
             
-            return redirect()->route('home')
+            return redirect()->route('matriz.show', ['id_prog' => $programa->id_prog])
                 ->with('success', '✅ Programa cargado exitosamente: ' . $programa->nombre);
                 
         } catch (\Exception $e) {
