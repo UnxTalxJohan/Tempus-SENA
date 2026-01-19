@@ -21,7 +21,11 @@
             Accent de navegador en móviles: tema verde
             ----------------------------------- -->
         <meta name="theme-color" content="#00A859">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+        <!-- -----------------------------------
+            Versionado CSS para evitar caché del navegador
+            (si cambian estilos, agrega un sufijo distinto)
+            ----------------------------------- -->
+        <link href="{{ asset('css/style.css') }}?v=login-center-1" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
@@ -37,7 +41,7 @@
         <div class="header-container">
             <div class="logo-section">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">
-                <span class="logo-text">Tempus-SENA</span>
+                <span class="logo-text">CIDE</span>
             </div>
 
             @php($appAuthHeader = session('app_auth'))

@@ -1201,9 +1201,16 @@ table td {
    AUTH (LOGIN)
    ============================================ */
 .auth-wrapper {
+    /* -----------------------------------
+       Centrado del login en la pantalla
+       ----------------------------------- */
     max-width: 1000px;
-    margin: 60px auto;
+    margin: 0 auto;
     padding: 10px;
+    min-height: calc(100vh - 120px); /* resta header y margen superior */
+    display: flex;
+    align-items: center;  /* centra vertical */
+    justify-content: center; /* centra horizontal */
 }
 
 .auth-card {
