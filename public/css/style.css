@@ -674,6 +674,16 @@ table td {
 }
 
 .alert-success {
+.auth-left::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url('/images/tech-amalgama.svg') center / cover no-repeat;
+    opacity: 0.14; /* Sutil y no invasivo */
+    z-index: 0; /* por debajo del overlay y contenido */
+    pointer-events: none;
+}
+
     background: #d4edda;
     border-left: 4px solid #28a745;
     color: #155724;
