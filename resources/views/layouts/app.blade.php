@@ -25,7 +25,7 @@
             Versionado CSS para evitar caché del navegador
             (si cambian estilos, agrega un sufijo distinto)
             ----------------------------------- -->
-        <link href="{{ asset('css/style.css') }}?v=login-art-1" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=login-art-2" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
@@ -41,7 +41,7 @@
         <div class="header-container">
             <div class="logo-section">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">
-                <span class="logo-text">CIDE</span>
+                <span class="logo-text">Tempus-SENA</span>
             </div>
 
             @php($appAuthHeader = session('app_auth'))

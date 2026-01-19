@@ -674,16 +674,6 @@ table td {
 }
 
 .alert-success {
-.auth-left::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url('/images/tech-amalgama.svg') center / cover no-repeat;
-    opacity: 0.14; /* Sutil y no invasivo */
-    z-index: 0; /* por debajo del overlay y contenido */
-    pointer-events: none;
-}
-
     background: #d4edda;
     border-left: 4px solid #28a745;
     color: #155724;
@@ -2099,6 +2089,15 @@ input[type="file"] {
     /* Diseño predeterminado: azul claro con difuminado a blanco */
     background: linear-gradient(135deg, #dceeff 0%, #f4f9ff 45%, #ffffff 80%);
 }
+.auth-left::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url('/images/tech-amalgama.svg') center / cover no-repeat;
+    opacity: 0.14; /* Sutil y no invasivo */
+    z-index: 0; /* por debajo del overlay y contenido */
+    pointer-events: none;
+}
 .auth-left::after {
     content: "";
     position: absolute;
@@ -2151,13 +2150,8 @@ input[type="file"] {
     user-select: none;
     mix-blend-mode: normal;
     z-index: 5;
-    animation: wmFloat 10s ease-in-out infinite;
 }
-@keyframes wmFloat {
-    0%   { transform: translateY(0) rotate(-2deg); }
-    50%  { transform: translateY(-6px) rotate(1deg); }
-    100% { transform: translateY(0) rotate(-2deg); }
-}
+/* (sin animación para evitar movimiento) */
 @media (max-width: 520px) {
   .auth-watermark { display: none; }
 }
