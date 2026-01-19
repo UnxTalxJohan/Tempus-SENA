@@ -25,7 +25,7 @@
             Versionado CSS para evitar caché del navegador
             (si cambian estilos, agrega un sufijo distinto)
             ----------------------------------- -->
-        <link href="{{ asset('css/style.css') }}?v=header-left-4" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=footer-1" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
@@ -107,6 +107,25 @@
     <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     @yield('content')
+
+    <!-- -----------------------------------
+         Footer global: línea gris + barra verde
+         Aparece en todas las vistas (como el header)
+         ----------------------------------- -->
+    <footer class="global-footer" role="contentinfo">
+        <div class="footer-sep" aria-hidden="true"></div>
+        <div class="footer-bar">
+            <div class="footer-container">
+                <div class="footer-left">
+                    <img src="{{ asset('images/logo-sena.svg') }}" alt="" aria-hidden="true">
+                    <span class="footer-brand">Tempus-SENA</span>
+                </div>
+                <div class="footer-right">
+                    <span>© {{ date('Y') }} SENA</span>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // === PANTALLA DE CARGA GLOBAL ===

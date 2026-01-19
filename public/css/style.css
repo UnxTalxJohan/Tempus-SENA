@@ -244,6 +244,30 @@ body {
     flex-shrink: 0;
 }
 
+/* ============================================
+   FOOTER GLOBAL (línea gris + barra verde)
+   ============================================ */
+.global-footer { margin-top: 20px; }
+.footer-sep { height: 2px; background: #e0e0e0; }
+.footer-bar {
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
+    color: #ffffff;
+}
+.footer-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.footer-left { display: flex; align-items: center; gap: 10px; }
+.footer-left img { height: 22px; width: auto; filter: brightness(0) invert(1); }
+.footer-brand { font-weight: 700; letter-spacing: .3px; }
+.footer-right { font-size: 12px; opacity: .95; }
+
 .logo-section img {
     height: 50px;
     width: auto;
