@@ -217,12 +217,13 @@ body {
 }
 
 .header-container {
-    max-width: 1400px;
-    margin: 0 auto;
     /* -----------------------------------
-       Header: acercar logo/texto al borde izquierdo
+       Header ancho completo para pegar el logo a la izquierda
        ----------------------------------- */
-    padding: 0 20px 0 8px; /* menos relleno a la izquierda */
+    width: 100%;
+    max-width: none;
+    margin: 0; /* evita centrado del contenedor */
+    padding: 0 16px 0 6px; /* relleno mínimo a la izquierda */
     height: 100%;
     display: flex;
     align-items: center;
