@@ -2027,9 +2027,10 @@ input[type="file"] {
    ============================================ */
 .auth-split-card {
      /* -----------------------------------
-         Ancho del login (más largo, lados iguales)
+         Ancho del cuadro de login (fluido + tope mayor)
          ----------------------------------- */
-     max-width: 1240px;
+     width: min(96vw, 1360px); /* ocupar más espacio en pantallas grandes */
+     max-width: 1360px;
     margin: 0 auto;
     background: #ffffff;
     border-radius: 16px;
