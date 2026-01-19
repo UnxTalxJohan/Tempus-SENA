@@ -219,12 +219,15 @@ body {
 .header-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 30px;
+    /* -----------------------------------
+       Header: acercar logo/texto al borde izquierdo
+       ----------------------------------- */
+    padding: 0 20px 0 8px; /* menos relleno a la izquierda */
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 30px;
+    gap: 24px;
 }
 /* User section additions */
 .user-menu{ position:relative; }
@@ -235,7 +238,8 @@ body {
 .logo-section {
     display: flex;
     align-items: center;
-    gap: 15px;
+    /* más compacto para que quede “casi pegado” */
+    gap: 10px;
     flex-shrink: 0;
 }
 
