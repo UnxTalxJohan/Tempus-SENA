@@ -2093,9 +2093,9 @@ input[type="file"] {
     content: "";
     position: absolute;
     inset: 0;
-    background: url('/images/tech-amalgama.svg') left center / 115% no-repeat;
-    opacity: 0.36; /* más visible, sin ser invasivo */
-    mix-blend-mode: multiply; /* se integra con el degradado */
+    background: url('/images/tech-amalgama.svg') left 12% center / 220% no-repeat;
+    opacity: 0.55; /* mucho más visible sin ser agresivo */
+    mix-blend-mode: overlay; /* aumenta contraste y color */
     z-index: 0; /* por debajo del overlay y contenido */
     pointer-events: none;
 }
@@ -2103,8 +2103,8 @@ input[type="file"] {
     content: "";
     position: absolute;
     inset: 0;
-    /* Velo aún más tenue para no tapar el SVG */
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.14));
+    /* Velo muy tenue para no tapar el SVG */
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.10));
     z-index: 1;
 }
 .auth-left-overlay {
