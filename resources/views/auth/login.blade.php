@@ -40,10 +40,6 @@
                     </div>
                 </div>
                 <div class="auth-remember">
-                    <label class="auth-check">
-                        <input type="checkbox" id="remember" name="remember">
-                        <span>Recordarme</span>
-                    </label>
                     <a class="auth-link" href="#" onclick="forgotPassword(event)">¿Olvidaste tu contraseña?</a>
                 </div>
                 <button type="submit" class="auth-btn">Entrar</button>
