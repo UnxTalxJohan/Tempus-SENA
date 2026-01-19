@@ -247,7 +247,10 @@ body {
 /* ============================================
     FOOTER GLOBAL (línea gris + barra verde)
     ============================================ */
-.global-footer { margin-top: 28px; }
+.global-footer {
+    /* Separación muy amplia para que la línea no se vea de inicio */
+    margin-top: clamp(120px, 18vh, 220px);
+}
 /* -----------------------------------
     Línea separadora más delgada
     ----------------------------------- */
