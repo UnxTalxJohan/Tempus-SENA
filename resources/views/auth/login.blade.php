@@ -4,7 +4,6 @@
 <div class="auth-wrapper">
     <div class="auth-split-card">
         <div class="auth-left">
-            <div class="auth-carousel" id="authCarousel"></div>
             <div class="auth-left-overlay"></div>
         </div>
         <div class="auth-right">
@@ -80,11 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
     (left || document.body).appendChild(wm);
 });
 
-// === CARRUSEL DIAGONAL EN PANEL IZQUIERDO ===
+// === CARRUSEL DIAGONAL DE FONDO (GLOBAL) ===
 document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('authCarousel');
+    const el = document.getElementById('bgCarousel');
     if (!el) return;
-    // Lista inicial de imágenes (se puede ampliar con sedes)
     const images = [
         '{{ asset('images/fondo-futurista-tecno-lineas-malla-baja-poli-comunicacion-datos_1017-60106.avif') }}',
         '{{ asset('images/tech-contrast.svg') }}'
@@ -93,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const setImage = (url) => {
         el.style.opacity = '0';
         setTimeout(() => {
-            el.style.backgroundImage = `url("${url}")`;
+            el.style.backgroundImage = `url(\"${url}\")`;
             el.style.opacity = '1';
         }, 180);
     };

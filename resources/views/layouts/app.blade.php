@@ -25,7 +25,7 @@
             Versionado CSS para evitar caché del navegador
             (si cambian estilos, agrega un sufijo distinto)
             ----------------------------------- -->
-        <link href="{{ asset('css/style.css') }}?v=login-art-8" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=login-art-9" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
@@ -36,6 +36,11 @@
             <div class="spinner"></div>
         </div>
     </div>
+
+    @if(request()->routeIs('login'))
+    <!-- Fondo carrusel diagonal global solo en login -->
+    <div class="bg-carousel" id="bgCarousel" aria-hidden="true"></div>
+    @endif
 
     <header class="global-header">
         <div class="header-container">
