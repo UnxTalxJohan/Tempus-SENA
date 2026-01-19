@@ -41,7 +41,7 @@
         <div class="header-container">
             <div class="logo-section">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">
-                <span class="logo-text">Tempus-SENA</span>
+                <span class="logo-text">CIDE</span>
             </div>
 
             @php($appAuthHeader = session('app_auth'))
