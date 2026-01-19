@@ -25,7 +25,7 @@
             Versionado CSS para evitar caché del navegador
             (si cambian estilos, agrega un sufijo distinto)
             ----------------------------------- -->
-        <link href="{{ asset('css/style.css') }}?v=login-center-1" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=login-center-2" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
