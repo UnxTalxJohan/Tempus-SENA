@@ -2094,7 +2094,7 @@ input[type="file"] {
     position: absolute;
     inset: 0;
     background: url('/images/tech-amalgama.svg') left center / 115% no-repeat;
-    opacity: 0.22; /* un poco más visible, aún sutil */
+    opacity: 0.36; /* más visible, sin ser invasivo */
     mix-blend-mode: multiply; /* se integra con el degradado */
     z-index: 0; /* por debajo del overlay y contenido */
     pointer-events: none;
