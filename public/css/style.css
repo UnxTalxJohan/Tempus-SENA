@@ -18,7 +18,8 @@ body {
 .bg-carousel {
     position: fixed;
     inset: 0;
-    clip-path: polygon(0 0, 100% 0, 0 100%); /* mitad diagonal */
+    /* Mitad diagonal centrada, de esquina a esquina (TL -> BR) */
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;

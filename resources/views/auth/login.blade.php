@@ -84,8 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('bgCarousel');
     if (!el) return;
     const images = [
-        '{{ asset('images/fondo-futurista-tecno-lineas-malla-baja-poli-comunicacion-datos_1017-60106.avif') }}',
-        '{{ asset('images/tech-contrast.svg') }}'
+        '{{ asset('images/Sede_Principal_Soacha.jpg') }}',
+        '{{ asset('images/Sena cide ciudad verde.jpg') }}',
+        '{{ asset('images/sena cide ciudad verde 2.jpg') }}',
+        '{{ asset('images/sede cazuca sena.jpeg') }}'
     ];
     let idx = 0;
     const setImage = (url) => {
