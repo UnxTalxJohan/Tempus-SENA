@@ -4,6 +4,7 @@
 <div class="auth-wrapper">
     <div class="auth-split-card">
         <div class="auth-left">
+            <div class="auth-carousel" id="authCarousel"></div>
             <div class="auth-left-overlay"></div>
         </div>
         <div class="auth-right">
@@ -77,6 +78,30 @@ document.addEventListener('DOMContentLoaded', () => {
     wm.textContent = 'Tempus-SENA';
     const left = document.querySelector('.auth-left');
     (left || document.body).appendChild(wm);
+});
+
+// === CARRUSEL DIAGONAL EN PANEL IZQUIERDO ===
+document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('authCarousel');
+    if (!el) return;
+    // Lista inicial de imágenes (se puede ampliar con sedes)
+    const images = [
+        '{{ asset('images/fondo-futurista-tecno-lineas-malla-baja-poli-comunicacion-datos_1017-60106.avif') }}',
+        '{{ asset('images/tech-contrast.svg') }}'
+    ];
+    let idx = 0;
+    const setImage = (url) => {
+        el.style.opacity = '0';
+        setTimeout(() => {
+            el.style.backgroundImage = `url("${url}")`;
+            el.style.opacity = '1';
+        }, 180);
+    };
+    setImage(images[idx]);
+    setInterval(() => {
+        idx = (idx + 1) % images.length;
+        setImage(images[idx]);
+    }, 6000);
 });
 </script>
 @endsection

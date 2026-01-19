@@ -2110,6 +2110,18 @@ input[type="file"] {
     z-index: 0; /* por debajo del overlay y contenido */
     pointer-events: none;
 }
+/* Carrusel diagonal: muestra mitad del panel con clip-path */
+.auth-carousel {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transition: opacity .4s ease;
+    z-index: 0;
+    opacity: 1;
+}
 .auth-left::after {
     content: "";
     position: absolute;
