@@ -26,7 +26,7 @@ body.login-page {
     --cut-top: 50%;
     --cut-bottom: 50%;
     pointer-events: none;
-    z-index: 0; /* contenido encima */
+    z-index: -1; /* siempre detrás de todo, footer incluido */
 }
 /* Capas del carrusel: dos imágenes simultáneas con corte diagonal centrado */
 .bgc-layer {
