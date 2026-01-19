@@ -18,15 +18,28 @@ body {
 .bg-carousel {
     position: fixed;
     inset: 0;
-    /* Mitad diagonal centrada, de esquina a esquina (TL -> BR) */
-    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    /* Variables para ajustar la línea diagonal (top y bottom X%) */
+    --cut-top: 56%;
+    --cut-bottom: 72%;
+    pointer-events: none;
+    z-index: 0; /* contenido encima */
+}
+/* Capas del carrusel: dos imágenes simultáneas con corte diagonal centrado */
+.bgc-layer {
+    position: absolute;
+    inset: 0;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    transition: opacity .4s ease;
-    pointer-events: none;
-    z-index: 0; /* contenido encima */
-    opacity: 1;
+    transition: opacity .6s ease, filter .6s ease;
+    opacity: .70; /* se ve el verde de fondo */
+    filter: blur(2px);
+}
+.bgc-left { /* área izquierda hasta la línea diagonal */
+    clip-path: polygon(0 0, var(--cut-top) 0, var(--cut-bottom) 100%, 0 100%);
+}
+.bgc-right { /* área derecha complementaria */
+    clip-path: polygon(var(--cut-top) 0, 100% 0, 100% 100%, var(--cut-bottom) 100%);
 }
 
 /* ============================================

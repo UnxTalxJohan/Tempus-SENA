@@ -81,8 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // === CARRUSEL DIAGONAL DE FONDO (GLOBAL) ===
 document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('bgCarousel');
-    if (!el) return;
+    const left = document.getElementById('bgcLeft');
+    const right = document.getElementById('bgcRight');
+    if (!left || !right) return;
     const images = [
         '{{ asset('images/Sede_Principal_Soacha.jpg') }}',
         '{{ asset('images/Sena cide ciudad verde.jpg') }}',
@@ -90,17 +91,22 @@ document.addEventListener('DOMContentLoaded', () => {
         '{{ asset('images/sede cazuca sena.jpeg') }}'
     ];
     let idx = 0;
-    const setImage = (url) => {
-        el.style.opacity = '0';
+    const apply = (el, url) => {
+        el.style.filter = 'blur(6px)';
+        el.style.opacity = '.45';
         setTimeout(() => {
             el.style.backgroundImage = `url(\"${url}\")`;
-            el.style.opacity = '1';
-        }, 180);
+            el.style.filter = 'blur(2px)';
+            el.style.opacity = '.70';
+        }, 220);
     };
-    setImage(images[idx]);
+    // Inicial: dos imágenes distintas simultáneamente
+    apply(left, images[idx]);
+    apply(right, images[(idx + 1) % images.length]);
     setInterval(() => {
         idx = (idx + 1) % images.length;
-        setImage(images[idx]);
+        apply(left, images[idx]);
+        apply(right, images[(idx + 1) % images.length]);
     }, 6000);
 });
 </script>
