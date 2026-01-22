@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <!-- Ondas geométricas diagonales en verdes, con transparencia sutil -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#39A900" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#00853F" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2E8F00" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#00753A" stop-opacity="0.10"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="none"/>
+  <!-- Cintas diagonales superpuestas -->
+  <path d="M0,240 C320,120 640,180 960,240 C1280,300 1600,360 1920,300 L1920,0 L0,0 Z" fill="url(#grad1)"/>
+  <path d="M0,540 C360,420 720,480 1080,540 C1440,600 1680,660 1920,600 L1920,280 L0,280 Z" fill="url(#grad2)"/>
+  <path d="M0,900 C400,780 800,840 1200,900 C1600,960 1760,1020 1920,960 L1920,560 L0,560 Z" fill="url(#grad1)"/>
+  <!-- Líneas suaves para textura -->
+  <g stroke="#006b3a" stroke-opacity="0.12" stroke-width="2" fill="none">
+    <path d="M0,220 C360,140 720,200 1080,260 C1440,320 1680,380 1920,340"/>
+    <path d="M0,520 C360,440 720,500 1080,560 C1440,620 1680,680 1920,640"/>
+    <path d="M0,880 C360,800 720,860 1080,920 C1440,980 1680,1040 1920,1000"/>
+  </g>
+</svg>

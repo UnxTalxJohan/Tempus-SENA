@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Halftone de puntos estilo cómic: distribución irregular y tamaños variados -->
+  <rect width="128" height="128" fill="none"/>
+  <g fill="#005e2f" fill-opacity="0.22">
+    <!-- fila 1 -->
+    <circle cx="8" cy="10" r="5"/>
+    <circle cx="26" cy="8" r="3.5"/>
+    <circle cx="44" cy="12" r="4.5"/>
+    <circle cx="64" cy="9" r="6"/>
+    <circle cx="84" cy="13" r="3.2"/>
+    <circle cx="104" cy="7" r="4.8"/>
+    <circle cx="120" cy="11" r="3.8"/>
+    <!-- fila 2 -->
+    <circle cx="14" cy="28" r="3.2"/>
+    <circle cx="32" cy="24" r="4.8"/>
+    <circle cx="52" cy="30" r="3.7"/>
+    <circle cx="72" cy="26" r="5.5"/>
+    <circle cx="90" cy="32" r="4.0"/>
+    <circle cx="110" cy="28" r="3.0"/>
+    <!-- fila 3 -->
+    <circle cx="8" cy="48" r="4.2"/>
+    <circle cx="26" cy="44" r="5.2"/>
+    <circle cx="46" cy="50" r="3.4"/>
+    <circle cx="66" cy="46" r="6.8"/>
+    <circle cx="86" cy="52" r="4.4"/>
+    <circle cx="106" cy="46" r="5.0"/>
+    <!-- fila 4 -->
+    <circle cx="16" cy="68" r="3.6"/>
+    <circle cx="34" cy="64" r="4.6"/>
+    <circle cx="54" cy="70" r="5.8"/>
+    <circle cx="74" cy="66" r="3.2"/>
+    <circle cx="92" cy="72" r="4.9"/>
+    <circle cx="112" cy="68" r="3.5"/>
+    <!-- fila 5 -->
+    <circle cx="10" cy="88" r="5.4"/>
+    <circle cx="28" cy="84" r="3.1"/>
+    <circle cx="48" cy="90" r="4.7"/>
+    <circle cx="68" cy="86" r="6.2"/>
+    <circle cx="88" cy="92" r="3.6"/>
+    <circle cx="108" cy="86" r="5.4"/>
+    <!-- fila 6 -->
+    <circle cx="18" cy="108" r="3.8"/>
+    <circle cx="36" cy="104" r="5.6"/>
+    <circle cx="56" cy="110" r="4.1"/>
+    <circle cx="76" cy="106" r="6.0"/>
+    <circle cx="96" cy="112" r="3.3"/>
+    <circle cx="116" cy="106" r="4.9"/>
+    <!-- variaciones diagonales para evitar patrón regular -->
+    <circle cx="22" cy="18" r="2.8"/>
+    <circle cx="40" cy="36" r="2.6"/>
+    <circle cx="58" cy="54" r="3.2"/>
+    <circle cx="76" cy="72" r="2.9"/>
+    <circle cx="94" cy="90" r="3.1"/>
+    <circle cx="112" cy="108" r="2.7"/>
+  </g>
+</svg>

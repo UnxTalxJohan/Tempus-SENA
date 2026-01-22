@@ -31,7 +31,16 @@
         <link href="{{ asset('css/style.css') }}?v=login-art-52" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body class="{{ request()->routeIs('login') ? 'login-page' : '' }}">
+@php($bgStyle = (request()->routeIs('dashboard') ? (request('bg') ?: (session('bg_style') ?? 'bubbles')) : (session('bg_style') ?? 'bubbles')))
+@if(request()->routeIs('dashboard') && request('bg'))
+    @php(session(['bg_style' => request('bg')]))
+@endif
+@php($bodyClass = request()->routeIs('login')
+    ? 'login-page'
+    : (session('app_auth')
+        ? ((request()->routeIs('dashboard') ? 'dashboard-page ' : '') . 'auth-page auth-bg-' . $bgStyle)
+        : ''))
+<body class="{{ $bodyClass }}">
     <!-- Pantalla de Carga Global -->
     <div class="global-loader" id="globalLoader">
         <div class="loader-content">
@@ -125,7 +134,7 @@
          Footer global: línea gris + barra verde
          Aparece en todas las vistas (como el header)
          ----------------------------------- -->
-    <footer class="global-footer" role="contentinfo">
+    <footer class="global-footer {{ session('app_auth') ? 'inverted' : '' }}" role="contentinfo">
         <div class="footer-sep" aria-hidden="true"></div>
         <div class="footer-bar">
             <div class="footer-container">
