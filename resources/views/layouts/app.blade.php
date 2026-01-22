@@ -25,7 +25,10 @@
             Versionado CSS para evitar caché del navegador
             (si cambian estilos, agrega un sufijo distinto)
             ----------------------------------- -->
-        <link href="{{ asset('css/style.css') }}?v=login-art-16" rel="stylesheet">
+        <!-- Fuentes: Inter (moderna) y Cormorant (legacy, fallback opcional) -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=login-art-52" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body class="{{ request()->routeIs('login') ? 'login-page' : '' }}">
@@ -41,11 +44,13 @@
     <!-- Fondo carrusel diagonal global solo en login -->
     <div class="bg-carousel" id="bgCarousel" aria-hidden="true">
         <div class="bgc-layer bgc-left" id="bgcLeft"></div>
+        <!-- Banda diagonal centrada en la separación -->
+        <div class="bgc-slit"></div>
         <div class="bgc-layer bgc-right" id="bgcRight"></div>
     </div>
     @endif
 
-    <header class="global-header">
+    <header class="global-header {{ session('app_auth') ? 'inverted' : '' }}">
         <div class="header-container">
             <div class="logo-section">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">

@@ -23,8 +23,8 @@ body.login-page {
     position: fixed;
     inset: 0;
     /* Variables para ajustar la línea diagonal (top y bottom X%) */
-    --cut-top: 48%;
-    --cut-bottom: 52%;
+    --cut-top: 44%;
+    --cut-bottom: 54%;
     pointer-events: none;
     z-index: 0; /* detrás del contenido pero encima del fondo del body */
 }
@@ -37,7 +37,28 @@ body.login-page {
     background-repeat: no-repeat;
     transition: opacity .6s ease, filter .6s ease;
     opacity: .70;
-    filter: blur(2px);
+    filter: none; /* sin blur en las imágenes de fondo */
+    z-index: 0;
+}
+
+/* Banda diagonal centrada: imagen blanca siguiendo la separación */
+.bgc-slit {
+    position: absolute;
+    inset: 0;
+    /* Reducir a la mitad y desplazar hacia el lado derecho */
+    --slit-width: 18%;
+    /* Banda blanca sólida */
+    background: #ffffff;
+    /* Banda diagonal ubicada a la derecha de la línea de corte */
+    clip-path: polygon(
+        var(--cut-top) 0,
+        calc(var(--cut-top) + var(--slit-width)) 0,
+        calc(var(--cut-bottom) + var(--slit-width)) 100%,
+        var(--cut-bottom) 100%
+    );
+    opacity: 1; /* sólido blanco, sin transparencia */
+    z-index: 1; /* por encima de .bgc-layer, detrás del contenido */
+    pointer-events: none;
 }
 
 /* Asegurar que el footer quede por encima del fondo */
@@ -47,6 +68,9 @@ body.login-page {
 }
 .bgc-right { /* área derecha complementaria */
     clip-path: polygon(var(--cut-top) 0, 100% 0, 100% 100%, var(--cut-bottom) 100%);
+    /* Lado derecho completamente blanco y opaco */
+    background: #ffffff !important;
+    opacity: 1 !important;
 }
 
 /* ============================================
@@ -101,11 +125,12 @@ body.login-page {
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(5px);
-    z-index: 9999;
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1500; /* por encima de la banda blanca (.bgc-slit, z-index:1) y del fondo */
     transition: opacity 0.3s, visibility 0.3s;
 }
 
@@ -244,10 +269,39 @@ body.login-page {
     top: 0;
     left: 0;
     right: 0;
-    background: white;
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 1000;
     height: 70px;
+}
+
+/* Estado invertido (después de iniciar sesión): header claro y textos oscuros */
+.global-header.inverted {
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-bottom: 1px solid #e6e6e6;
+}
+.global-header.inverted .logo-section img { filter: none; }
+.global-header.inverted .logo-text { color: #00853F; }
+.global-header.inverted .header-search-box {
+    background: rgba(0,0,0,0.06);
+    border: 2px solid #e0e0e0;
+}
+.global-header.inverted .header-search-box:focus-within {
+    border-color: #bdbdbd;
+    background: rgba(0,0,0,0.08);
+}
+.global-header.inverted .header-search-icon { color: #1f2937; }
+.global-header.inverted .header-search-input { color: #1f2937; }
+.global-header.inverted .header-search-input::placeholder { color: rgba(31,41,55,0.6); }
+.global-header.inverted .nav-link { color: #1f2937; }
+.global-header.inverted .nav-link:hover {
+    background: rgba(0,0,0,0.06);
+    color: #1f2937;
+}
+.global-header.inverted .nav-link.active {
+    background: rgba(0,133,63,0.12);
+    color: #00853F;
 }
 
 .header-container {
@@ -314,13 +368,14 @@ body.login-page {
 .logo-section img {
     height: 50px;
     width: auto;
-    filter: brightness(0) saturate(100%) invert(35%) sepia(98%) saturate(1000%) hue-rotate(88deg) brightness(95%) contrast(101%);
+    /* En header verde, mostramos el logo en blanco para mejor contraste */
+    filter: brightness(0) invert(1);
 }
 
 .logo-text {
     font-size: 20px;
     font-weight: 700;
-    color: #00853F;
+    color: #ffffff;
 }
 
 .search-section {
@@ -329,23 +384,23 @@ body.login-page {
 }
 
 .header-search-box {
-    background: #f5f5f5;
+    background: rgba(255,255,255,0.18);
     border-radius: 50px;
     padding: 10px 20px;
     display: flex;
     align-items: center;
     gap: 10px;
-    border: 2px solid transparent;
+    border: 2px solid rgba(255,255,255,0.35);
     transition: all 0.3s;
 }
 
 .header-search-box:focus-within {
-    border-color: #39A900;
-    background: white;
+    border-color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.28);
 }
 
 .header-search-icon {
-    color: #999;
+    color: rgba(255,255,255,0.9);
     font-size: 18px;
 }
 
@@ -371,11 +426,11 @@ svg.icon {
     outline: none;
     font-size: 14px;
     background: transparent;
-    color: #333;
+    color: #ffffff;
 }
 
 .header-search-input::placeholder {
-    color: #999;
+    color: rgba(255,255,255,0.85);
 }
 
 .nav-section {
@@ -390,19 +445,19 @@ svg.icon {
     font-size: 15px;
     font-weight: 600;
     text-decoration: none;
-    color: #333;
+    color: #ffffff;
     transition: all 0.3s;
     white-space: nowrap;
 }
 
 .nav-link:hover {
-    background: #f8fff5;
-    color: #39A900;
+    background: rgba(255,255,255,0.12);
+    color: #ffffff;
 }
 
 .nav-link.active {
-    background: #39A900;
-    color: white;
+    background: rgba(255,255,255,0.22);
+    color: #ffffff;
 }
 
 /* ============================================
@@ -1277,13 +1332,14 @@ table td {
        Centrado del login en la pantalla
        y ancho del contenedor general
        ----------------------------------- */
-    max-width: 960px; /* mucho más compacto */
-    margin: 0 auto;
-    padding: 10px;
+    width: 100%;
+    max-width: none; /* permitir usar todo el ancho */
+    margin: 0; /* evitar centrado */
+    padding: 10px 0 10px 10px; /* sin padding a la derecha */
     min-height: calc(100vh - 120px); /* resta header y margen superior */
     display: flex;
     align-items: center;  /* centra vertical */
-    justify-content: center; /* centra horizontal */
+    justify-content: flex-end; /* alinea hacia la derecha */
     position: relative;
     z-index: 1; /* por encima del fondo */
 }
@@ -1305,22 +1361,22 @@ table td {
 }
 
 .auth-brand { text-align: center; margin-bottom: 12px; }
-.auth-brand img { width: 64px; height: 64px; filter: brightness(0) saturate(100%) invert(35%) sepia(98%) saturate(1000%) hue-rotate(88deg) brightness(95%) contrast(101%); }
-.auth-title { margin-top: 10px; font-size: 24px; color: #00853F; font-weight: 800; }
+.auth-brand img { width: 52px; height: 52px; filter: brightness(0) saturate(100%) invert(35%) sepia(98%) saturate(1000%) hue-rotate(88deg) brightness(95%) contrast(101%); }
+.auth-title { margin-top: 8px; font-size: 20px; color: #00853F; font-weight: 800; }
 .auth-subtitle { color: #666; margin-top: 4px; }
 
 .auth-alert { background: #fff3cd; border: 2px solid #ffe08a; border-radius: 12px; padding: 10px 14px; margin: 12px 0; }
 .auth-alert-item { color: #856404; font-size: 14px; }
 
-.auth-form { margin-top: 6px; display: flex; flex-direction: column; gap: 14px; }
+.auth-form { margin-top: 4px; display: flex; flex-direction: column; gap: 8px; }
 .auth-field label { display:block; font-weight: 700; color:#333; margin-bottom:6px; }
 .auth-input {
     width: 100%;
-    padding: 12px 14px;
+    padding: 9px 11px;
     border: 2px solid #dfe7df;
     border-radius: 12px;
     background: #f8fff5;
-    font-size: 15px;
+    font-size: 14px;
     transition: all .2s;
 }
 .auth-input:focus { outline: none; border-color: #39A900; box-shadow: 0 0 0 3px rgba(57,169,0,0.12); background: #fff; }
@@ -1334,7 +1390,7 @@ table td {
     background: linear-gradient(135deg, #39A900, #00853F);
     border: none;
     color: white;
-    padding: 12px 18px;
+    padding: 9px 14px;
     border-radius: 12px;
     font-weight: 700;
     letter-spacing: .3px;
@@ -2103,13 +2159,22 @@ input[type="file"] {
      /* -----------------------------------
          Ancho del cuadro de login (mucho más corto)
          ----------------------------------- */
-     width: min(80vw, 960px);
-     max-width: 960px;
-    margin: 0 auto;
-    background: #ffffff;
+    width: min(60vw, 760px);
+    max-width: 760px;
+    /* pegar al lado derecho del wrapper con margen mayor para desplazar a la izquierda */
+    margin-left: auto !important;
+    margin-right: 72px !important;
+    /* Glass aplicado a todo el cuadro */
+    background: transparent; /* el velo irá en ::before para teñir también la imagen */
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    position: relative; /* superposición del velo */
     border-radius: 16px;
-    border: 2px solid #e8e8e8;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.35);
+    /* Sombra exterior aún más tenue (fuera del borde) */
+    box-shadow:
+        0 -8px 16px rgba(0,0,0,0.10), /* superior muy suave */
+        0 6px 14px rgba(0,0,0,0.08);  /* general muy ligera */
     display: grid;
     /* -----------------------------------
        Balance de columnas en login (centrado visual)
@@ -2119,30 +2184,32 @@ input[type="file"] {
     grid-template-columns: 1fr 1fr;
     overflow: hidden;
 }
+.auth-split-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Más transparencia para que se vea el fondo (verde) */
+    background: rgba(255, 255, 255, 0.30);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1; /* sobre fondos, bajo contenido */
+}
+/* Eliminada sombra interna superior; se usa box-shadow exterior */
 .auth-left {
     position: relative;
+    z-index: 2; /* contenido por encima del velo */
     min-height: 520px;
-    /* Diseño predeterminado: azul claro con difuminado a blanco */
-    background: linear-gradient(135deg, #dceeff 0%, #f4f9ff 45%, #ffffff 80%);
+    /* Fondo azul claro difuminado (SVG) con transparencia del card */
+    background: url('../images/bg-left-pattern.svg') center/cover no-repeat;
 }
 .auth-left::before {
     content: "";
     position: absolute;
     inset: 0;
-    /* Fallbacks: AVIF primero, luego SVG */
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-image: -webkit-image-set(
-        url('/images/fondo-futurista-tecno-lineas-malla-baja-poli-comunicacion-datos_1017-60106.avif') type('image/avif') 1x,
-        url('/images/tech-contrast.svg') type('image/svg+xml') 1x
-    );
-    background-image: image-set(
-        url('/images/fondo-futurista-tecno-lineas-malla-baja-poli-comunicacion-datos_1017-60106.avif') type('image/avif') 1x,
-        url('/images/tech-contrast.svg') type('image/svg+xml') 1x
-    );
-    opacity: 0.80; /* claramente visible */
-    mix-blend-mode: normal; /* sin mezcla para que se vea fuerte */
+    /* Sin patrón: dejar transparente para glassmorphism */
+    background: none;
+    opacity: 0;
+    mix-blend-mode: normal;
     z-index: 0; /* por debajo del overlay y contenido */
     pointer-events: none;
 }
@@ -2150,19 +2217,34 @@ input[type="file"] {
     content: "";
     position: absolute;
     inset: 0;
-    /* Velo muy tenue para no tapar el SVG */
-    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.08));
+    /* Velo blanco sutil para mantener azul y transparencia visibles */
+    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.20));
+    opacity: 1;
     z-index: 1;
 }
 .auth-left-overlay {
     position: absolute;
     inset: 20px;
-    border: 1px dashed rgba(255,255,255,0.12);
+    border: 1px dashed rgba(255,255,255,0.10);
     border-radius: 12px;
     z-index: 2;
 }
 .auth-right {
-    padding: 28px;
+    padding: 16px;
+    background: transparent; /* el glass lo aplica el contenedor completo */
+    position: absolute; /* posicionar sobre la banda blanca */
+    z-index: 3; /* por encima del velo y del fondo */
+    /* Fuente del cuadro de login (moderna) */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 600; /* un poco más gruesa */
+    /* Ubicar dentro de la banda blanca (lado derecho) */
+    /* Anclar al borde derecho del contenedor para asegurar movimiento visible */
+    right: 6%;
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    width: min(92vw, 280px);
+    max-width: 280px;
 }
 .auth-password { position: relative; }
 .auth-show {
@@ -2182,18 +2264,31 @@ input[type="file"] {
     .auth-split-card { grid-template-columns: 1fr; }
     .auth-left { min-height: 220px; }
 }
+@media (max-width: 720px) {
+    /* En móviles, re-centrar el cuadro y permitir ancho fluido */
+    .auth-right {
+        position: static;
+        transform: none;
+        left: auto; top: auto;
+        width: auto; max-width: none;
+        z-index: 2;
+        padding: 22px;
+    }
+}
 
 /* Watermark Tempus-SENA */
 .auth-watermark {
     position: fixed; /* sobreescrito a absolute dentro de .auth-left */
     left: 32px;
     top: 28px;
-    color: #2f7d55; /* verde sobrio */
-    font-weight: 700;
-    font-size: clamp(22px, 4.2vw, 36px);
-    letter-spacing: 1px;
-    text-shadow: none;
-    opacity: 0.12;
+    color: #00A859; /* verde institucional SENA */
+    /* Fuente moderna para el watermark */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 800; /* ligeramente más gruesa */
+    font-size: clamp(30px, 4.8vw, 46px);
+    letter-spacing: 0.8px;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    opacity: 0.42; /* más visible sin ser invasivo */
     pointer-events: none;
     user-select: none;
     mix-blend-mode: normal;

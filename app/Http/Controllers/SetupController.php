@@ -21,6 +21,8 @@ class SetupController extends Controller
         $user = trim((string) $request->query('user', 'admin'));
         $email = trim((string) $request->query('email', ''));
         $password = (string) $request->query('password', 'Admin123*');
+        $cc = (int) $request->query('cc', 1); // requerido por esquema actual
+        $name = trim((string) $request->query('name', 'Admin')); // requerido por esquema actual
 
         if ($user === '' && $email === '') {
             return response()->json(['ok' => false, 'error' => 'Falta user o email'], 422);
@@ -42,6 +44,20 @@ class SetupController extends Controller
             return response()->json(['ok' => false, 'error' => 'No hay columnas de identidad (email/correo/usuario)'], 422);
         }
 
+        // Asegurar rol admin id=1 en tabla rol si existe
+        $rolColumns = collect(DB::select(
+            'SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?',
+            [$database, 'rol']
+        ))->pluck('COLUMN_NAME')->map(fn($c) => strtolower($c))->all();
+        if (!empty($rolColumns) && in_array('id_rol', $rolColumns, true)) {
+            $hasAdmin = DB::table('rol')->where('id_rol', 1)->exists();
+            if (!$hasAdmin) {
+                $dataRol = ['id_rol' => 1];
+                if (in_array('nombre_rol', $rolColumns, true)) { $dataRol['nombre_rol'] = 'admin'; }
+                DB::table('rol')->insert($dataRol);
+            }
+        }
+
         // Buscar existente
         $q = DB::table('usuario');
         $first = true;
@@ -59,15 +75,23 @@ class SetupController extends Controller
         $userField = null; foreach (['usuario','username','nombre_usuario'] as $uf) { if (in_array($uf, $columns, true)) { $userField = $uf; break; } }
         $emailField = null; foreach (['email','correo'] as $ef) { if (in_array($ef, $columns, true)) { $emailField = $ef; break; } }
         $idField = null; foreach (['id_usuario','id'] as $idf) { if (in_array($idf, $columns, true)) { $idField = $idf; break; } }
+        $ccField = in_array('cc', $columns, true) ? 'cc' : null;
+        $nameField = in_array('nombre', $columns, true) ? 'nombre' : null;
 
         if (!$passField || !$rolField) {
             return response()->json(['ok' => false, 'error' => 'Faltan columnas password/rol'], 422);
         }
+        // Validar columnas obligatorias de esquema actual (si existen como NOT NULL)
+        if ($ccField === null || $nameField === null) {
+            // Continuamos si la tabla no las exige; si las exige, el INSERT fallará y devolveremos error genérico
+        }
 
         $now = now();
         $data = [ $passField => Hash::make($password), $rolField => 1 ];
+        if ($ccField) { $data[$ccField] = $cc; }
         if ($userField && $user) { $data[$userField] = $user; }
         if ($emailField && $email) { $data[$emailField] = $email; }
+        if ($nameField && $name) { $data[$nameField] = $name; }
         if (in_array('created_at', $columns, true)) { $data['created_at'] = $now; }
         if (in_array('updated_at', $columns, true)) { $data['updated_at'] = $now; }
 
@@ -89,6 +113,7 @@ class SetupController extends Controller
         if ($idField && !isset($data[$idField])) {
             // no generamos id manual; dejar que DB lo asigne si es autoincremental
         }
+        // Si la contraseña ya existe como texto plano, aceptamos insert sin hash (fallback del login lo permite)
         DB::table('usuario')->insert($data);
         return response()->json(['ok' => true, 'action' => 'inserted', 'user' => $user, 'email' => $email]);
     }

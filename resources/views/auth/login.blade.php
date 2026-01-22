@@ -84,6 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const left = document.getElementById('bgcLeft');
     const right = document.getElementById('bgcRight');
     if (!left || !right) return;
+
+    // Configurar el lado derecho en blanco fijo y sin imagen
+    right.style.backgroundImage = 'none';
+    right.style.backgroundColor = '#ffffff';
+    right.style.opacity = '1';
+    right.style.filter = 'none';
+
+    // Rotar únicamente la imagen del lado izquierdo
     const images = [
         '{{ asset('images/Sede_Principal_Soacha.jpg') }}',
         '{{ asset('images/Sena cide ciudad verde.jpg') }}',
@@ -91,22 +99,19 @@ document.addEventListener('DOMContentLoaded', () => {
         '{{ asset('images/sede cazuca sena.jpeg') }}'
     ];
     let idx = 0;
-    const apply = (el, url) => {
-        el.style.filter = 'blur(6px)';
-        el.style.opacity = '.45';
+    const applyLeft = (url) => {
+        left.style.filter = 'none';
+        left.style.opacity = '.55';
         setTimeout(() => {
-            el.style.backgroundImage = `url(\"${url}\")`;
-            el.style.filter = 'blur(2px)';
-            el.style.opacity = '.70';
+            left.style.backgroundImage = `url(\"${url}\")`;
+            left.style.filter = 'none';
+            left.style.opacity = '.70';
         }, 220);
     };
-    // Inicial: dos imágenes distintas simultáneamente
-    apply(left, images[idx]);
-    apply(right, images[(idx + 1) % images.length]);
+    applyLeft(images[idx]);
     setInterval(() => {
         idx = (idx + 1) % images.length;
-        apply(left, images[idx]);
-        apply(right, images[(idx + 1) % images.length]);
+        applyLeft(images[idx]);
     }, 6000);
 });
 </script>
