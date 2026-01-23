@@ -5,7 +5,7 @@ use app_cide;
 CREATE TABLE programa (
     id_prog INT NOT NULL,
     nombre VARCHAR(255),
-    version INT(255),
+    version INT,
     nivel VARCHAR(255),
     cant_trim VARCHAR(255),
     PRIMARY KEY (id_prog),
@@ -80,11 +80,23 @@ CREATE TABLE matrs_ext (
 ) ENGINE=InnoDB;
 
 
-CREATE TABLE vinculacion (
-    id_vinculacion INT NOT NULL AUTO_INCREMENT,
-    tip_vincul VARCHAR(255),
-    PRIMARY KEY (id_vinculacion),
-    INDEX(id_vinculacion)
+CREATE TABLE contrato (
+    id_contrato INT NOT NULL AUTO_INCREMENT,
+    red VARCHAR(255),
+    area VARCHAR(255),
+    cargo VARCHAR(255),
+    compet VARCHAR(255),
+    estu VARCHAR(255),
+    num_contr VARCHAR(255),
+    especialida VARCHAR(255),
+    nvl_forma VARCHAR(255),
+    pregado VARCHAR(255),
+    postgrado VARCHAR(255),
+    coor_perte VARCHAR(255),
+    fch_inic VARCHAR(255),
+    fch_fin VARCHAR(255),
+    PRIMARY KEY (id_contrato),
+    INDEX(id_contrato)
 ) ENGINE=InnoDB;
 
 CREATE TABLE rol (
@@ -100,11 +112,11 @@ CREATE TABLE usuario (
     correo VARCHAR(255) UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
     nombre VARCHAR(255) NOT NULL,
-    id_vinculacion_fk INT NULL,
+    id_contrato_fk INT NULL,
     PRIMARY KEY (cc),
     INDEX(cc),
-    INDEX(id_vinculacion_fk),
-    FOREIGN KEY (id_vinculacion_fk) REFERENCES vinculacion(id_vinculacion) ON DELETE CASCADE ON UPDATE CASCADE
+    INDEX(id_contrato_fk),
+    FOREIGN KEY (id_contrato_fk) REFERENCES contrato(id_contrato) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE sede (
