@@ -93,8 +93,8 @@ CREATE TABLE contrato (
     pregado VARCHAR(255),
     postgrado VARCHAR(255),
     coor_perte VARCHAR(255),
-    fch_inic VARCHAR(255),
-    fch_fin VARCHAR(255),
+    fch_inic DATE,
+    fch_fin DATE,
     PRIMARY KEY (id_contrato),
     INDEX(id_contrato)
 ) ENGINE=InnoDB;
