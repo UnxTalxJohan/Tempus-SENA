@@ -1992,12 +1992,12 @@ input[type="file"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
+    background: rgba(57,169,0,0.12);
     color: #39A900;
     border: 2px solid #39A900;
     box-shadow: 0 10px 24px rgba(0,0,0,0.18);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    backdrop-filter: blur(6px) saturate(115%);
+    -webkit-backdrop-filter: blur(6px) saturate(115%);
     cursor: pointer;
     z-index: 940; /* debajo de la mini-save-bar (950) y header (1000) */
     transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
@@ -2005,7 +2005,7 @@ input[type="file"] {
 .floating-scroll-bottom:hover {
     transform: translateY(-1px);
     box-shadow: 0 14px 28px rgba(0,0,0,0.22);
-    background: rgba(0, 133, 63, 0.15);
+    background: rgba(0, 133, 63, 0.28);
 }
 .floating-scroll-bottom i { font-size: 22px; color: #39A900; }
 

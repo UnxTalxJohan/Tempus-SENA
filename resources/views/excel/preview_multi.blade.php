@@ -35,17 +35,25 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Archivo</th>
-                                    <th>Programa</th>
-                                    <th>Competencias</th>
-                                    <th>Resultados</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
+                                        <th style="width: 5%; text-align:center;"><input type="checkbox" id="selectAll" title="Seleccionar todos"></th>
+                                        <th>Archivo</th>
+                                        <th>Programa</th>
+                                        <th>Competencias</th>
+                                        <th>Resultados</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($previews as $p)
                                     <tr>
+                                            <td style="text-align:center;">
+                                                @if($p['ok'])
+                                                    <input type="checkbox" class="select-file" data-filename="{{ $p['fileName'] }}" aria-label="Seleccionar archivo">
+                                                @else
+                                                    <input type="checkbox" disabled aria-label="No seleccionable">
+                                                @endif
+                                            </td>
                                         <td><strong>{{ $p['originalName'] ?? $p['fileName'] }}</strong></td>
                                         <td>
                                             @if($p['ok'])
@@ -130,16 +138,18 @@
             </main>
                         <button type="button" class="floating-scroll-bottom" id="scrollBottomBtnMulti" title="Bajar al final">
                                 <i class="bi bi-arrow-down" aria-hidden="true"></i>
-                        </button>
+                                                    <button type="submit" class="btn btn-success"><i class="bi bi-eye" aria-hidden="true" style="margin-right:6px;"></i>Previsualizar</button>
         </div>
-    </div>
-@endsection
-
-@section('scripts')
-<script>
     (function(){
         const btn = document.getElementById('scrollBottomBtnMulti');
         const icon = btn ? btn.querySelector('i') : null;
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = Array.from(document.querySelectorAll('.select-file'));
+        const form = document.getElementById('processMultiForm');
+        const inputsHolder = document.getElementById('selectedInputs');
+        const btnSelected = document.getElementById('btnProcessSelected');
+        const btnAll = document.getElementById('btnProcessAll');
+        const validFileNames = @json($validos->map(function($v){ return $v['fileName']; }));
         function update(){
             const y = window.scrollY || document.documentElement.scrollTop;
             const h = document.documentElement.scrollHeight;
@@ -156,6 +166,34 @@
             const dir = btn.dataset.dir || 'down';
             if (dir === 'up') window.scrollTo({ top: 0, behavior: 'smooth' });
             else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+        });
+
+        // Seleccionar todos
+        selectAll?.addEventListener('change', function(){
+            checkboxes.forEach(cb => { if (!cb.disabled) cb.checked = selectAll.checked; });
+        });
+        // Procesar seleccionados o todos
+        function submitWith(names){
+            inputsHolder.innerHTML = '';
+            names.forEach(n => {
+                const i = document.createElement('input');
+                i.type = 'hidden'; i.name = 'file_names[]'; i.value = n;
+                inputsHolder.appendChild(i);
+            });
+            form.submit();
+        }
+        btnSelected?.addEventListener('click', function(e){
+            e.preventDefault();
+            const selected = checkboxes.filter(cb => cb.checked && !cb.disabled).map(cb => cb.dataset.filename);
+            if (selected.length === 0){
+                if (window.showToast) window.showToast('Selecciona al menos un archivo válido', 'warning');
+                return;
+            }
+            submitWith(selected);
+        });
+        btnAll?.addEventListener('click', function(e){
+            e.preventDefault();
+            submitWith(validFileNames);
         });
     })();
 </script>
