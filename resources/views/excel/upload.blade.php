@@ -75,7 +75,7 @@
                     </table>
                 </div>
 
-                <form action="{{ route('excel.preview') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <form action="{{ route('excel.preview.multi') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
                     @csrf
                     
                     <div class="upload-area" id="uploadArea">
@@ -84,8 +84,8 @@
                         <p>Formatos aceptados: .xlsx, .xls (máximo 10MB)</p>
                         
                         <div class="file-input-wrapper">
-                            <label for="excel_file" class="btn-select">Seleccionar Archivo</label>
-                            <input type="file" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                            <label for="excel_files" class="btn-select">Seleccionar hasta 5 archivos</label>
+                            <input type="file" id="excel_files" name="excel_files[]" accept=".xlsx,.xls" multiple required>
                         </div>
                         
                         <div class="selected-file" id="selectedFile"></div>
@@ -103,21 +103,20 @@
     </div>
 
     <script>
-        const fileInput = document.getElementById('excel_file');
+        const fileInput = document.getElementById('excel_files');
         const uploadArea = document.getElementById('uploadArea');
         const selectedFile = document.getElementById('selectedFile');
         const btnSubmit = document.getElementById('btnSubmit');
 
         // Selección de archivo
         fileInput.addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2);
-                
-                selectedFile.innerHTML = `<i class=\"bi bi-check2-circle\" aria-hidden=\"true\"></i> <strong>${fileName}</strong> (${fileSize} MB)`;
-                selectedFile.style.display = 'block';
-                btnSubmit.disabled = false;
-            }
+            const files = Array.from(this.files || []);
+            if (files.length === 0) { selectedFile.style.display='none'; btnSubmit.disabled = true; return; }
+            if (files.length > 5) { selectedFile.innerHTML = '⚠️ Selecciona máximo 5 archivos.'; btnSubmit.disabled = true; return; }
+            const list = files.map(f => `• <strong>${f.name}</strong> (${(f.size/1024/1024).toFixed(2)} MB)`).join('<br>');
+            selectedFile.innerHTML = `<i class=\"bi bi-check2-circle\" aria-hidden=\"true\"></i> ${files.length} archivo(s):<br>${list}`;
+            selectedFile.style.display = 'block';
+            btnSubmit.disabled = false;
         });
 
         // Drag and drop

@@ -99,6 +99,31 @@
             <div class="user-section" style="display:flex; align-items:center; gap:12px;">
                 @php($appAuth = session('app_auth'))
                 @if($appAuth && ($appAuth['rol_id'] ?? 0) == 1)
+                    <!-- Notificaciones de carga (logs) -->
+                    @php($uploadLogs = session('upload_logs', []))
+                    <div class="notif-menu" id="notifMenu" style="position:relative;">
+                        <button class="notif-bell" id="notifBtn" aria-haspopup="true" aria-expanded="false" title="Notificaciones">
+                            <i class="bi bi-bell" aria-hidden="true" style="font-size:20px;"></i>
+                            @if(count($uploadLogs) > 0)
+                                <span class="notif-count">{{ count($uploadLogs) }}</span>
+                            @endif
+                        </button>
+                        <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+                            <div class="notif-header">Logs de carga</div>
+                            @if(count($uploadLogs) === 0)
+                                <div class="notif-empty">No hay notificaciones</div>
+                            @else
+                                <ul class="notif-list">
+                                    @foreach($uploadLogs as $log)
+                                        <li class="notif-item"><i class="bi bi-info-circle" aria-hidden="true"></i> <span>{{ $log }}</span></li>
+                                    @endforeach
+                                </ul>
+                                <form method="POST" action="#" onsubmit="event.preventDefault(); window.clearUploadLogs();" style="padding:8px; text-align:right;">
+                                    <button type="submit" class="btn btn-small">Limpiar</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
                     <div class="user-menu" id="userMenu">
                         <button class="user-avatar" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" title="Cuenta">
                             <i class="bi bi-person-circle" aria-hidden="true" style="font-size:22px;"></i>
@@ -274,6 +299,30 @@
                     btn.setAttribute('aria-expanded', 'false');
                 }
             });
+        })();
+
+        // === NOTIFICACIONES (logs de carga) ===
+        (function(){
+            const btn = document.getElementById('notifBtn');
+            const dd = document.getElementById('notifDropdown');
+            if (!btn || !dd) return;
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const open = dd.style.display === 'block';
+                dd.style.display = open ? 'none' : 'block';
+                btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+            });
+            document.addEventListener('click', (e) => {
+                if (!dd.contains(e.target) && !btn.contains(e.target)) {
+                    dd.style.display = 'none';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+            window.clearUploadLogs = function(){
+                // Limpia los logs en sesión haciendo una petición ligera
+                fetch('{{ url('/api/clear-upload-logs') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
+                    .then(() => { dd.innerHTML = '<div class="notif-empty">No hay notificaciones</div>'; const count = document.querySelector('.notif-count'); if (count) count.remove(); });
+            };
         })();
     </script>
 </body>

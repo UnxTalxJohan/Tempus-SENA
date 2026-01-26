@@ -22,7 +22,10 @@ Route::middleware('app.auth')->group(function () {
 	// Rutas para Excel
 	Route::get('/excel/upload', [ExcelController::class, 'showUploadForm'])->name('excel.upload');
 	Route::post('/excel/preview', [ExcelController::class, 'preview'])->name('excel.preview');
+	Route::post('/excel/preview-multi', [ExcelController::class, 'previewMulti'])->name('excel.preview.multi');
+	Route::post('/excel/preview-file', [ExcelController::class, 'previewFile'])->name('excel.preview.file');
 	Route::post('/excel/process', [ExcelController::class, 'process'])->name('excel.process');
+	Route::post('/excel/process-multi', [ExcelController::class, 'processMulti'])->name('excel.process.multi');
 
 	// Rutas para Matriz Extendida
 	Route::get('/matriz', [MatrizController::class, 'index'])->name('matriz.index');
@@ -32,4 +35,10 @@ Route::middleware('app.auth')->group(function () {
 	// Actualizaciones inline (AJAX)
 	Route::put('/matriz/competencia/{cod_comp}', [MatrizController::class, 'updateCompetencia'])->name('matriz.competencia.update');
 	Route::put('/matriz/resultado/{id_resu}', [MatrizController::class, 'updateResultado'])->name('matriz.resultado.update');
+
+	// API sencilla para limpiar logs de carga
+	Route::post('/api/clear-upload-logs', function() {
+		session(['upload_logs' => []]);
+		return response()->json(['ok' => true]);
+	})->name('api.clear-upload-logs');
 });
