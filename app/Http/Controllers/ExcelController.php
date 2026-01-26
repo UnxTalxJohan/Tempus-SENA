@@ -65,7 +65,7 @@ class ExcelController extends Controller
             }
         }
 
-        session(['upload_logs' => $logs]);
+        session(['upload_logs' => $logs, 'previews_multi' => $previews]);
         return view('excel.preview_multi', compact('previews'));
     }
 
@@ -89,6 +89,18 @@ class ExcelController extends Controller
             session(['upload_logs' => $logs]);
             return redirect()->route('excel.upload')->with('error', 'Error al leer el archivo: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Muestra la lista de previsualización múltiple desde sesión, sin re-subir archivos.
+     */
+    public function previewMultiView()
+    {
+        $previews = session('previews_multi', []);
+        if (empty($previews)) {
+            return redirect()->route('excel.upload')->with('error', 'No hay una lista de previsualización activa. Carga archivos nuevamente.');
+        }
+        return view('excel.preview_multi', compact('previews'));
     }
     
     public function preview(Request $request)

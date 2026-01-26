@@ -96,7 +96,7 @@
                     <input type="hidden" name="file_name" value="{{ $fileName }}">
                     
                     <div class="buttons">
-                        <a href="{{ route('excel.upload') }}" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>Cancelar</a>
+                        <a href="{{ route('excel.preview.multi_view') }}" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>Volver a la lista</a>
                         <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>Confirmar y Cargar al Sistema</button>
                     </div>
                 </form>

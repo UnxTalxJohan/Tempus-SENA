@@ -23,6 +23,7 @@ Route::middleware('app.auth')->group(function () {
 	Route::get('/excel/upload', [ExcelController::class, 'showUploadForm'])->name('excel.upload');
 	Route::post('/excel/preview', [ExcelController::class, 'preview'])->name('excel.preview');
 	Route::post('/excel/preview-multi', [ExcelController::class, 'previewMulti'])->name('excel.preview.multi');
+	Route::get('/excel/preview-multi-view', [ExcelController::class, 'previewMultiView'])->name('excel.preview.multi_view');
 	Route::post('/excel/preview-file', [ExcelController::class, 'previewFile'])->name('excel.preview.file');
 	Route::post('/excel/process', [ExcelController::class, 'process'])->name('excel.process');
 	Route::post('/excel/process-multi', [ExcelController::class, 'processMulti'])->name('excel.process.multi');
