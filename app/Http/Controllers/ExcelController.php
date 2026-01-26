@@ -285,7 +285,8 @@ class ExcelController extends Controller
         };
 
         $patterns = [
-            'A' => '/codigo.*programa/',
+            // A: en algunas plantillas viene con typo "prorama"; aceptar ambas
+            'A' => '/codigo.*(programa|prorama)/',
             'B' => '/programa.*formacion/',
             'C' => '/nivel/',
             'D' => '/version/',
