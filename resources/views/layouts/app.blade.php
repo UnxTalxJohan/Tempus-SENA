@@ -101,11 +101,11 @@
                 @if($appAuth && ($appAuth['rol_id'] ?? 0) == 1)
                     <!-- Notificaciones de carga (logs) -->
                     @php($uploadLogs = session('upload_logs', []))
-                    <div class="notif-menu" id="notifMenu" style="position:relative;">
+                    <div class="notif-menu" id="notifMenu">
                         <button class="notif-bell" id="notifBtn" aria-haspopup="true" aria-expanded="false" title="Notificaciones">
                             <i class="bi bi-bell" aria-hidden="true" style="font-size:20px;"></i>
                             @if(count($uploadLogs) > 0)
-                                <span class="notif-count">{{ count($uploadLogs) }}</span>
+                                <span class="notif-dot" aria-hidden="true"></span>
                             @endif
                         </button>
                         <div class="notif-dropdown" id="notifDropdown" style="display:none;">

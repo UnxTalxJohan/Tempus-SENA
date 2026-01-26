@@ -374,6 +374,18 @@ body.auth-page.auth-bg-hex {
 .user-menu{ position:relative; z-index:2500; }
 .user-dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:220px; z-index:2600; padding:6px; }
 .user-dropdown .dropdown-item:hover{ background:#f4f4f5; }
+/* === Notificaciones (campana + dropdown) === */
+.notif-menu{ position:relative; z-index:2500; }
+.notif-bell{ position:relative; background:transparent; border:2px solid rgba(0,0,0,0.15); border-radius:8px; cursor:pointer; padding:6px; color:#1f2937; }
+.notif-bell:hover{ background:rgba(0,0,0,.06); }
+.global-header.inverted .notif-bell{ border-color:#e0e0e0; }
+.notif-dot{ position:absolute; top:-4px; right:-4px; width:12px; height:12px; background:#39A900; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.08); }
+.notif-dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:280px; z-index:2600; padding:8px; }
+.notif-header{ font-weight:700; color:#1f2937; padding:6px 8px 8px 8px; }
+.notif-empty{ padding:10px; color:#6b7280; }
+.notif-list{ list-style:none; padding:0; margin:0; max-height:240px; overflow:auto; }
+.notif-item{ display:flex; align-items:flex-start; gap:8px; padding:8px; border-radius:8px; }
+.notif-item:hover{ background:#f4f4f5; }
 .logo-section {
     display: flex;
     align-items: center;
