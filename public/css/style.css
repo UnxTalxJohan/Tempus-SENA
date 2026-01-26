@@ -1976,6 +1976,34 @@ input[type="file"] {
     .mini-meta { font-size: 12px; gap: 10px; }
 }
 
+/* Botón flotante para bajar al final de la página */
+.floating-scroll-bottom {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(57, 169, 0, 0.85);
+    color: #ffffff;
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
+    cursor: pointer;
+    z-index: 940; /* debajo de la mini-save-bar (950) y header (1000) */
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+}
+.floating-scroll-bottom:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.22);
+    background: rgba(0, 133, 63, 0.90);
+}
+.floating-scroll-bottom i { font-size: 22px; }
+
 /* === VISTA TIPO EXCEL === */
 .excel-table {
     width: 100%;

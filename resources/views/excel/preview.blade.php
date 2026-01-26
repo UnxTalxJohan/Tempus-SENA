@@ -5,6 +5,29 @@
 @section('content')
     <div class="content-wrapper">
         <div class="container">
+            <!-- Mini barra fija para confirmar carga rápidamente -->
+            <div class="mini-save-bar" id="miniPreviewBar" aria-hidden="true">
+                <div class="mini-save-content">
+                    <div class="mini-meta">
+                        <div><strong>CÓDIGO:</strong> {{ $codigo }}</div>
+                        <div><strong>VERSIÓN:</strong> {{ $version }}</div>
+                        <div><strong>NIVEL:</strong> {{ $nivel }}</div>
+                        <div class="mini-metrics summary-badge">
+                            <span class="summary-label">Resultados</span>
+                            <span class="summary-value" style="margin-left:8px;">@php
+                                $totalResultadosMini = 0;
+                                foreach ($competencias as $c) { $totalResultadosMini += count($c['resultados']); }
+                            @endphp {{ $totalResultadosMini }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-small btn-success" id="btnMiniConfirm">
+                            <i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>
+                            Confirmar y Cargar
+                        </button>
+                    </div>
+                </div>
+            </div>
             <main>
                 <div class="program-info">
                     <h2><i class="bi bi-journal-text" aria-hidden="true"></i> {{ $nombre }}</h2>
@@ -91,7 +114,7 @@
                     </div>
                 </div>
 
-                <form action="{{ route('excel.process') }}" method="POST">
+                                <form action="{{ route('excel.process') }}" method="POST" id="processForm">
                     @csrf
                     <input type="hidden" name="file_name" value="{{ $fileName }}">
                     
@@ -101,6 +124,42 @@
                     </div>
                 </form>
             </main>
+                        <!-- Botón flotante para bajar al final de la página -->
+                        <button type="button" class="floating-scroll-bottom" id="scrollBottomBtn" title="Bajar al final">
+                                <i class="bi bi-arrow-down" aria-hidden="true"></i>
+                        </button>
         </div>
     </div>
+        @section('scripts')
+        <script>
+            (function(){
+                const miniBar = document.getElementById('miniPreviewBar');
+                const miniBtn = document.getElementById('btnMiniConfirm');
+                const processForm = document.getElementById('processForm');
+                const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+
+                function toggleMiniBar(){
+                    const y = window.scrollY || document.documentElement.scrollTop;
+                    if(y > 320){
+                        miniBar.classList.add('visible');
+                        miniBar.setAttribute('aria-hidden','false');
+                    } else {
+                        miniBar.classList.remove('visible');
+                        miniBar.setAttribute('aria-hidden','true');
+                    }
+                }
+
+                window.addEventListener('scroll', toggleMiniBar, { passive: true });
+                window.addEventListener('load', toggleMiniBar);
+
+                miniBtn?.addEventListener('click', function(){
+                    if(processForm){ processForm.submit(); }
+                });
+
+                scrollBottomBtn?.addEventListener('click', function(){
+                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                });
+            })();
+        </script>
+        @endsection
 @endsection
