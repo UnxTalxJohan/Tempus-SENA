@@ -118,9 +118,9 @@
                                         <li class="notif-item"><i class="bi bi-info-circle" aria-hidden="true"></i> <span>{{ $log }}</span></li>
                                     @endforeach
                                 </ul>
-                                <form method="POST" action="#" onsubmit="event.preventDefault(); window.clearUploadLogs();" style="padding:8px; text-align:right;">
-                                    <button type="submit" class="btn btn-small">Limpiar</button>
-                                </form>
+                                <div style="padding:8px; text-align:right;">
+                                    <button type="button" class="btn btn-small" onclick="window.clearUploadLogs()">Limpiar</button>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -319,9 +319,18 @@
                 }
             });
             window.clearUploadLogs = function(){
-                // Limpia los logs en sesión haciendo una petición ligera
-                fetch('{{ url('/api/clear-upload-logs') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
-                    .then(() => { dd.innerHTML = '<div class="notif-empty">No hay notificaciones</div>'; const count = document.querySelector('.notif-count'); if (count) count.remove(); });
+                // Limpia los logs en sesión sin activar el loader global
+                fetch('{{ url('/api/clear-upload-logs') }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                }).then(() => {
+                    const dropdown = document.getElementById('notifDropdown');
+                    if (dropdown) dropdown.innerHTML = '<div class="notif-empty">No hay notificaciones</div>';
+                    const dot = document.querySelector('.notif-dot');
+                    if (dot) dot.remove();
+                }).catch(() => {
+                    if (window.showToast) window.showToast('No se pudo limpiar notificaciones', 'error');
+                });
             };
         })();
     </script>

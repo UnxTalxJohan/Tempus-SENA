@@ -214,6 +214,10 @@ class ExcelController extends Controller
     {
         $spreadsheet = IOFactory::load($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
+        // Validación de plantilla (encabezados principales)
+        if (!$this->validateMatrixHeaders($sheet)) {
+            throw new \RuntimeException('El archivo no coincide con la plantilla de la matriz (encabezados inválidos o incompatibles).');
+        }
         $codigo = trim($sheet->getCell('A4')->getValue());
         $nombre = trim($sheet->getCell('B4')->getValue());
         $nivel = trim($sheet->getCell('C4')->getValue());
@@ -253,6 +257,52 @@ class ExcelController extends Controller
             }
         }
         return compact('nivel','nombre','codigo','version','competencias');
+    }
+
+    /**
+     * Valida que las primeras filas contengan los encabezados esperados de la plantilla.
+     * Se hace comparación flexible (minúsculas, sin acentos y por patrones aproximados).
+     */
+    private function validateMatrixHeaders(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): bool
+    {
+        $normalize = function($s){
+            $s = trim((string)$s);
+            if ($s === '') return '';
+            $s = mb_strtolower($s, 'UTF-8');
+            $s = iconv('UTF-8', 'ASCII//TRANSLIT', $s);
+            $s = preg_replace('/[^a-z0-9\s]/', ' ', $s);
+            $s = preg_replace('/\s+/', ' ', $s);
+            return trim($s);
+        };
+
+        $patterns = [
+            'A' => '/codigo.*programa/',
+            'B' => '/programa.*formacion/',
+            'C' => '/nivel/',
+            'D' => '/version/',
+            'E' => '/nombre.*competencia|unidad.*competencia|ncl|uc/',
+            'F' => '/codigo$/',
+            'G' => '/duracion.*competencia.*hora/',
+            'H' => '/resultados.*aprendizaje/',
+            'I' => '/horas.*maxim/',
+            'J' => '/horas.*minim/',
+            'K' => '/trimestre/',
+            'L' => '/semana.*programar/',
+            'M' => '/trimestre.*programar/'
+        ];
+
+        $found = 0; $required = ['A','B','C','D','H'];
+        foreach ($patterns as $col => $regex) {
+            $okCol = false;
+            for ($r = 1; $r <= 3; $r++) {
+                $val = $normalize($sheet->getCell($col.$r)->getValue());
+                if ($val !== '' && preg_match($regex, $val)) { $okCol = true; break; }
+            }
+            if ($okCol) $found++;
+            if (in_array($col, $required, true) && !$okCol) return false;
+        }
+        // Al menos 9 columnas deben reconocerse para considerarlo compatible
+        return $found >= 9;
     }
 
     /**
