@@ -15,10 +15,17 @@
 
                 @php($validos = collect($previews)->where('ok', true)->values())
                 @php($invalidos = collect($previews)->where('ok', false)->values())
+                @php($duplicados = collect($previews)->filter(function($p){ return !empty($p['duplicate']); }))
 
                 @if($invalidos->count() > 0)
                 <div class="alert alert-error">
                     <span>Algunos archivos no se pueden cargar. Revisa el log en el ícono de notificaciones del encabezado.</span>
+                </div>
+                @endif
+
+                @if($duplicados->count() > 0)
+                <div class="alert alert-warning">
+                    <span>Se detectaron códigos de programa repetidos en esta carga. Solo se permite uno por código.</span>
                 </div>
                 @endif
 
@@ -64,7 +71,9 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($p['ok'])
+                                            @if(!empty($p['duplicate']))
+                                                <span class="pill pill-warning" title="Código repetido">Repetido</span>
+                                            @elseif($p['ok'])
                                                 <span class="pill pill-success">Válido</span>
                                             @else
                                                 <span class="pill pill-danger" title="{{ $p['error'] ?? 'Error' }}">Inválido</span>
@@ -83,7 +92,16 @@
                                                     <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:6px;"></i>Cargar</button>
                                                 </form>
                                             @else
+                                                @if(!empty($p['duplicate']))
+                                                    <span class="pill pill-warning" style="margin-right:6px;">Código repetido</span>
+                                                    <form action="{{ route('excel.preview.file') }}" method="POST" style="display:inline-block;">
+                                                        @csrf
+                                                        <input type="hidden" name="file_name" value="{{ $p['fileName'] }}">
+                                                        <button type="submit" class="btn btn-secondary"><i class="bi bi-eye" aria-hidden="true" style="margin-right:6px;"></i>Previsualizar</button>
+                                                    </form>
+                                                @else
                                                 <span style="opacity:.7;">Sin acciones</span>
+                                                @endif
                                             @endif
                                         </td>
                                     </tr>
@@ -110,7 +128,6 @@
                 </div>
                 @endif
             </main>
-                        <!-- Botón flotante para bajar/subir -->
                         <button type="button" class="floating-scroll-bottom" id="scrollBottomBtnMulti" title="Bajar al final">
                                 <i class="bi bi-arrow-down" aria-hidden="true"></i>
                         </button>

@@ -1774,6 +1774,11 @@ input[type="file"] {
     color: #2e7d32;
     border: 1px solid #a5d6a7;
 }
+.pill-warning {
+    background: #fff8e1; /* ámbar muy suave */
+    color: #ed6c02;
+    border: 1px solid #ffe08a;
+}
 
 .stat-card {
     border-radius: 8px;

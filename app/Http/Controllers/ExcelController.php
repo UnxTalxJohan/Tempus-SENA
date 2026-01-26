@@ -39,6 +39,7 @@ class ExcelController extends Controller
         if (!file_exists($tempDir)) mkdir($tempDir, 0777, true);
 
         $previews = [];
+        $seenCodes = [];
         $logs = session('upload_logs', []);
 
         foreach ($files as $file) {
@@ -54,11 +55,25 @@ class ExcelController extends Controller
                     $previews[] = [ 'ok' => false, 'fileName' => $fileName, 'originalName' => $file->getClientOriginalName(), 'error' => 'Programa ya registrado' ];
                     continue;
                 }
-                $previews[] = array_merge($parsed, [
-                    'ok' => true,
-                    'fileName' => $fileName,
-                    'originalName' => $file->getClientOriginalName(),
-                ]);
+                // Duplicado dentro del lote de subida (mismo código de programa)
+                if (isset($seenCodes[$parsed['codigo']])) {
+                    $logs[] = "Código repetido en esta carga: {$parsed['codigo']} (archivo: {$file->getClientOriginalName()})";
+                    $previews[] = [
+                        'ok' => false,
+                        'duplicate' => true,
+                        'fileName' => $fileName,
+                        'originalName' => $file->getClientOriginalName(),
+                        'error' => 'Código de programa repetido en esta carga',
+                    ];
+                } else {
+                    $previews[] = array_merge($parsed, [
+                        'ok' => true,
+                        'duplicate' => false,
+                        'fileName' => $fileName,
+                        'originalName' => $file->getClientOriginalName(),
+                    ]);
+                    $seenCodes[$parsed['codigo']] = true;
+                }
             } catch (\Exception $e) {
                 $logs[] = 'Error al leer ' . $file->getClientOriginalName() . ': ' . $e->getMessage();
                 $previews[] = [ 'ok' => false, 'fileName' => $fileName, 'originalName' => $file->getClientOriginalName(), 'error' => $e->getMessage() ];
