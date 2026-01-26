@@ -13,6 +13,9 @@ body {
     background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
     min-height: 100vh;
     padding-top: 70px;
+    /* Sticky footer layout: el body actúa como contenedor flex vertical */
+    display: flex;
+    flex-direction: column;
 }
 /* Fondo blanco solo en la página de login (sin verde) */
 body.login-page {
@@ -107,6 +110,12 @@ body.auth-page.auth-bg-hex {
     opacity: 1; /* sólido blanco, sin transparencia */
     z-index: 1; /* por encima de .bgc-layer, detrás del contenido */
     pointer-events: none;
+
+    /* Estado activo (click) para resaltar opción seleccionada en menú usuario */
+    .dropdown-item:active {
+        background: #2f2f2f;
+        color: #fff;
+    }
 }
 
 /* Asegurar que el footer quede por encima del fondo */
@@ -398,9 +407,16 @@ body.auth-page.auth-bg-hex {
     FOOTER GLOBAL (línea gris + barra verde)
     ============================================ */
 .global-footer {
-    /* Separación muy amplia para que la línea no se vea de inicio */
+    /* Separación por defecto para páginas largas */
     margin-top: clamp(120px, 18vh, 220px);
 }
+/* En páginas autenticadas con poco contenido (p.ej. Panel de Usuario),
+   empujar el footer al fondo de la ventana. */
+.auth-page .global-footer { margin-top: auto; }
+
+/* Asegurar que contenedores principales puedan ocupar el espacio restante */
+.content-wrapper,
+.page-container { flex: 1 0 auto; }
 /* -----------------------------------
     Línea separadora más delgada
     ----------------------------------- */
@@ -768,6 +784,32 @@ main {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(57, 169, 0, 0.3);
 }
+
+/* ============================================
+   AVATAR EN PANEL DE USUARIO
+   ============================================ */
+.avatar-wrapper { position: relative; width: 120px; height: 120px; }
+.avatar-circle {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background-color: #f4f4f5;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #e5e7eb;
+}
+.avatar-camera {
+    position: absolute;
+    right: -6px; bottom: -6px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid #e5e7eb;
+    background: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    cursor: pointer;
+}
+.avatar-camera:hover { background: #f4f4f5; }
+.avatar-camera i { font-size: 18px; }
 
 .btn-danger {
     background: #e53935; /* rojo más claro */

@@ -12,18 +12,30 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use App\Helpers\RouteHasher;
 
 class MatrizController extends Controller
 {
     public function index()
     {
         $programas = Programa::orderBy('nombre')->get();
+        // Agregar hash a cada programa
+        $programas->each(function($programa) {
+            $programa->hash = RouteHasher::encode($programa->id_prog);
+        });
         return view('matriz.index', compact('programas'));
     }
     
-    public function show($id_prog)
+    public function show($hash)
     {
+        $id_prog = RouteHasher::decode($hash);
+        
+        if (!$id_prog) {
+            abort(404, 'Programa no encontrado');
+        }
+        
         $programa = Programa::where('id_prog', $id_prog)->firstOrFail();
+        $programa->hash = $hash;
         
                 // Obtener competencias: usar pivote si existe; si no, esquema antiguo por id_prog_fk
                 if (Schema::hasTable('programa_competencia')) {
@@ -92,8 +104,14 @@ class MatrizController extends Controller
         return view('matriz.show', compact('programa', 'competencias'));
     }
     
-    public function exportar($id_prog)
+    public function exportar($hash)
     {
+        $id_prog = RouteHasher::decode($hash);
+        
+        if (!$id_prog) {
+            abort(404, 'Programa no encontrado');
+        }
+        
         $programa = Programa::where('id_prog', $id_prog)->firstOrFail();
         
                 if (Schema::hasTable('programa_competencia')) {

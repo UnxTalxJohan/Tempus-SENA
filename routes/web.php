@@ -30,8 +30,12 @@ Route::middleware('app.auth')->group(function () {
 
 	// Rutas para Matriz Extendida
 	Route::get('/matriz', [MatrizController::class, 'index'])->name('matriz.index');
-	Route::get('/matriz/{id_prog}', [MatrizController::class, 'show'])->name('matriz.show');
-	Route::get('/matriz/exportar/{id_prog}', [MatrizController::class, 'exportar'])->name('matriz.exportar');
+	Route::get('/matriz/{hash}', [MatrizController::class, 'show'])->name('matriz.show');
+	Route::get('/matriz/exportar/{hash}', [MatrizController::class, 'exportar'])->name('matriz.exportar');
+
+	// Panel de Usuario
+	Route::get('/usuario/panel', [\App\Http\Controllers\UserPanelController::class, 'index'])->name('user.panel');
+	Route::post('/usuario/avatar', [\App\Http\Controllers\UserPanelController::class, 'uploadAvatar'])->name('user.avatar.upload');
 
 	// Actualizaciones inline (AJAX)
 	Route::put('/matriz/competencia/{cod_comp}', [MatrizController::class, 'updateCompetencia'])->name('matriz.competencia.update');

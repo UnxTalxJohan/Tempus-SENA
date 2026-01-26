@@ -5,7 +5,7 @@ use app_cide;
 CREATE TABLE programa (
     id_prog INT NOT NULL,
     nombre VARCHAR(255),
-    version INT,
+    version INT(255),
     nivel VARCHAR(255),
     cant_trim VARCHAR(255),
     PRIMARY KEY (id_prog),
@@ -80,23 +80,11 @@ CREATE TABLE matrs_ext (
 ) ENGINE=InnoDB;
 
 
-CREATE TABLE contrato (
-    id_contrato INT NOT NULL AUTO_INCREMENT,
-    red VARCHAR(255),
-    area VARCHAR(255),
-    cargo VARCHAR(255),
-    compet VARCHAR(255),
-    estu VARCHAR(255),
-    num_contr VARCHAR(255),
-    especialida VARCHAR(255),
-    nvl_forma VARCHAR(255),
-    pregado VARCHAR(255),
-    postgrado VARCHAR(255),
-    coor_perte VARCHAR(255),
-    fch_inic DATE,
-    fch_fin DATE,
-    PRIMARY KEY (id_contrato),
-    INDEX(id_contrato)
+CREATE TABLE vinculacion (
+    id_vinculacion INT NOT NULL AUTO_INCREMENT,
+    tip_vincul VARCHAR(255),
+    PRIMARY KEY (id_vinculacion),
+    INDEX(id_vinculacion)
 ) ENGINE=InnoDB;
 
 CREATE TABLE rol (
@@ -111,12 +99,17 @@ CREATE TABLE usuario (
     id_rol_fk INT NOT NULL, INDEX (id_rol_fk), FOREIGN KEY (id_rol_fk) REFERENCES rol(id_rol) ON DELETE CASCADE ON UPDATE CASCADE,
     correo VARCHAR(255) UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
-    nombre VARCHAR(255) NOT NULL,
-    id_contrato_fk INT NULL,
+    nombre VARCHAR(255) NOT NULL, 
+    -- Datos de avatar/foto del usuario (recomendado almacenar archivo en disco y ruta aquí)
+    avatar_path VARCHAR(255) NULL,
+    avatar_mime VARCHAR(100) NULL,
+    avatar_size INT NULL,
+    avatar_uploaded_at DATETIME NULL,
+    id_vinculacion_fk INT NULL,
     PRIMARY KEY (cc),
     INDEX(cc),
-    INDEX(id_contrato_fk),
-    FOREIGN KEY (id_contrato_fk) REFERENCES contrato(id_contrato) ON DELETE SET NULL ON UPDATE CASCADE
+    INDEX(id_vinculacion_fk),
+    FOREIGN KEY (id_vinculacion_fk) REFERENCES vinculacion(id_vinculacion) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE sede (

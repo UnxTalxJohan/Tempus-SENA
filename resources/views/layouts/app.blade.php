@@ -136,6 +136,10 @@
                                 @endif
                             </div>
                             <div style="height:1px; background:#eee; margin:6px 0;"></div>
+                            <a href="{{ route('user.panel') }}" class="dropdown-item" style="display:block; width:100%; text-align:left; background:none; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; text-decoration:none;">
+                                <i class="bi bi-person-badge" aria-hidden="true" style="margin-right:8px;"></i>
+                                Ingresar al panel de Usuario
+                            </a>
                             <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                                 @csrf
                                 <button type="submit" class="dropdown-item" style="width:100%; text-align:left; background:none; border:none; padding:8px 10px; border-radius:8px; cursor:pointer;">
@@ -208,7 +212,8 @@
         const pages = [
             { name: 'Inicio', url: '{{ route("dashboard") }}', keywords: ['inicio', 'home', 'principal'] },
             { name: 'Matriz Extendida', url: '{{ route("matriz.index") }}', keywords: ['matriz', 'competencias', 'resultados', 'ver'] },
-            { name: 'Cargar Excel', url: '{{ route("excel.upload") }}', keywords: ['cargar', 'excel', 'importar', 'subir', 'archivo'] }
+            { name: 'Cargar Excel', url: '{{ route("excel.upload") }}', keywords: ['cargar', 'excel', 'importar', 'subir', 'archivo'] },
+            { name: 'Panel de Usuario', url: '{{ route("user.panel") }}', keywords: ['usuario', 'perfil', 'panel', 'cuenta'] }
         ];
         
         if (globalSearch) {
