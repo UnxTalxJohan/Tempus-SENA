@@ -21,10 +21,18 @@
                         </div>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-small btn-success" id="btnMiniConfirm">
-                            <i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>
-                            Confirmar y Cargar
-                        </button>
+                        @if(!empty($isDuplicate))
+                            <span class="pill pill-warning" style="margin-right:8px;">Repetida</span>
+                            <a href="{{ route('excel.preview.multi_view') }}" class="btn btn-small btn-secondary">
+                                <i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>
+                                Volver
+                            </a>
+                        @else
+                            <button type="button" class="btn btn-small btn-success" id="btnMiniConfirm">
+                                <i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>
+                                Confirmar y Cargar
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -119,8 +127,12 @@
                     <input type="hidden" name="file_name" value="{{ $fileName }}">
                     
                     <div class="buttons">
-                        <a href="{{ route('excel.preview.multi_view') }}" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>Volver a la lista</a>
-                        <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>Confirmar y Cargar al Sistema</button>
+                                        <a href="{{ route('excel.preview.multi_view') }}" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>Volver a la lista</a>
+                                        @if(empty($isDuplicate))
+                                        <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>Confirmar y Cargar al Sistema</button>
+                                        @else
+                                        <span class="pill pill-warning" style="margin-left:8px;">Repetida (no se puede cargar)</span>
+                                        @endif
                     </div>
                 </form>
             </main>

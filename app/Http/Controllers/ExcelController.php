@@ -97,7 +97,16 @@ class ExcelController extends Controller
         try {
             $data = $this->parseExcelForPreview($fullPath);
             $fileName = $request->input('file_name');
-            return view('excel.preview', $data + compact('fileName'));
+            // Detectar si este archivo fue marcado como duplicado en la lista múltiple
+            $isDuplicate = false;
+            $multi = session('previews_multi', []);
+            foreach ($multi as $p) {
+                if (($p['fileName'] ?? '') === $fileName) {
+                    $isDuplicate = !empty($p['duplicate']);
+                    break;
+                }
+            }
+            return view('excel.preview', $data + compact('fileName', 'isDuplicate'));
         } catch (\Exception $e) {
             $logs = session('upload_logs', []);
             $logs[] = 'Error al previsualizar archivo: ' . $e->getMessage();
