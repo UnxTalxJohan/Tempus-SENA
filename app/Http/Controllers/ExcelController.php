@@ -215,8 +215,11 @@ class ExcelController extends Controller
         $spreadsheet = IOFactory::load($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
         // Validación de plantilla (encabezados principales)
-        if (!$this->validateMatrixHeaders($sheet)) {
-            throw new \RuntimeException('El archivo no coincide con la plantilla de la matriz (encabezados inválidos o incompatibles).');
+        $vh = $this->validateMatrixHeaders($sheet);
+        if (!$vh['ok']) {
+            $msg = 'El archivo no coincide con la plantilla de la matriz';
+            if (!empty($vh['missing'])) { $msg .= ' (faltan: ' . implode(', ', $vh['missing']) . ')'; }
+            throw new \RuntimeException($msg . '.');
         }
         $codigo = trim($sheet->getCell('A4')->getValue());
         $nombre = trim($sheet->getCell('B4')->getValue());
@@ -263,13 +266,19 @@ class ExcelController extends Controller
      * Valida que las primeras filas contengan los encabezados esperados de la plantilla.
      * Se hace comparación flexible (minúsculas, sin acentos y por patrones aproximados).
      */
-    private function validateMatrixHeaders(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): bool
+    private function validateMatrixHeaders(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): array
     {
         $normalize = function($s){
             $s = trim((string)$s);
             if ($s === '') return '';
             $s = mb_strtolower($s, 'UTF-8');
-            $s = iconv('UTF-8', 'ASCII//TRANSLIT', $s);
+            // eliminar acentos de forma segura sin depender solo de iconv
+            if (function_exists('transliterator_transliterate')) {
+                $s = transliterator_transliterate('Any-Latin; Latin-ASCII', $s);
+            } else if (function_exists('iconv')) {
+                $conv = @iconv('UTF-8', 'ASCII//TRANSLIT', $s);
+                if ($conv !== false) $s = $conv;
+            }
             $s = preg_replace('/[^a-z0-9\s]/', ' ', $s);
             $s = preg_replace('/\s+/', ' ', $s);
             return trim($s);
@@ -281,28 +290,30 @@ class ExcelController extends Controller
             'C' => '/nivel/',
             'D' => '/version/',
             'E' => '/nombre.*competencia|unidad.*competencia|ncl|uc/',
-            'F' => '/codigo$/',
+            'F' => '/^codigo$/',
             'G' => '/duracion.*competencia.*hora/',
             'H' => '/resultados.*aprendizaje/',
-            'I' => '/horas.*maxim/',
-            'J' => '/horas.*minim/',
+            'I' => '/horas.*(maxim|maxima|maximas)/',
+            'J' => '/horas.*(minim|minima|minimas)/',
             'K' => '/trimestre/',
             'L' => '/semana.*programar/',
             'M' => '/trimestre.*programar/'
         ];
 
-        $found = 0; $required = ['A','B','C','D','H'];
+        $found = 0; $missing = [];
+        // esenciales mínimas para permitir carga
+        $required = ['A','B','D','H']; // relajamos: no exigir C (Nivel)
         foreach ($patterns as $col => $regex) {
             $okCol = false;
-            for ($r = 1; $r <= 3; $r++) {
+            for ($r = 1; $r <= 5; $r++) {
                 $val = $normalize($sheet->getCell($col.$r)->getValue());
                 if ($val !== '' && preg_match($regex, $val)) { $okCol = true; break; }
             }
-            if ($okCol) $found++;
-            if (in_array($col, $required, true) && !$okCol) return false;
+            if ($okCol) $found++; else if (in_array($col, $required, true)) $missing[] = $col;
         }
-        // Al menos 9 columnas deben reconocerse para considerarlo compatible
-        return $found >= 9;
+        // Al menos 7 columnas deben coincidir para considerarlo compatible
+        $ok = (empty($missing) && $found >= 7);
+        return ['ok' => $ok, 'missing' => $missing, 'found' => $found];
     }
 
     /**
