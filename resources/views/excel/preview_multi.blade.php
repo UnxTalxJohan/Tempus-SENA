@@ -110,6 +110,36 @@
                 </div>
                 @endif
             </main>
+                        <!-- Botón flotante para bajar/subir -->
+                        <button type="button" class="floating-scroll-bottom" id="scrollBottomBtnMulti" title="Bajar al final">
+                                <i class="bi bi-arrow-down" aria-hidden="true"></i>
+                        </button>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    (function(){
+        const btn = document.getElementById('scrollBottomBtnMulti');
+        const icon = btn ? btn.querySelector('i') : null;
+        function update(){
+            const y = window.scrollY || document.documentElement.scrollTop;
+            const h = document.documentElement.scrollHeight;
+            const vh = window.innerHeight;
+            const atBottom = (y + vh) >= (h - 10);
+            if (btn && icon){
+                if (atBottom){ btn.dataset.dir = 'up'; icon.className = 'bi bi-arrow-up'; btn.title = 'Subir al inicio'; }
+                else { btn.dataset.dir = 'down'; icon.className = 'bi bi-arrow-down'; btn.title = 'Bajar al final'; }
+            }
+        }
+        window.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('load', update);
+        btn?.addEventListener('click', function(){
+            const dir = btn.dataset.dir || 'down';
+            if (dir === 'up') window.scrollTo({ top: 0, behavior: 'smooth' });
+            else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+        });
+    })();
+</script>
 @endsection

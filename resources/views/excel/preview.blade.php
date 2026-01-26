@@ -137,6 +137,7 @@
                 const miniBtn = document.getElementById('btnMiniConfirm');
                 const processForm = document.getElementById('processForm');
                 const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+                const scrollIcon = scrollBottomBtn ? scrollBottomBtn.querySelector('i') : null;
 
                 function toggleMiniBar(){
                     const y = window.scrollY || document.documentElement.scrollTop;
@@ -149,15 +150,39 @@
                     }
                 }
 
+                function updateScrollButton(){
+                    const y = window.scrollY || document.documentElement.scrollTop;
+                    const h = document.documentElement.scrollHeight;
+                    const vh = window.innerHeight;
+                    const atBottom = (y + vh) >= (h - 10);
+                    if (scrollBottomBtn && scrollIcon){
+                        if (atBottom){
+                            scrollBottomBtn.dataset.dir = 'up';
+                            scrollIcon.className = 'bi bi-arrow-up';
+                            scrollBottomBtn.title = 'Subir al inicio';
+                        } else {
+                            scrollBottomBtn.dataset.dir = 'down';
+                            scrollIcon.className = 'bi bi-arrow-down';
+                            scrollBottomBtn.title = 'Bajar al final';
+                        }
+                    }
+                }
+
                 window.addEventListener('scroll', toggleMiniBar, { passive: true });
-                window.addEventListener('load', toggleMiniBar);
+                window.addEventListener('scroll', updateScrollButton, { passive: true });
+                window.addEventListener('load', function(){ toggleMiniBar(); updateScrollButton(); });
 
                 miniBtn?.addEventListener('click', function(){
                     if(processForm){ processForm.submit(); }
                 });
 
                 scrollBottomBtn?.addEventListener('click', function(){
-                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                    const dir = scrollBottomBtn.dataset.dir || 'down';
+                    if (dir === 'up'){
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                    }
                 });
             })();
         </script>
