@@ -1993,7 +1993,7 @@ input[type="file"] {
     align-items: center;
     justify-content: center;
     background: transparent;
-    color: #ffffff;
+    color: #39A900;
     border: 2px solid #39A900;
     box-shadow: 0 10px 24px rgba(0,0,0,0.18);
     backdrop-filter: none;
@@ -2007,7 +2007,7 @@ input[type="file"] {
     box-shadow: 0 14px 28px rgba(0,0,0,0.22);
     background: rgba(0, 133, 63, 0.15);
 }
-.floating-scroll-bottom i { font-size: 22px; }
+.floating-scroll-bottom i { font-size: 22px; color: #39A900; }
 
 /* === VISTA TIPO EXCEL === */
 .excel-table {
