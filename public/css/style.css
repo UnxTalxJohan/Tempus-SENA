@@ -2364,8 +2364,8 @@ input[type="file"] {
     position: relative;
     z-index: 2; /* contenido por encima del velo */
     min-height: 520px;
-    /* Fondo azul claro difuminado (SVG) con transparencia del card */
-    background: url('../images/bg-left-pattern.svg') center/cover no-repeat;
+    /* Fondo sin patrón de puntos */
+    background: none;
 }
 .auth-left::before {
     content: "";
