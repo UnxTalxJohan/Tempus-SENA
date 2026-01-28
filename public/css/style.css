@@ -2452,8 +2452,14 @@ input[type="file"] {
     font-weight: 800; /* ligeramente más gruesa */
     font-size: clamp(30px, 4.8vw, 46px);
     letter-spacing: 0.8px;
-    text-shadow: none; /* sin halo que aclare el texto */
-    opacity: 0.85; /* más visible y oscuro */
+    /* Contorno blanco: stroke (WebKit) + fallback text-shadow */
+    -webkit-text-stroke: 1.25px #ffffff;
+    text-shadow:
+        -1px 0 0 #ffffff,
+         1px 0 0 #ffffff,
+         0 -1px 0 #ffffff,
+         0  1px 0 #ffffff; /* fallback para navegadores sin text-stroke */
+    opacity: 0.9; /* un poco más visible */
     pointer-events: none;
     user-select: none;
     mix-blend-mode: normal;
