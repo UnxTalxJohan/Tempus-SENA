@@ -2452,18 +2452,10 @@ input[type="file"] {
     font-weight: 700; /* peso limpio para contorno fino */
     font-size: clamp(30px, 4.8vw, 46px);
     letter-spacing: 0.6px;
-    /* Contorno blanco elegante: stroke 1px + fallback fino */
-    -webkit-text-stroke: 1px rgba(255,255,255,0.92);
-    text-shadow:
-        -1px  0   0 rgba(255,255,255,0.92),
-         1px  0   0 rgba(255,255,255,0.92),
-         0   -1px 0 rgba(255,255,255,0.92),
-         0    1px 0 rgba(255,255,255,0.92),
-        -1px -1px 0 rgba(255,255,255,0.88),
-         1px -1px 0 rgba(255,255,255,0.88),
-        -1px  1px 0 rgba(255,255,255,0.88),
-         1px  1px 0 rgba(255,255,255,0.88),
-         0    2px 6px rgba(16,24,40,0.10); /* leve sombra de caída */
+    /* Contorno blanco principal (sin artefactos internos) */
+    -webkit-text-stroke: 1px #ffffff;
+    /* Fallback para navegadores sin text-stroke: glow suave */
+    text-shadow: 0 0 2px rgba(255,255,255,0.9), 0 0 3px rgba(255,255,255,0.75);
     opacity: 0.98;
     pointer-events: none;
     user-select: none;
