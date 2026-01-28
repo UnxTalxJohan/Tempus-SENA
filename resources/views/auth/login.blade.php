@@ -84,22 +84,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const text = 'Tempus-SENA';
-    const textNode = document.createTextNode('');
-    wm.appendChild(textNode);
+    const textWrap = document.createElement('span');
+    textWrap.className = 'wm-text';
+    wm.appendChild(textWrap);
     const caret = document.createElement('span');
     caret.className = 'wm-caret';
     caret.setAttribute('aria-hidden', 'true');
     wm.appendChild(caret);
 
     let i = 0;
-    const speed = 100; // ms por letra (un poquito más lento)
+    const speed = 140; // ms por letra (más lento y fluido)
     const interval = setInterval(() => {
-        textNode.nodeValue = text.slice(0, i);
-        i++;
+        if (i < text.length) {
+            const span = document.createElement('span');
+            span.className = 'wm-letter';
+            span.textContent = text[i];
+            textWrap.appendChild(span);
+            i++;
+        }
         if (i > text.length) {
             clearInterval(interval);
             caret.remove();
-            textNode.nodeValue = text;
+            // Asegurar texto final completo
+            textWrap.textContent = text;
         }
     }, speed);
 });

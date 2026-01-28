@@ -2484,11 +2484,21 @@ input[type="file"] {
     width: 2px;
     height: 1em;
     margin-left: 3px;
-    background: #ffffff;
+    background: #00853F; /* caret verde */
     vertical-align: -0.15em;
     animation: wmBlink 1s steps(1, end) infinite;
 }
 @keyframes wmBlink { 50% { opacity: 0; } }
+/* letras del typewriter con entrada suave */
+.wm-letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(4px);
+    animation: wmLetter 220ms ease-out forwards;
+}
+@keyframes wmLetter {
+    to { opacity: 1; transform: translateY(0); }
+}
 .selector-box h2 {
     color: #00853F;
     margin-bottom: 20px;
