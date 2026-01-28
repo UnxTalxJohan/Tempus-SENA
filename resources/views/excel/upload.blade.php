@@ -112,7 +112,12 @@
         fileInput.addEventListener('change', function(e) {
             const files = Array.from(this.files || []);
             if (files.length === 0) { selectedFile.style.display='none'; btnSubmit.disabled = true; return; }
-            if (files.length > 5) { selectedFile.innerHTML = '⚠️ Selecciona máximo 5 archivos.'; btnSubmit.disabled = true; return; }
+            if (files.length > 5) {
+                selectedFile.innerHTML = '⚠️ Selecciona máximo 5 archivos.';
+                btnSubmit.disabled = true;
+                if (window.showToast) window.showToast('Solo se admiten 5 archivos por carga', 'warning');
+                return;
+            }
             const list = files.map(f => `• <strong>${f.name}</strong> (${(f.size/1024/1024).toFixed(2)} MB)`).join('<br>');
             selectedFile.innerHTML = `<i class=\"bi bi-check2-circle\" aria-hidden=\"true\"></i> ${files.length} archivo(s):<br>${list}`;
             selectedFile.style.display = 'block';

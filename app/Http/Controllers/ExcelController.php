@@ -12,6 +12,20 @@ use Illuminate\Support\Facades\Schema;
 
 class ExcelController extends Controller
 {
+    /**
+     * Carga un archivo Excel usando el reader adecuado según su contenido.
+     * Lanza una RuntimeException con mensaje claro si el archivo está corrupto
+     * o el formato no es compatible.
+     */
+    private function loadSpreadsheet(string $fullPath): \PhpOffice\PhpSpreadsheet\Spreadsheet
+    {
+        try {
+            $reader = IOFactory::createReaderForFile($fullPath);
+            return $reader->load($fullPath);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Archivo Excel inválido o no inicializado. Verifica que el formato sea .xlsx o .xls y que el archivo no esté corrupto.');
+        }
+    }
     public function showUploadForm()
     {
         return view('excel.upload');
@@ -74,7 +88,7 @@ class ExcelController extends Controller
                     ]);
                     $seenCodes[$parsed['codigo']] = true;
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $logs[] = 'Error al leer ' . $file->getClientOriginalName() . ': ' . $e->getMessage();
                 $previews[] = [ 'ok' => false, 'fileName' => $fileName, 'originalName' => $file->getClientOriginalName(), 'error' => $e->getMessage() ];
             }
@@ -107,7 +121,7 @@ class ExcelController extends Controller
                 }
             }
             return view('excel.preview', $data + compact('fileName', 'isDuplicate'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $logs = session('upload_logs', []);
             $logs[] = 'Error al previsualizar archivo: ' . $e->getMessage();
             session(['upload_logs' => $logs]);
@@ -173,7 +187,7 @@ class ExcelController extends Controller
             return redirect()->route('matriz.show', ['id_prog' => $programa->id_prog])
                 ->with('success', '✅ Programa cargado exitosamente: ' . $programa->nombre);
                 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             return redirect()->route('excel.upload')
                 ->with('error', 'Error al procesar el archivo: ' . $e->getMessage());
@@ -195,7 +209,7 @@ class ExcelController extends Controller
             try {
                 $prog = $this->processSingleExcel($fullPath);
                 $ok++; $lastProg = $prog;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $fail++; $logs[] = 'Error procesando ' . $fileName . ': ' . $e->getMessage();
             }
         }
@@ -212,7 +226,7 @@ class ExcelController extends Controller
      */
     private function parseExcelForPreview(string $fullPath): array
     {
-        $spreadsheet = IOFactory::load($fullPath);
+        $spreadsheet = $this->loadSpreadsheet($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
         // Validación de plantilla (encabezados principales)
         $vh = $this->validateMatrixHeaders($sheet);
@@ -231,12 +245,20 @@ class ExcelController extends Controller
         $filaMaxima = $sheet->getHighestRow();
         $competencias = [];
         $competenciaActual = null;
+        $codigosNombres = [];
+        $erroresCompetencias = [];
         for ($fila = 4; $fila <= $filaMaxima; $fila++) {
             $nombre_comp = trim($sheet->getCell("E$fila")->getValue());
             $cod_comp = trim($sheet->getCell("F$fila")->getValue());
             $duracion = $sheet->getCell("G$fila")->getValue();
             if (!empty($cod_comp)) {
                 $competenciaActual = [ 'codigo' => $cod_comp, 'nombre' => $nombre_comp, 'duracion' => $duracion ];
+                // Validar si el código ya fue visto con otro nombre
+                if (isset($codigosNombres[$cod_comp]) && $codigosNombres[$cod_comp] !== $nombre_comp) {
+                    $erroresCompetencias[$cod_comp][] = $codigosNombres[$cod_comp];
+                    $erroresCompetencias[$cod_comp][] = $nombre_comp;
+                }
+                $codigosNombres[$cod_comp] = $nombre_comp;
                 if (!isset($competencias[$cod_comp])) {
                     $competencias[$cod_comp] = [ 'codigo' => $cod_comp, 'nombre' => $nombre_comp, 'duracion' => $duracion, 'resultados' => [] ];
                 }
@@ -258,6 +280,14 @@ class ExcelController extends Controller
                     'hora_trim' => $hora_trim
                 ];
             }
+        }
+        if (!empty($erroresCompetencias)) {
+            $mensajes = [];
+            foreach ($erroresCompetencias as $cod => $nombres) {
+                $nombresUnicos = array_unique($nombres);
+                $mensajes[] = "La competencia con código $cod tiene nombres distintos en la matriz: '" . implode("' y '", $nombresUnicos) . "'.";
+            }
+            throw new \RuntimeException(implode(" ", $mensajes));
         }
         return compact('nivel','nombre','codigo','version','competencias');
     }
@@ -324,7 +354,7 @@ class ExcelController extends Controller
     private function processSingleExcel(string $fullPath): Programa
     {
         DB::beginTransaction();
-        $spreadsheet = IOFactory::load($fullPath);
+        $spreadsheet = $this->loadSpreadsheet($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
         $usaTablaDuracion = Schema::hasTable('duracion');
         $usaMatrsExt = Schema::hasTable('matrs_ext');
@@ -372,6 +402,7 @@ class ExcelController extends Controller
             if (!empty($nombre_resultado) && $competenciaActual !== null) {
                 $nombreNormalizado = preg_replace('/\s+/u', ' ', trim($nombre_resultado));
                 $nombreCorto = mb_substr($nombreNormalizado, 0, 255);
+                // Buscar resultado globalmente por cod_comp_fk y nombre (en cualquier programa)
                 $resultado = Resultado::where('cod_comp_fk', $competenciaActual)
                     ->where('nombre', $nombreCorto)
                     ->first();
@@ -380,6 +411,7 @@ class ExcelController extends Controller
                     $resultado->cod_resu = 0;
                     $resultado->nombre = $nombreCorto;
                     $resultado->cod_comp_fk = $competenciaActual;
+                    $resultado->id_prog_fk = $programa->id_prog;
                     if (!$usaTablaDuracion) {
                         $resultado->duracion_hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
                         $resultado->duracion_hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);

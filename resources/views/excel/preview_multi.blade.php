@@ -46,7 +46,7 @@
                             </thead>
                             <tbody>
                                 @foreach($previews as $p)
-                                    <tr>
+                                    <tr class="{{ $p['ok'] ? '' : 'row-invalid' }}">
                                         <td style="text-align:center;">
                                             @if($p['ok'])
                                                 <input type="checkbox" class="select-file" data-filename="{{ $p['fileName'] }}" aria-label="Seleccionar archivo" checked>
@@ -120,8 +120,7 @@
                     <div id="selectedInputs"></div>
                     <div class="buttons">
                         <a href="{{ route('excel.upload') }}" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>Volver</a>
-                        <button type="submit" class="btn btn-primary" id="btnProcessSelected" data-mode="selected"><i class="bi bi-check2-square" aria-hidden="true" style="margin-right:8px;"></i>Cargar seleccionados</button>
-                        <button type="submit" class="btn btn-primary" id="btnProcessAll" data-mode="all"><i class="bi bi-cloud-upload" aria-hidden="true" style="margin-right:8px;"></i>Cargar todos los válidos</button>
+                        <button type="submit" class="btn btn-primary" id="btnProcessAll" data-mode="all"><i class="bi bi-cloud-upload" aria-hidden="true" style="margin-right:8px;"></i>Cargar matrices</button>
                     </div>
                 </form>
                 @else

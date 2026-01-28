@@ -1,6 +1,18 @@
+
 drop database if exists app_cide;
 CREATE database app_cide;
 use app_cide;
+
+CREATE TABLE notificacion (
+    id_noti INT NOT NULL AUTO_INCREMENT,
+    fch_noti DATE NOT NULL,
+    hora_noti TIME NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    descripcion TEXT NOT NULL,
+    estado TINYINT NOT NULL DEFAULT 1, -- 1: no leído, 2: leído
+    PRIMARY KEY (id_noti),
+    INDEX(id_noti)
+) ENGINE=InnoDB;
 
 CREATE TABLE programa (
     id_prog INT NOT NULL,
@@ -43,11 +55,14 @@ CREATE TABLE resultado (
     cod_resu INT NOT NULL,
     nombre VARCHAR(255),
     cod_comp_fk INT NOT NULL,
+    id_prog_fk INT NULL,
     PRIMARY KEY (id_resu),
     INDEX(id_resu),
     INDEX(cod_resu),
     INDEX(cod_comp_fk),
-    FOREIGN KEY (cod_comp_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE
+    INDEX(id_prog_fk),
+    FOREIGN KEY (cod_comp_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_prog_fk) REFERENCES programa(id_prog) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 create Table duracion (

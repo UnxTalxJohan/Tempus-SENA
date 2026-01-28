@@ -28,6 +28,10 @@
                                 Volver
                             </a>
                         @else
+                            <a href="{{ route('excel.preview.multi_view') }}" class="btn btn-small btn-secondary">
+                                <i class="bi bi-arrow-left" aria-hidden="true" style="margin-right:8px;"></i>
+                                Volver
+                            </a>
                             <button type="button" class="btn btn-small btn-success" id="btnMiniConfirm">
                                 <i class="bi bi-check2-circle" aria-hidden="true" style="margin-right:8px;"></i>
                                 Confirmar y Cargar
@@ -151,15 +155,11 @@
                 const scrollBottomBtn = document.getElementById('scrollBottomBtn');
                 const scrollIcon = scrollBottomBtn ? scrollBottomBtn.querySelector('i') : null;
 
-                function toggleMiniBar(){
-                    const y = window.scrollY || document.documentElement.scrollTop;
-                    if(y > 320){
-                        miniBar.classList.add('visible');
-                        miniBar.setAttribute('aria-hidden','false');
-                    } else {
-                        miniBar.classList.remove('visible');
-                        miniBar.setAttribute('aria-hidden','true');
-                    }
+                // Mostrar siempre la mini barra desde el inicio, sin depender del scroll
+                function showMiniBar(){
+                    if (!miniBar) return;
+                    miniBar.classList.add('visible');
+                    miniBar.setAttribute('aria-hidden','false');
                 }
 
                 function updateScrollButton(){
@@ -180,9 +180,8 @@
                     }
                 }
 
-                window.addEventListener('scroll', toggleMiniBar, { passive: true });
                 window.addEventListener('scroll', updateScrollButton, { passive: true });
-                window.addEventListener('load', function(){ toggleMiniBar(); updateScrollButton(); });
+                window.addEventListener('load', function(){ showMiniBar(); updateScrollButton(); });
 
                 miniBtn?.addEventListener('click', function(){
                     if(processForm){ processForm.submit(); }

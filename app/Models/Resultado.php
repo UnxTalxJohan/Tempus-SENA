@@ -18,6 +18,7 @@ class Resultado extends Model
         'trim_prog',
         'hora_sema_programar',
         'hora_trim_programar',
-        'cod_comp_fk'
+        'cod_comp_fk',
+        'id_prog_fk'
     ];
 }
