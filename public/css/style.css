@@ -2364,8 +2364,8 @@ input[type="file"] {
     position: relative;
     z-index: 2; /* contenido por encima del velo */
     min-height: 520px;
-    /* Fondo azul suave sin patrón */
-    background: linear-gradient(180deg, #eaf3ff 0%, #d5e8ff 100%);
+    /* Fondo azul más intenso sin patrón */
+    background: linear-gradient(180deg, #e1effb 0%, #cfe5ff 100%);
 }
 .auth-left::before {
     content: "";
@@ -2382,8 +2382,8 @@ input[type="file"] {
     content: "";
     position: absolute;
     inset: 0;
-    /* Velo blanco sutil para mantener azul y transparencia visibles */
-    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.20));
+    /* Velo azul sutil para reforzar el color */
+    background: linear-gradient(180deg, rgba(208,228,255,0.38), rgba(198,220,255,0.28));
     opacity: 1;
     z-index: 1;
 }
