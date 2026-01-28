@@ -28,7 +28,7 @@
         <!-- Fuentes: Inter (moderna) y Cormorant (legacy, fallback opcional) -->
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
-        <link href="{{ asset('css/style.css') }}?v=login-art-61" rel="stylesheet">
+        <link href="{{ asset('css/style.css') }}?v=login-art-62" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 @php($bgStyle = (request()->routeIs('dashboard') ? (request('bg') ?: (session('bg_style') ?? 'bubbles')) : (session('bg_style') ?? 'bubbles')))
