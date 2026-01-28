@@ -2479,6 +2479,16 @@ input[type="file"] {
     top: 20px;
     z-index: 3;
 }
+.auth-watermark .wm-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 3px;
+    background: #ffffff;
+    vertical-align: -0.15em;
+    animation: wmBlink 1s steps(1, end) infinite;
+}
+@keyframes wmBlink { 50% { opacity: 0; } }
 .selector-box h2 {
     color: #00853F;
     margin-bottom: 20px;

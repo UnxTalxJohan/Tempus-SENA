@@ -68,14 +68,40 @@ function togglePassword(){
     input.type = (input.type === 'password') ? 'text' : 'password';
 }
 
-// Inserta texto estilizado verde "Tempus-SENA" mediante JS
+// Inserta watermark y anima estilo máquina de escribir
 document.addEventListener('DOMContentLoaded', () => {
-    const wm = document.createElement('div');
-    wm.id = 'tempusWatermark';
-    wm.className = 'auth-watermark';
-    wm.textContent = 'Tempus-SENA';
     const left = document.querySelector('.auth-left');
-    (left || document.body).appendChild(wm);
+    if (!left) return;
+
+    let wm = document.getElementById('tempusWatermark');
+    if (!wm) {
+        wm = document.createElement('div');
+        wm.id = 'tempusWatermark';
+        wm.className = 'auth-watermark';
+        left.appendChild(wm);
+    } else {
+        wm.textContent = '';
+    }
+
+    const text = 'Tempus-SENA';
+    const textNode = document.createTextNode('');
+    wm.appendChild(textNode);
+    const caret = document.createElement('span');
+    caret.className = 'wm-caret';
+    caret.setAttribute('aria-hidden', 'true');
+    wm.appendChild(caret);
+
+    let i = 0;
+    const speed = 60; // ms por letra
+    const interval = setInterval(() => {
+        textNode.nodeValue = text.slice(0, i);
+        i++;
+        if (i > text.length) {
+            clearInterval(interval);
+            caret.remove();
+            textNode.nodeValue = text;
+        }
+    }, speed);
 });
 
 // === Fondo login: dos capas con imágenes de sedes y blur al cambiar ===
