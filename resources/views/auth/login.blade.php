@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             textWrap.appendChild(span);
             i++;
         }
-        if (i > text.length) {
+        if (i >= text.length) {
             clearInterval(interval);
             caret.remove();
             // Asegurar texto final completo
