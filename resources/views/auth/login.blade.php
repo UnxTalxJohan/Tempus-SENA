@@ -104,9 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (i >= text.length) {
             clearInterval(interval);
-            caret.remove();
             // Asegurar texto final completo
             textWrap.textContent = text;
+            // Parpadeo final: 3 iteraciones y luego ocultar
+            caret.style.animation = 'wmBlink 0.6s steps(1, end) 3';
+            const onEnd = () => {
+                caret.removeEventListener('animationend', onEnd);
+                caret.remove();
+            };
+            caret.addEventListener('animationend', onEnd);
         }
     }, speed);
 });
