@@ -2452,10 +2452,17 @@ input[type="file"] {
     font-weight: 700; /* peso limpio para contorno fino */
     font-size: clamp(30px, 4.8vw, 46px);
     letter-spacing: 0.6px;
-    /* Contorno blanco principal (sin artefactos internos) */
-    -webkit-text-stroke: 1px #ffffff;
-    /* Fallback para navegadores sin text-stroke: glow suave */
-    text-shadow: 0 0 2px rgba(255,255,255,0.9), 0 0 3px rgba(255,255,255,0.75);
+    /* Contorno blanco sólo externo (sin líneas internas) */
+    -webkit-text-stroke: 0 transparent; /* desactivar stroke interno */
+    text-shadow:
+        -1px -1px 0 #ffffff,
+         1px -1px 0 #ffffff,
+        -1px  1px 0 #ffffff,
+         1px  1px 0 #ffffff,
+         0   -1px 0 #ffffff,
+        -1px  0   0 #ffffff,
+         0    1px 0 #ffffff,
+         1px  0   0 #ffffff; /* contorno crisp en 8 direcciones */
     opacity: 0.98;
     pointer-events: none;
     user-select: none;
