@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wm.appendChild(caret);
 
     let i = 0;
-    const speed = 60; // ms por letra
+    const speed = 100; // ms por letra (un poquito más lento)
     const interval = setInterval(() => {
         textNode.nodeValue = text.slice(0, i);
         i++;
