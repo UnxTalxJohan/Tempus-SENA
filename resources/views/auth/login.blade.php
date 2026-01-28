@@ -4,7 +4,6 @@
 <div class="auth-wrapper">
     <div class="auth-split-card">
         <div class="auth-left">
-            <div class="auth-left-overlay"></div>
         </div>
         <div class="auth-right">
             <div class="auth-brand">
