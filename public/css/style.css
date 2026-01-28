@@ -2446,20 +2446,17 @@ input[type="file"] {
     position: fixed; /* sobreescrito a absolute dentro de .auth-left */
     left: 32px;
     top: 28px;
-    color: #00853F; /* verde SENA más oscuro para mayor legibilidad */
+    color: #006B3F; /* verde SENA más oscuro y limpio */
     /* Fuente moderna para el watermark */
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-weight: 800; /* ligeramente más gruesa */
+    font-weight: 700; /* peso más limpio para evitar “borde gordo” */
     font-size: clamp(30px, 4.8vw, 46px);
-    letter-spacing: 0.8px;
-    /* Contorno blanco: stroke (WebKit) + fallback text-shadow */
-    -webkit-text-stroke: 1.25px #ffffff;
-    text-shadow:
-        -1px 0 0 #ffffff,
-         1px 0 0 #ffffff,
-         0 -1px 0 #ffffff,
-         0  1px 0 #ffffff; /* fallback para navegadores sin text-stroke */
-    opacity: 0.9; /* un poco más visible */
+    letter-spacing: 0.4px;
+    /* Sombra suave para contraste sin contorno duro */
+    -webkit-text-stroke: 0 transparent; /* desactivar stroke webkit */
+    text-shadow: 0 2px 6px rgba(16, 24, 40, 0.18),
+                 0 1px 2px rgba(16, 24, 40, 0.12);
+    opacity: 0.95;
     pointer-events: none;
     user-select: none;
     mix-blend-mode: normal;
