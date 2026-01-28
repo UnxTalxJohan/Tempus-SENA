@@ -2456,11 +2456,15 @@ input[type="file"] {
     -webkit-text-stroke: 0 transparent; /* sin stroke interno */
     text-shadow: none; /* evitar líneas internas */
     filter: 
-        drop-shadow(0 0 1px #ffffff)
-        drop-shadow(1px 0 0 #ffffff)
-        drop-shadow(-1px 0 0 #ffffff)
-        drop-shadow(0 1px 0 #ffffff)
-        drop-shadow(0 -1px 0 #ffffff);
+        drop-shadow(0 0 1.6px #ffffff)
+        drop-shadow(1px 0 0.8px #ffffff)
+        drop-shadow(-1px 0 0.8px #ffffff)
+        drop-shadow(0 1px 0.8px #ffffff)
+        drop-shadow(0 -1px 0.8px #ffffff)
+        drop-shadow(1px 1px 0.8px #ffffff)
+        drop-shadow(-1px 1px 0.8px #ffffff)
+        drop-shadow(1px -1px 0.8px #ffffff)
+        drop-shadow(-1px -1px 0.8px #ffffff);
     opacity: 0.98;
     pointer-events: none;
     user-select: none;
