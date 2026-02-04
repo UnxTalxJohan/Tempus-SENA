@@ -66,10 +66,14 @@ class ExcelController extends Controller
             $file->move($tempDir, $fileName);
             try {
                 $parsed = $this->parseExcelForPreview($fullPath);
-                // Validación de programa duplicado
-                $programaExiste = Programa::where('id_prog', $parsed['codigo'])->exists();
+                // Validación de programa duplicado (solo si está activo)
+                $programaQuery = Programa::where('id_prog', $parsed['codigo']);
+                if (Schema::hasColumn('programa', 'acti')) {
+                    $programaQuery->where('acti', 1);
+                }
+                $programaExiste = $programaQuery->exists();
                 if ($programaExiste) {
-                    $msg = "Programa ${parsed['codigo']} ya existe. Archivo: {$file->getClientOriginalName()}";
+                    $msg = "Programa ${parsed['codigo']} ya existe y está activo. Archivo: {$file->getClientOriginalName()}";
                     $logs[] = $msg;
                     $this->registrarNotificacion('Advertencia: Programa duplicado', $msg);
                     $previews[] = [ 'ok' => false, 'fileName' => $fileName, 'originalName' => $file->getClientOriginalName(), 'error' => 'Programa ya registrado' ];
@@ -190,12 +194,16 @@ class ExcelController extends Controller
         // Verificar que el archivo exista
         if (!file_exists($fullPath)) {
             return redirect()->route('excel.upload')
-                ->with('error', 'El archivo temporal no existe. Por favor, vuelve a cargar el archivo.');
+                ->with('error', 'Archivo no encontrado. Por favor, vuelve a cargar el archivo.');
         }
         
         try {
             $programa = $this->processSingleExcel($fullPath);
-            return redirect()->route('matriz.show', ['id_prog' => $programa->id_prog])
+            $titulo = 'Matriz subida con éxito';
+            $descripcion = 'Cantidad de matrices subidas: 1. Código de programa: ' . $programa->id_prog . '.';
+            $this->registrarNotificacion($titulo, $descripcion);
+            $hash = \App\Helpers\RouteHasher::encode($programa->id_prog);
+            return redirect()->route('matriz.show', ['hash' => $hash])
                 ->with('success', '✅ Programa cargado exitosamente: ' . $programa->nombre);
                 
         } catch (\Throwable $e) {
@@ -214,11 +222,12 @@ class ExcelController extends Controller
         $names = $request->input('file_names', []);
         $ok = 0; $fail = 0; $logs = [];
         $lastProg = null;
+        $codigos = [];
         foreach ($names as $fileName) {
             $fullPath = storage_path('app/temp/' . $fileName);
             if (!file_exists($fullPath)) {
                 $fail++;
-                $msg = 'Temp no encontrado: ' . $fileName;
+                $msg = 'Archivo no encontrado: ' . $fileName;
                 $logs[] = $msg;
                 $this->registrarNotificacion('Error de archivo', $msg);
                 continue;
@@ -226,6 +235,7 @@ class ExcelController extends Controller
             try {
                 $prog = $this->processSingleExcel($fullPath);
                 $ok++; $lastProg = $prog;
+                if ($prog && !empty($prog->id_prog)) { $codigos[] = $prog->id_prog; }
             } catch (\Throwable $e) {
                 $fail++;
                 $msg = 'Error procesando ' . $fileName . ': ' . $e->getMessage();
@@ -234,7 +244,12 @@ class ExcelController extends Controller
             }
         }
         if ($ok > 0 && $lastProg) {
-            return redirect()->route('matriz.show', ['id_prog' => $lastProg->id_prog])
+            $titulo = ($ok > 1) ? 'Matrices subidas con éxito' : 'Matriz subida con éxito';
+            $listaCodigos = !empty($codigos) ? implode(', ', $codigos) : 'N/D';
+            $descripcion = "Cantidad de matrices subidas: ${ok}. Códigos de programa: ${listaCodigos}.";
+            $this->registrarNotificacion($titulo, $descripcion);
+            $hash = \App\Helpers\RouteHasher::encode($lastProg->id_prog);
+            return redirect()->route('matriz.show', ['hash' => $hash])
                 ->with('success', "✅ Cargados ${ok} archivos. ${fail} con errores.");
         }
         return redirect()->route('excel.upload')->with('error', "No se pudo cargar ninguno. Errores: ${fail}");
@@ -445,13 +460,44 @@ class ExcelController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $usaTablaDuracion = Schema::hasTable('duracion');
         $usaMatrsExt = Schema::hasTable('matrs_ext');
-        $programa = new Programa();
-        $programa->id_prog = trim($sheet->getCell('A4')->getValue());
-        $programa->nombre = trim($sheet->getCell('B4')->getValue());
-        $programa->version = trim($sheet->getCell('D4')->getValue());
-        $programa->nivel = trim($sheet->getCell('C4')->getValue());
-        $programa->cant_trim = 0;
-        $programa->save();
+        $idProg = trim($sheet->getCell('A4')->getValue());
+        $programa = Programa::where('id_prog', $idProg)->first();
+        if ($programa) {
+            // Si existe y está activo, bloquear carga
+            if (Schema::hasColumn('programa', 'acti') && (int)$programa->acti === 1) {
+                throw new \RuntimeException('No pueden haber 2 códigos de competencia repetidos.');
+            }
+            // Reactivar y refrescar datos básicos
+            $programa->nombre = trim($sheet->getCell('B4')->getValue());
+            $programa->version = trim($sheet->getCell('D4')->getValue());
+            $programa->nivel = trim($sheet->getCell('C4')->getValue());
+            $programa->cant_trim = 0;
+            if (Schema::hasColumn('programa', 'acti')) {
+                $programa->acti = 1;
+            }
+            $programa->save();
+            // Limpiar vínculos del programa para reimportar
+            if ($usaMatrsExt) {
+                DB::table('matrs_ext')->where('cod_prog_fk', $programa->id_prog)->delete();
+            }
+            if (Schema::hasTable('programa_competencia')) {
+                DB::table('programa_competencia')->where('id_prog_fk', $programa->id_prog)->delete();
+            }
+            if ($usaTablaDuracion && Schema::hasColumn('duracion', 'id_prog_fk')) {
+                DB::table('duracion')->where('id_prog_fk', $programa->id_prog)->delete();
+            }
+        } else {
+            $programa = new Programa();
+            $programa->id_prog = $idProg;
+            $programa->nombre = trim($sheet->getCell('B4')->getValue());
+            $programa->version = trim($sheet->getCell('D4')->getValue());
+            $programa->nivel = trim($sheet->getCell('C4')->getValue());
+            $programa->cant_trim = 0;
+            if (Schema::hasColumn('programa', 'acti')) {
+                $programa->acti = 1;
+            }
+            $programa->save();
+        }
         $filaMaxima = $sheet->getHighestRow();
         $competenciasInsertadas = [];
         $competenciaActual = null;

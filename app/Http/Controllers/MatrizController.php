@@ -376,5 +376,30 @@ class MatrizController extends Controller
 
         return response()->json(['ok' => true]);
     }
+
+    public function destroy($id_prog)
+    {
+        if (empty($id_prog) || !is_numeric($id_prog)) {
+            return redirect()->route('dashboard')->with('error', 'Programa inválido.');
+        }
+        try {
+            \DB::beginTransaction();
+            if (Schema::hasTable('matrs_ext')) {
+                \DB::table('matrs_ext')->where('cod_prog_fk', $id_prog)->delete();
+            }
+            if (Schema::hasTable('programa_competencia')) {
+                \DB::table('programa_competencia')->where('id_prog_fk', $id_prog)->delete();
+            }
+            if (Schema::hasTable('duracion') && Schema::hasColumn('duracion', 'id_prog_fk')) {
+                \DB::table('duracion')->where('id_prog_fk', $id_prog)->delete();
+            }
+            Programa::where('id_prog', $id_prog)->delete();
+            \DB::commit();
+            return redirect()->route('dashboard')->with('success', '✅ Matriz eliminada correctamente.');
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return redirect()->route('dashboard')->with('error', 'Error al eliminar la matriz: ' . $e->getMessage());
+        }
+    }
 }
 

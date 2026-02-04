@@ -14,6 +14,9 @@ class RouteHasher
         if (empty($id)) {
             return null;
         }
+        if (!class_exists(\Vinkla\Hashids\Facades\Hashids::class)) {
+            return (string) $id;
+        }
         return Hashids::encode($id);
     }
 
@@ -25,7 +28,9 @@ class RouteHasher
         if (empty($hash)) {
             return null;
         }
-        
+        if (!class_exists(\Vinkla\Hashids\Facades\Hashids::class)) {
+            return is_numeric($hash) ? (int) $hash : null;
+        }
         $decoded = Hashids::decode($hash);
         return !empty($decoded) ? $decoded[0] : null;
     }
@@ -38,7 +43,9 @@ class RouteHasher
         if (empty($hash)) {
             return false;
         }
-        
+        if (!class_exists(\Vinkla\Hashids\Facades\Hashids::class)) {
+            return is_numeric($hash);
+        }
         $decoded = Hashids::decode($hash);
         return !empty($decoded);
     }

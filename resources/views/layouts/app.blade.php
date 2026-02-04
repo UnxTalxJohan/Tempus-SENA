@@ -131,9 +131,11 @@
                             .notif-item{ display:flex; gap:10px; padding:8px; border-radius:8px; align-items:flex-start; background: #fff; }
                             .notif-item:not(:last-child){ margin-bottom:6px; }
                             .notif-unread{ border-left:4px solid #e53e3e; background: linear-gradient(90deg,#fff7f7,#fff); }
+                            .notif-success{ border-left:4px solid #00A859; background: linear-gradient(90deg,#f3fff7,#fff); }
                             .notif-icon{ color:#e53e3e; font-size:18px; margin-top:2px; }
+                            .notif-icon.success{ color:#00A859; }
                             .notif-title{ font-weight:700; font-size:13px; color:#111; max-width:160px; }
-                            .notif-desc{ color:#333; font-size:12px; opacity:0.95; margin-top:4px; max-width:160px; white-space:normal; }
+                            .notif-desc{ color:#333; font-size:12px; opacity:0.95; margin-top:4px; max-width:160px; white-space:normal; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
                             .notif-meta{ color:#666; font-size:11px; margin-left:auto; white-space:nowrap; text-align:right; }
                             .notif-actions{ display:flex; gap:6px; margin-left:8px; align-items:center; }
                             .notif-view-btn{ background:#00A859; color:#fff; border:none; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:12px; }
@@ -165,12 +167,15 @@
                             #notifDetailModal .panel-title{ font-weight:800; font-size:20px; margin:0; color:#111; }
                             /* Title pill: green background with white text (prominent) */
                             .notif-title-pill{ display:inline-block; background:#00A859; color:#ffffff; border:1px solid rgba(0,168,89,0.9); padding:8px 14px; border-radius:10px; font-weight:800; font-size:16px; }
+                            .notif-title-pill.error{ background:#e53e3e; border-color:#e53e3e; }
+                            .notif-title-pill.warn{ background:#f59e0b; border-color:#f59e0b; }
                             /* Small white box with green border for the matrix/file name */
                             .notif-matrix-box{ display:inline-block; background:#ffffff; color:#007a3d; border:1px solid #00A859; padding:6px 10px; border-radius:8px; font-weight:700; font-size:14px; margin-top:8px; }
                             #notifDetailModal .panel-body{ color:#222; white-space:pre-wrap; max-height:60vh; overflow:auto; line-height:1.5; font-size:15px; margin-top:14px; }
                             /* Structured content inside modal */
                             .notif-issue{ background:#fff5f5; border:1px solid #f5c6cb; color:#7a1a1a; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-weight:700; }
                             .notif-names{ background:#f7fff7; border:1px solid #dff4e6; color:#065f3b; padding:10px 12px; border-radius:8px; margin-bottom:10px; }
+                            .notif-success-box{ background:#f3fff7; border:1px solid #bfe7d0; color:#0b5f3a; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-weight:700; }
                             .notif-code-list{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
                             .notif-code-pill{ background:#fff3f3; border:1px solid #f5c6cb; color:#7a1a1a; padding:6px 10px; border-radius:8px; font-weight:800; display:inline-flex; gap:8px; align-items:center; }
                             .notif-code-copy{ background:transparent; border:none; color:#7a1a1a; cursor:pointer; padding:4px; display:inline-flex; align-items:center; justify-content:center; }
@@ -180,6 +185,7 @@
                             #notifDetailModal .notif-delete-btn{ background:#e53e3e; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.08); }
                             #notifDetailModal .notif-close-btn{ background:#f1f1f1; color:#333; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
                             #notifDetailModal .modal-icon-wrap{ background: linear-gradient(180deg, rgba(229,62,62,0.08), rgba(229,62,62,0.02)); border-radius:8px; height:44px; }
+                            #notifDetailModal .modal-icon-wrap.success{ background: linear-gradient(180deg, rgba(0,168,89,0.12), rgba(0,168,89,0.03)); }
                             /* make the description area more readable */
                             #notifDetailModal .panel-body p{ margin:8px 0; }
                             /* confirmation box inside overlay */
@@ -196,8 +202,8 @@
                         <div id="notifDetailOverlay" role="dialog" aria-modal="true" aria-hidden="true">
                             <div id="notifDetailModal" onclick="event.stopPropagation();">
                                 <div class="modal-header" style="display:flex; gap:12px; align-items:flex-start;">
-                                    <div class="modal-icon-wrap" style="flex:0 0 44px; display:flex; align-items:center; justify-content:center;">
-                                        <i class="bi bi-exclamation-triangle-fill" style="color:#e53e3e; font-size:24px;"></i>
+                                    <div id="notifModalIconWrap" class="modal-icon-wrap" style="flex:0 0 44px; display:flex; align-items:center; justify-content:center;">
+                                        <i id="notifModalIcon" class="bi bi-exclamation-triangle-fill" style="color:#e53e3e; font-size:24px;"></i>
                                     </div>
                                     <div style="flex:1;">
                                         <div class="panel-title"><span id="notifPanelTitle" class="notif-title-pill"></span></div>
@@ -330,8 +336,11 @@
                                             const excerpt = (n.descripcion||'').replace(/\s+/g,' ').substring(0,80) + ((n.descripcion||'').length>80?'...':'');
                                             const time12 = formatTime12(n.hora_noti || '');
                                             const dateFmt = formatDate(n.fch_noti || '');
-                                                html += `<li class="notif-item${n.estado==1?' notif-unread':''}" data-id="${n.id_noti}">
-                                                <div class="notif-icon"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i></div>
+                                            const isSuccess = /exito|éxito|subida con éxito|subidas con éxito/i.test(n.titulo || '');
+                                            const itemClass = `notif-item${n.estado==1?' notif-unread':''}${isSuccess?' notif-success':''}`;
+                                            const iconClass = isSuccess ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+                                            html += `<li class="${itemClass}" data-id="${n.id_noti}">
+                                                <div class="notif-icon${isSuccess?' success':''}"><i class="bi ${iconClass}" aria-hidden="true"></i></div>
                                                 <div style="flex:1;">
                                                     <div style="display:flex; gap:8px; align-items:center;">
                                                         <div class="notif-title">${n.titulo}</div>
@@ -364,7 +373,35 @@
                                             .then(r => r.json())
                                             .then(n => {
                                                 // populate side panel
-                                                document.getElementById('notifPanelTitle').textContent = n.titulo || '';
+                                                const titleText = n.titulo || '';
+                                                document.getElementById('notifPanelTitle').textContent = titleText;
+                                                // success/warn/error styling for modal
+                                                const isSuccessModal = /exito|éxito|subida con éxito|subidas con éxito/i.test(titleText);
+                                                const isErrorModal = /error/i.test(titleText);
+                                                const isWarnModal = /advertencia/i.test(titleText);
+                                                const iconWrap = document.getElementById('notifModalIconWrap');
+                                                const iconEl = document.getElementById('notifModalIcon');
+                                                const titlePill = document.getElementById('notifPanelTitle');
+                                                if (titlePill) {
+                                                    titlePill.classList.remove('error', 'warn');
+                                                    if (isErrorModal) titlePill.classList.add('error');
+                                                    else if (isWarnModal) titlePill.classList.add('warn');
+                                                }
+                                                if (iconWrap && iconEl) {
+                                                    if (isSuccessModal) {
+                                                        iconWrap.classList.add('success');
+                                                        iconEl.className = 'bi bi-check-circle-fill';
+                                                        iconEl.style.color = '#00A859';
+                                                    } else if (isWarnModal) {
+                                                        iconWrap.classList.remove('success');
+                                                        iconEl.className = 'bi bi-exclamation-triangle-fill';
+                                                        iconEl.style.color = '#f59e0b';
+                                                    } else {
+                                                        iconWrap.classList.remove('success');
+                                                        iconEl.className = 'bi bi-exclamation-triangle-fill';
+                                                        iconEl.style.color = '#e53e3e';
+                                                    }
+                                                }
                                                 const dateFmt = formatDate(n.fch_noti || '');
                                                 const time12 = formatTime12(n.hora_noti || '');
                                                 document.getElementById('notifPanelMeta').textContent = `Fecha: ${dateFmt} ${time12}`;
@@ -474,6 +511,12 @@
                                                     details.innerHTML = '<strong>Detalle completo:</strong><br>' + fullText.replace(/\n/g, '<br>');
                                                     body.appendChild(details);
                                                 } else {
+                                                    if (isSuccessModal) {
+                                                        const okBox = document.createElement('div');
+                                                        okBox.className = 'notif-success-box';
+                                                        okBox.textContent = 'Éxito: Matriz subida con éxito.';
+                                                        body.appendChild(okBox);
+                                                    }
                                                     // fallback: render paragraphs
                                                     const paragraphs = fullText.split('\n').filter(Boolean);
                                                     if (paragraphs.length === 0) paragraphs.push(fullText || '');

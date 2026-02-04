@@ -10,6 +10,7 @@ CREATE TABLE programa (
     version INT(255),
     nivel VARCHAR(255),
     cant_trim VARCHAR(255),
+    acti BOOLEAN DEFAULT TRUE, -- 1: activado, 0: desactivado
     PRIMARY KEY (id_prog),
     INDEX(id_prog)
 ) ENGINE=InnoDB;

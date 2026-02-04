@@ -18,6 +18,7 @@ Route::get('/setup/create-admin', [SetupController::class, 'createAdmin'])->name
 // Dashboard protegido (contendrá lo que antes estaba en "/")
 Route::middleware('app.auth')->group(function () {
 	Route::get('/dashboard', [ProgramaController::class, 'index'])->name('dashboard');
+		Route::patch('/programa/{id_prog}/toggle', [ProgramaController::class, 'toggleActivo'])->name('programa.toggle');
 
 	// Rutas para Excel
 	Route::get('/excel/upload', [ExcelController::class, 'showUploadForm'])->name('excel.upload');
@@ -32,6 +33,7 @@ Route::middleware('app.auth')->group(function () {
 	Route::get('/matriz', [MatrizController::class, 'index'])->name('matriz.index');
 	Route::get('/matriz/{hash}', [MatrizController::class, 'show'])->name('matriz.show');
 	Route::get('/matriz/exportar/{hash}', [MatrizController::class, 'exportar'])->name('matriz.exportar');
+	Route::delete('/matriz/{id_prog}', [MatrizController::class, 'destroy'])->name('matriz.destroy');
 
 	// Panel de Usuario
 	Route::get('/usuario/panel', [\App\Http\Controllers\UserPanelController::class, 'index'])->name('user.panel');
