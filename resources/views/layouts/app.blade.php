@@ -638,7 +638,12 @@
                             </script>
                     <div class="user-menu" id="userMenu">
                         <button class="user-avatar" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" title="Cuenta">
-                            <i class="bi bi-person-circle" aria-hidden="true" style="font-size:22px;"></i>
+                            @php($avatar = $appAuth['avatar'] ?? null)
+                            @if($avatar)
+                                <img src="{{ asset('storage/'.$avatar) }}" alt="Avatar" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:2px solid #00A859;">
+                            @else
+                                <i class="bi bi-person-circle" aria-hidden="true" style="font-size:26px;"></i>
+                            @endif
                         </button>
                         <div class="user-dropdown" id="userDropdown" style="display:none;">
                             <div class="user-info" style="padding:6px 10px 8px 10px;">

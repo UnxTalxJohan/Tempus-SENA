@@ -13,10 +13,35 @@
         @php($avatar = $appAuth['avatar'] ?? null)
 
         <div class="avatar-section" style="display:flex; align-items:center; gap:18px;">
-            <div class="avatar-wrapper">
-                <div class="avatar-circle" style="background-image: url('{{ $avatar ? asset('storage/'.$avatar) : asset('images/logo-sena.svg') }}');"></div>
-                <button class="avatar-camera" id="avatarCameraBtn" title="Cambiar avatar" aria-label="Cambiar avatar">
-                    <i class="bi bi-camera"></i>
+            <div class="avatar-wrapper" style="position:relative; display:inline-block;">
+                <div class="avatar-circle" style="
+                    width: 192px;
+                    height: 192px;
+                    border-radius: 50%;
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    border: 4px solid #00A859;
+                    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+                    background-image: url('{{ $avatar ? asset('storage/'.$avatar) : asset('images/logo-sena.svg') }}');
+                "></div>
+                <button class="avatar-camera" id="avatarCameraBtn" title="Cambiar avatar" aria-label="Cambiar avatar" style="
+                    position:absolute;
+                    right:-6px;
+                    bottom:-6px;
+                    background:#00A859;
+                    color:#fff;
+                    border:none;
+                    width:36px;
+                    height:36px;
+                    border-radius:50%;
+                    box-shadow:0 6px 16px rgba(0,168,89,.25);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    cursor:pointer;
+                ">
+                    <i class="bi bi-camera" style="font-size:18px;" aria-hidden="true"></i>
                 </button>
             </div>
 
