@@ -41,9 +41,39 @@ Route::middleware('app.auth')->group(function () {
 	Route::put('/matriz/competencia/{cod_comp}', [MatrizController::class, 'updateCompetencia'])->name('matriz.competencia.update');
 	Route::put('/matriz/resultado/{id_resu}', [MatrizController::class, 'updateResultado'])->name('matriz.resultado.update');
 
-	// API sencilla para limpiar logs de carga
+	// Rutas de notificaciones (API/AJAX)
+	Route::get('/notificaciones', [\App\Http\Controllers\NotificacionController::class, 'index'])->name('notificaciones.index');
+	Route::post('/notificaciones/marcar-todas', [\App\Http\Controllers\NotificacionController::class, 'markAllRead'])->name('notificaciones.markAllRead');
+	Route::get('/notificaciones/{id}', [\App\Http\Controllers\NotificacionController::class, 'show'])->name('notificaciones.show');
+	Route::delete('/notificaciones/{id}', [\App\Http\Controllers\NotificacionController::class, 'destroy'])->name('notificaciones.destroy');
+
+	// API sencilla para limpiar logs de carga -> borra notificaciones de carga en BD (usa nombres totalmente calificados)
 	Route::post('/api/clear-upload-logs', function() {
-		session(['upload_logs' => []]);
+		$appAuth = session('app_auth', []);
+		$cc = null;
+		if (!empty($appAuth['usuario_id'])) {
+			$uid = $appAuth['usuario_id'];
+			$u = \DB::table('usuario')
+				->where('id_usuario', $uid)
+				->orWhere('id', $uid)
+				->orWhere('cc', $uid)
+				->first();
+			if ($u) $cc = $u->cc ?? null;
+		}
+		if (!$cc && !empty($appAuth['email'])) {
+			$u = \DB::table('usuario')
+				->where('correo', $appAuth['email'])
+				->orWhere('email', $appAuth['email'])
+				->first();
+			if ($u) $cc = $u->cc ?? null;
+		}
+		if (!$cc) return response()->json(['ok' => false, 'error' => 'No autenticado'], 401);
+		// Borrar notificaciones con títulos generados por el flujo de upload
+		\App\Models\Notificacion::where('cc_usuario_fk', $cc)
+			->where(function($q){
+				$q->where('titulo', 'like', 'Advertencia:%')
+				  ->orWhere('titulo', 'like', 'Error%');
+			})->delete();
 		return response()->json(['ok' => true]);
 	})->name('api.clear-upload-logs');
 });

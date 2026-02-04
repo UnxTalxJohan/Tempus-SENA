@@ -7,8 +7,12 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Programa;
 use App\Models\Competencia;
 use App\Models\Resultado;
+
+use App\Models\Notificacion;
+use Illuminate\Support\Facades\Auth;
 use DB;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class ExcelController extends Controller
 {
@@ -54,7 +58,7 @@ class ExcelController extends Controller
 
         $previews = [];
         $seenCodes = [];
-        $logs = session('upload_logs', []);
+        $logs = [];
 
         foreach ($files as $file) {
             $fileName = time() . '_' . $file->getClientOriginalName();
@@ -65,13 +69,17 @@ class ExcelController extends Controller
                 // Validación de programa duplicado
                 $programaExiste = Programa::where('id_prog', $parsed['codigo'])->exists();
                 if ($programaExiste) {
-                    $logs[] = "Programa ${parsed['codigo']} ya existe. Archivo: {$file->getClientOriginalName()}";
+                    $msg = "Programa ${parsed['codigo']} ya existe. Archivo: {$file->getClientOriginalName()}";
+                    $logs[] = $msg;
+                    $this->registrarNotificacion('Advertencia: Programa duplicado', $msg);
                     $previews[] = [ 'ok' => false, 'fileName' => $fileName, 'originalName' => $file->getClientOriginalName(), 'error' => 'Programa ya registrado' ];
                     continue;
                 }
                 // Duplicado dentro del lote de subida (mismo código de programa)
                 if (isset($seenCodes[$parsed['codigo']])) {
-                    $logs[] = "Código repetido en esta carga: {$parsed['codigo']} (archivo: {$file->getClientOriginalName()})";
+                    $msg = "Código repetido en esta carga: {$parsed['codigo']} (archivo: {$file->getClientOriginalName()})";
+                    $logs[] = $msg;
+                    $this->registrarNotificacion('Advertencia: Código repetido', $msg);
                     $previews[] = [
                         'ok' => false,
                         'duplicate' => true,
@@ -89,12 +97,14 @@ class ExcelController extends Controller
                     $seenCodes[$parsed['codigo']] = true;
                 }
             } catch (\Throwable $e) {
-                $logs[] = 'Error al leer ' . $file->getClientOriginalName() . ': ' . $e->getMessage();
+                $msg = 'Error al leer ' . $file->getClientOriginalName() . ': ' . $e->getMessage();
+                $logs[] = $msg;
+                $this->registrarNotificacion('Error al leer archivo', $msg);
                 $previews[] = [ 'ok' => false, 'fileName' => $fileName, 'originalName' => $file->getClientOriginalName(), 'error' => $e->getMessage() ];
             }
         }
 
-        session(['upload_logs' => $logs, 'previews_multi' => $previews]);
+        session(['previews_multi' => $previews]);
         return view('excel.preview_multi', compact('previews'));
     }
 
@@ -106,7 +116,9 @@ class ExcelController extends Controller
         $request->validate(['file_name' => 'required|string']);
         $fullPath = storage_path('app/temp/' . $request->input('file_name'));
         if (!file_exists($fullPath)) {
-            return redirect()->route('excel.upload')->with('error', 'El archivo temporal no existe.');
+            $msg = 'El archivo temporal no existe.';
+            $this->registrarNotificacion('Error de archivo', $msg);
+            return redirect()->route('excel.upload')->with('error', $msg);
         }
         try {
             $data = $this->parseExcelForPreview($fullPath);
@@ -122,9 +134,8 @@ class ExcelController extends Controller
             }
             return view('excel.preview', $data + compact('fileName', 'isDuplicate'));
         } catch (\Throwable $e) {
-            $logs = session('upload_logs', []);
-            $logs[] = 'Error al previsualizar archivo: ' . $e->getMessage();
-            session(['upload_logs' => $logs]);
+            $msg = 'Error al previsualizar archivo: ' . $e->getMessage();
+            $this->registrarNotificacion('Error al previsualizar archivo', $msg);
             return redirect()->route('excel.upload')->with('error', 'Error al leer el archivo: ' . $e->getMessage());
         }
     }
@@ -201,19 +212,27 @@ class ExcelController extends Controller
     {
         $request->validate(['file_names' => 'required|array']);
         $names = $request->input('file_names', []);
-        $ok = 0; $fail = 0; $logs = session('upload_logs', []);
+        $ok = 0; $fail = 0; $logs = [];
         $lastProg = null;
         foreach ($names as $fileName) {
             $fullPath = storage_path('app/temp/' . $fileName);
-            if (!file_exists($fullPath)) { $fail++; $logs[] = 'Temp no encontrado: ' . $fileName; continue; }
+            if (!file_exists($fullPath)) {
+                $fail++;
+                $msg = 'Temp no encontrado: ' . $fileName;
+                $logs[] = $msg;
+                $this->registrarNotificacion('Error de archivo', $msg);
+                continue;
+            }
             try {
                 $prog = $this->processSingleExcel($fullPath);
                 $ok++; $lastProg = $prog;
             } catch (\Throwable $e) {
-                $fail++; $logs[] = 'Error procesando ' . $fileName . ': ' . $e->getMessage();
+                $fail++;
+                $msg = 'Error procesando ' . $fileName . ': ' . $e->getMessage();
+                $logs[] = $msg;
+                $this->registrarNotificacion('Error al procesar archivo', $msg);
             }
         }
-        session(['upload_logs' => $logs]);
         if ($ok > 0 && $lastProg) {
             return redirect()->route('matriz.show', ['id_prog' => $lastProg->id_prog])
                 ->with('success', "✅ Cargados ${ok} archivos. ${fail} con errores.");
@@ -246,6 +265,7 @@ class ExcelController extends Controller
         $competencias = [];
         $competenciaActual = null;
         $codigosNombres = [];
+        $codigosNombresCounts = []; // track counts of names per code
         $erroresCompetencias = [];
         for ($fila = 4; $fila <= $filaMaxima; $fila++) {
             $nombre_comp = trim($sheet->getCell("E$fila")->getValue());
@@ -253,10 +273,13 @@ class ExcelController extends Controller
             $duracion = $sheet->getCell("G$fila")->getValue();
             if (!empty($cod_comp)) {
                 $competenciaActual = [ 'codigo' => $cod_comp, 'nombre' => $nombre_comp, 'duracion' => $duracion ];
+                // Count occurrences of this name for the code
+                if (!isset($codigosNombresCounts[$cod_comp])) $codigosNombresCounts[$cod_comp] = [];
+                $codigosNombresCounts[$cod_comp][$nombre_comp] = ($codigosNombresCounts[$cod_comp][$nombre_comp] ?? 0) + 1;
                 // Validar si el código ya fue visto con otro nombre
                 if (isset($codigosNombres[$cod_comp]) && $codigosNombres[$cod_comp] !== $nombre_comp) {
-                    $erroresCompetencias[$cod_comp][] = $codigosNombres[$cod_comp];
-                    $erroresCompetencias[$cod_comp][] = $nombre_comp;
+                    // store counts for this code so we can report which names and how many times
+                    $erroresCompetencias[$cod_comp] = $codigosNombresCounts[$cod_comp];
                 }
                 $codigosNombres[$cod_comp] = $nombre_comp;
                 if (!isset($competencias[$cod_comp])) {
@@ -283,13 +306,77 @@ class ExcelController extends Controller
         }
         if (!empty($erroresCompetencias)) {
             $mensajes = [];
-            foreach ($erroresCompetencias as $cod => $nombres) {
-                $nombresUnicos = array_unique($nombres);
-                $mensajes[] = "La competencia con código $cod tiene nombres distintos en la matriz: '" . implode("' y '", $nombresUnicos) . "'.";
+            foreach ($erroresCompetencias as $cod => $namesCounts) {
+                // Preferir mostrar sólo los nombres que están repetidos (cnt>1).
+                $repeated = [];
+                foreach ($namesCounts as $name => $cnt) {
+                    if ($cnt > 1) $repeated[] = "{$name} ({$cnt} veces)";
+                }
+                // Si no hay nombres con cnt>1, mostrar todos los nombres encontrados (fallback).
+                $parts = !empty($repeated) ? $repeated : array_map(function($n, $c){
+                    return ($c > 1) ? "{$n} ({$c} veces)" : $n;
+                }, array_keys($namesCounts), $namesCounts);
+                $mensajes[] = "Código de competencia repetido: $cod. Nombres encontrados en la matriz: '" . implode("' y '", $parts) . "'. Nota: los nombres pueden variar, pero el código debe ser único.";
             }
             throw new \RuntimeException(implode(" ", $mensajes));
         }
         return compact('nivel','nombre','codigo','version','competencias');
+    }
+
+    /**
+     * Registra una notificación en la base de datos para el usuario autenticado.
+     */
+    private function registrarNotificacion($titulo, $descripcion)
+    {
+        // Intentar resolver cc del usuario usando la sesión de la app (app_auth)
+        $cc = null;
+        $appAuth = session('app_auth', []);
+        if (!empty($appAuth['usuario_id']) || !empty($appAuth['email'])) {
+            $query = DB::table('usuario');
+            $uid = $appAuth['usuario_id'] ?? null;
+            $email = $appAuth['email'] ?? null;
+
+            $hasIdUsuario = Schema::hasColumn('usuario', 'id_usuario');
+            $hasId = Schema::hasColumn('usuario', 'id');
+            $hasCc = Schema::hasColumn('usuario', 'cc');
+            $hasCorreo = Schema::hasColumn('usuario', 'correo');
+            $hasEmail = Schema::hasColumn('usuario', 'email');
+
+            $clauses = 0;
+            if ($uid !== null) {
+                if ($hasIdUsuario) { $query = $query->where('id_usuario', $uid); $clauses++; }
+                if ($hasId) { $query = ($clauses? $query->orWhere('id', $uid) : $query->where('id', $uid)); $clauses++; }
+                if ($hasCc) { $query = ($clauses? $query->orWhere('cc', $uid) : $query->where('cc', $uid)); $clauses++; }
+            }
+            if ($email !== null) {
+                if ($hasCorreo) { $query = ($clauses? $query->orWhere('correo', $email) : $query->where('correo', $email)); $clauses++; }
+                if ($hasEmail) { $query = ($clauses? $query->orWhere('email', $email) : $query->where('email', $email)); $clauses++; }
+            }
+            if ($clauses > 0) {
+                $u = $query->first();
+                if ($u) $cc = $u->cc ?? null;
+            }
+        }
+        try {
+            $tz = config('app.timezone');
+            if (empty($tz) || strtolower($tz) === 'utc') {
+                $tz = 'America/Bogota';
+            }
+            $now = Carbon::now($tz);
+            Notificacion::create([
+                'cc_usuario_fk' => $cc,
+                'fch_noti' => $now->toDateString(),
+                'hora_noti' => $now->format('H:i:s'),
+                'titulo' => $titulo,
+                'descripcion' => $descripcion,
+                'estado' => 1,
+            ]);
+        } catch (\Throwable $e) {
+            // Fallback: si falla la inserción en BD, conservar en sesión para que el usuario lo vea
+            $logs = session('upload_logs', []);
+            $logs[] = "[NOTIFICACION ERROR] ${titulo}: ${descripcion} (fallback: " . $e->getMessage() . ")";
+            session(['upload_logs' => $logs]);
+        }
     }
 
     /**

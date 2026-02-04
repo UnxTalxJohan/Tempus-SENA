@@ -99,31 +99,500 @@
             <div class="user-section" style="display:flex; align-items:center; gap:12px;">
                 @php($appAuth = session('app_auth'))
                 @if($appAuth && ($appAuth['rol_id'] ?? 0) == 1)
-                    <!-- Notificaciones de carga (logs) -->
-                    @php($uploadLogs = session('upload_logs', []))
+                    <!-- Notificaciones reales (BD) -->
                     <div class="notif-menu" id="notifMenu">
-                        <button class="notif-bell" id="notifBtn" aria-haspopup="true" aria-expanded="false" title="Notificaciones">
-                            <i class="bi bi-bell" aria-hidden="true" style="font-size:20px;"></i>
-                            @if(count($uploadLogs) > 0)
-                                <span class="notif-dot" aria-hidden="true"></span>
-                            @endif
+                        <button type="button" class="notif-bell" id="notifBtn" aria-haspopup="true" aria-expanded="false" title="Notificaciones" style="z-index:1200;">
+                            <i class="bi bi-bell" aria-hidden="true" style="font-size:22px;"></i>
+                            <span class="notif-dot" id="notifDot" style="display:none;" aria-hidden="true"></span>
                         </button>
-                        <div class="notif-dropdown" id="notifDropdown" style="display:none;">
-                            <div class="notif-header">Logs de carga</div>
-                            @if(count($uploadLogs) === 0)
-                                <div class="notif-empty">No hay notificaciones</div>
-                            @else
-                                <ul class="notif-list">
-                                    @foreach($uploadLogs as $log)
-                                        <li class="notif-item"><i class="bi bi-info-circle" aria-hidden="true"></i> <span>{{ $log }}</span></li>
-                                    @endforeach
-                                </ul>
-                                <div style="padding:8px; text-align:right;">
-                                    <button type="button" class="btn btn-small" onclick="window.clearUploadLogs()">Limpiar</button>
+                        <style>
+                            .notif-dropdown { background:#fff; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.12); padding:8px; }
+                            .notif-bell{ background:transparent; border:none; box-shadow:none; padding:6px; border-radius:50%; position:relative; outline:none; }
+                            .notif-bell:focus, .notif-bell:focus-visible{ outline:none; box-shadow:none; }
+                            .notif-dot{ position:absolute; top:2px; right:2px; width:8px; height:8px; background:#2ecc71; border-radius:50%; box-shadow:0 0 0 2px #fff; }
+                            .notif-header{ font-weight:700; padding:8px 12px; border-bottom:1px solid #f1f1f1; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+                            .notif-markall-btn{ background:#00A859; color:#fff; border:none; padding:6px 10px; border-radius:8px; font-size:12px; cursor:pointer; }
+                            .notif-list{ list-style:none; margin:0; padding:8px; max-height:320px; overflow:auto; }
+                            .notif-bell.ring{ animation: bell-ring 1s ease-in-out; transform-origin: top center; }
+                            @keyframes bell-ring {
+                                0% { transform: rotate(0deg); }
+                                10% { transform: rotate(14deg); }
+                                20% { transform: rotate(-14deg); }
+                                30% { transform: rotate(12deg); }
+                                40% { transform: rotate(-12deg); }
+                                50% { transform: rotate(8deg); }
+                                60% { transform: rotate(-8deg); }
+                                70% { transform: rotate(4deg); }
+                                80% { transform: rotate(-4deg); }
+                                90% { transform: rotate(2deg); }
+                                100% { transform: rotate(0deg); }
+                            }
+                            /* Compact style used inside the bell dropdown */
+                            .notif-item{ display:flex; gap:10px; padding:8px; border-radius:8px; align-items:flex-start; background: #fff; }
+                            .notif-item:not(:last-child){ margin-bottom:6px; }
+                            .notif-unread{ border-left:4px solid #e53e3e; background: linear-gradient(90deg,#fff7f7,#fff); }
+                            .notif-icon{ color:#e53e3e; font-size:18px; margin-top:2px; }
+                            .notif-title{ font-weight:700; font-size:13px; color:#111; max-width:160px; }
+                            .notif-desc{ color:#333; font-size:12px; opacity:0.95; margin-top:4px; max-width:160px; white-space:normal; }
+                            .notif-meta{ color:#666; font-size:11px; margin-left:auto; white-space:nowrap; text-align:right; }
+                            .notif-actions{ display:flex; gap:6px; margin-left:8px; align-items:center; }
+                            .notif-view-btn{ background:#00A859; color:#fff; border:none; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:12px; }
+                            .notif-delete-btn{ background:#e53e3e; color:#fff; border:none; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:12px; }
+                            .notif-status-badge{ font-size:11px; padding:4px 8px; border-radius:999px; background:#00A859; color:#fff; font-weight:700; }
+                            .notif-status-new{ background:#00A859; color:#fff; }
+                            .notif-status-read{ background:#9aa7a0; color:#fff; }
+                            .notif-excerpt{ margin-top:4px; }
+                            /* Larger modal styles remain unchanged above */
+                            /* Panel lateral */
+                            #notifDetailPanel{ position:fixed; right:18px; top:80px; width:360px; max-width:92%; background:#fff; border-radius:10px; box-shadow:0 18px 50px rgba(0,0,0,.18); padding:12px; z-index:1300; display:none; }
+                            #notifDetailPanel .panel-title{ font-weight:700; margin-bottom:8px; }
+                            #notifDetailPanel .panel-body{ color:#333; white-space:pre-wrap; max-height:48vh; overflow:auto; }
+                            #notifDetailPanel .panel-footer{ margin-top:10px; display:flex; gap:8px; justify-content:flex-end; }
+                        </style>
+                        <div class="notif-dropdown" id="notifDropdown" style="display:none; min-width:320px;">
+                            <div class="notif-header">
+                                <span>Notificaciones</span>
+                                <button id="notifMarkAll" type="button" class="notif-markall-btn">Marcar todas</button>
+                            </div>
+                            <div id="notifListContainer">
+                                <div class="notif-empty">Cargando...</div>
+                            </div>
+                        </div>
+                        <style>
+                            /* Modal centered with blur backdrop */
+                            #notifDetailOverlay{ position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter: blur(4px); display:none; z-index:1300; align-items:center; justify-content:center; }
+                            #notifDetailModal{ background:#fff; border-radius:12px; width:640px; max-width:92%; padding:22px; box-shadow:0 30px 80px rgba(0,0,0,.35); }
+                            #notifDetailModal .panel-title{ font-weight:800; font-size:20px; margin:0; color:#111; }
+                            /* Title pill: green background with white text (prominent) */
+                            .notif-title-pill{ display:inline-block; background:#00A859; color:#ffffff; border:1px solid rgba(0,168,89,0.9); padding:8px 14px; border-radius:10px; font-weight:800; font-size:16px; }
+                            /* Small white box with green border for the matrix/file name */
+                            .notif-matrix-box{ display:inline-block; background:#ffffff; color:#007a3d; border:1px solid #00A859; padding:6px 10px; border-radius:8px; font-weight:700; font-size:14px; margin-top:8px; }
+                            #notifDetailModal .panel-body{ color:#222; white-space:pre-wrap; max-height:60vh; overflow:auto; line-height:1.5; font-size:15px; margin-top:14px; }
+                            /* Structured content inside modal */
+                            .notif-issue{ background:#fff5f5; border:1px solid #f5c6cb; color:#7a1a1a; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-weight:700; }
+                            .notif-names{ background:#f7fff7; border:1px solid #dff4e6; color:#065f3b; padding:10px 12px; border-radius:8px; margin-bottom:10px; }
+                            .notif-code-list{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+                            .notif-code-pill{ background:#fff3f3; border:1px solid #f5c6cb; color:#7a1a1a; padding:6px 10px; border-radius:8px; font-weight:800; display:inline-flex; gap:8px; align-items:center; }
+                            .notif-code-copy{ background:transparent; border:none; color:#7a1a1a; cursor:pointer; padding:4px; display:inline-flex; align-items:center; justify-content:center; }
+                            .notif-names ul{ margin:6px 0 0 18px; }
+                            .notif-detail{ background:#fbfbfb; border:1px solid #f0f0f0; color:#333; padding:10px 12px; border-radius:8px; margin-top:12px; }
+                            #notifDetailModal .panel-footer{ margin-top:18px; display:flex; gap:12px; justify-content:flex-end; }
+                            #notifDetailModal .notif-delete-btn{ background:#e53e3e; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.08); }
+                            #notifDetailModal .notif-close-btn{ background:#f1f1f1; color:#333; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
+                            #notifDetailModal .modal-icon-wrap{ background: linear-gradient(180deg, rgba(229,62,62,0.08), rgba(229,62,62,0.02)); border-radius:8px; height:44px; }
+                            /* make the description area more readable */
+                            #notifDetailModal .panel-body p{ margin:8px 0; }
+                            /* confirmation box inside overlay */
+                            .notif-confirm-box{ max-width:560px; width:100%; }
+                            .notif-confirm-wrapper{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:1401; }
+                            /* Confirm box visuals */
+                            .notif-confirm-box .confirm-card{ border:2px solid #00A859; border-radius:12px; padding:18px; background:#ffffff; }
+                            .notif-confirm-box .confirm-title{ font-weight:800; font-size:18px; color:#064a2b; margin-bottom:6px; }
+                            .notif-confirm-box .confirm-body{ color:#123; margin-bottom:12px; }
+                            .notif-confirm-box .confirm-actions{ display:flex; gap:8px; justify-content:flex-end; }
+                            .notif-confirm-box .confirm-no{ background:#f1f1f1; color:#333; border:1px solid #d0d0d0; padding:8px 12px; border-radius:8px; cursor:pointer; }
+                            .notif-confirm-box .confirm-yes{ background:#00A859; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; box-shadow:0 8px 20px rgba(0,168,89,0.12); }
+                        </style>
+                        <div id="notifDetailOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+                            <div id="notifDetailModal" onclick="event.stopPropagation();">
+                                <div class="modal-header" style="display:flex; gap:12px; align-items:flex-start;">
+                                    <div class="modal-icon-wrap" style="flex:0 0 44px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-exclamation-triangle-fill" style="color:#e53e3e; font-size:24px;"></i>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div class="panel-title"><span id="notifPanelTitle" class="notif-title-pill"></span></div>
+                                        <div id="notifMatrixTitle" class="notif-matrix-box" style="display:none;"></div>
+                                        <div id="notifPanelMeta" style="color:#666; font-size:13px; margin-top:8px;"></div>
+                                    </div>
                                 </div>
-                            @endif
+                                <div class="panel-body" id="notifPanelBody"></div>
+                                <div class="panel-footer">
+                                    <button id="notifPanelDelete" class="notif-delete-btn" type="button" title="Eliminar">
+                                        <i class="bi bi-trash" style="font-size:18px; color:#fff; vertical-align:middle;"></i>
+                                    </button>
+                                    <button id="notifPanelClose" class="notif-close-btn" type="button">Cerrar</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                            <script>
+                                // === NOTIFICACIONES REALES (BD) ===
+                                (function(){
+                                    const btn = document.getElementById('notifBtn');
+                                    const dd = document.getElementById('notifDropdown');
+                                    const dot = document.getElementById('notifDot');
+                                    const listContainer = document.getElementById('notifListContainer');
+                                    let notificaciones = [];
+                                    let unreadCount = 0;
+                                    let prevUnreadCount = null;
+                                    let pollTimer = null;
+                                    let ringTimer = null;
+
+                                    function fetchNotificaciones() {
+                                        console.debug('[notif] fetchNotificaciones start');
+                                        fetch('/notificaciones', { credentials: 'same-origin' })
+                                            .then(r => r.json())
+                                            .then(data => {
+                                                console.debug('[notif] fetched', data && data.length);
+                                                notificaciones = data;
+                                                renderNotificaciones();
+                                            }).catch((err)=>{
+                                                console.error('[notif] fetch error', err);
+                                                listContainer.innerHTML = '<div class="notif-empty">Error cargando notificaciones</div>';
+                                            });
+                                    }
+
+                                    function marcarTodasLeidas() {
+                                        fetch('/notificaciones/marcar-todas', {
+                                            method: 'POST',
+                                            credentials: 'same-origin',
+                                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                                        }).then(r => r.json()).then(() => {
+                                            notificaciones = notificaciones.map(n => ({ ...n, estado: 2 }));
+                                            renderNotificaciones();
+                                        }).catch((err)=>{
+                                            console.error('[notif] mark all error', err);
+                                        });
+                                    }
+
+                                    function startNotifPolling() {
+                                        if (pollTimer) return;
+                                        // initial fetch so dot is accurate on load
+                                        fetchNotificaciones();
+                                        pollTimer = setInterval(() => {
+                                            // avoid spamming while dropdown open; still update badge
+                                            fetchNotificaciones();
+                                        }, 30000);
+                                        document.addEventListener('visibilitychange', () => {
+                                            if (document.hidden) return;
+                                            fetchNotificaciones();
+                                        });
+                                    }
+
+                                    function formatTime12(hora) {
+                                        // hora expected 'HH:MM:SS' or 'HH:MM'
+                                        if (!hora) return '';
+                                        const parts = hora.split(':');
+                                        if (parts.length < 2) return hora;
+                                        let hh = parseInt(parts[0],10);
+                                        const mm = parts[1];
+                                        const ampm = hh >= 12 ? 'PM' : 'AM';
+                                        hh = hh % 12; if (hh === 0) hh = 12;
+                                        return `${hh}:${mm} ${ampm}`;
+                                    }
+
+                                    function formatDate(d) {
+                                        // d expected 'YYYY-MM-DD'
+                                        if (!d) return '';
+                                        const parts = d.split('-');
+                                        if (parts.length !== 3) return d;
+                                        return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+                                    }
+
+                                    function setRingLoop(active){
+                                        if (active) {
+                                            if (ringTimer) return;
+                                            ringTimer = setInterval(() => {
+                                                if (unreadCount > 0) {
+                                                    btn.classList.remove('ring');
+                                                    void btn.offsetWidth;
+                                                    btn.classList.add('ring');
+                                                    setTimeout(() => btn.classList.remove('ring'), 1100);
+                                                }
+                                            }, 3000);
+                                        } else {
+                                            if (ringTimer) { clearInterval(ringTimer); ringTimer = null; }
+                                        }
+                                    }
+
+                                    function renderNotificaciones() {
+                                        // always compute unread count to drive animation
+                                        unreadCount = notificaciones.filter(n => n.estado == 1).length;
+                                        if (prevUnreadCount === null) prevUnreadCount = 0;
+                                        if (unreadCount > prevUnreadCount) {
+                                            btn.classList.remove('ring');
+                                            // trigger reflow to restart animation
+                                            void btn.offsetWidth;
+                                            btn.classList.add('ring');
+                                            setTimeout(() => btn.classList.remove('ring'), 1100);
+                                        }
+                                        prevUnreadCount = unreadCount;
+                                        setRingLoop(unreadCount > 0);
+                                        if (!notificaciones.length) {
+                                            listContainer.innerHTML = '<div class="notif-empty">No hay notificaciones</div>';
+                                            dot.style.display = 'none';
+                                            return;
+                                        }
+                                        dot.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+                                        let html = '<ul class="notif-list">';
+                                        notificaciones.forEach(n => {
+                                            // compact dropdown item: shorter excerpt, single-line preview
+                                            const excerpt = (n.descripcion||'').replace(/\s+/g,' ').substring(0,80) + ((n.descripcion||'').length>80?'...':'');
+                                            const time12 = formatTime12(n.hora_noti || '');
+                                            const dateFmt = formatDate(n.fch_noti || '');
+                                                html += `<li class="notif-item${n.estado==1?' notif-unread':''}" data-id="${n.id_noti}">
+                                                <div class="notif-icon"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i></div>
+                                                <div style="flex:1;">
+                                                    <div style="display:flex; gap:8px; align-items:center;">
+                                                        <div class="notif-title">${n.titulo}</div>
+                                                        <div class="notif-status-badge ${n.estado==1? 'notif-status-new' : 'notif-status-read'}">${n.estado==1? 'NUEVO' : 'LEÍDO'}</div>
+                                                    </div>
+                                                    <div class="notif-desc">${excerpt}</div>
+                                                </div>
+                                                <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                                                    <div class="notif-meta">${dateFmt}</div>
+                                                    <div class="notif-meta">${time12}</div>
+                                                    <div class="notif-actions" style="margin-top:6px;"><button class="notif-view-btn" data-id="${n.id_noti}">Ver</button></div>
+                                                </div>
+                                            </li>`;
+                                        });
+                                        html += '</ul>';
+                                        listContainer.innerHTML = html;
+                                        // attach handlers to view buttons
+                                        document.querySelectorAll('.notif-view-btn').forEach(btn => {
+                                            btn.addEventListener('click', function(e){
+                                                e.stopPropagation();
+                                                const id = this.getAttribute('data-id');
+                                                verDetalleNotificacion(id);
+                                            });
+                                        });
+                                    }
+
+                                    function verDetalleNotificacion(id) {
+                                        console.debug('[notif] verDetalleNotificacion', id);
+                                        fetch(`/notificaciones/${id}`, { credentials: 'same-origin' })
+                                            .then(r => r.json())
+                                            .then(n => {
+                                                // populate side panel
+                                                document.getElementById('notifPanelTitle').textContent = n.titulo || '';
+                                                const dateFmt = formatDate(n.fch_noti || '');
+                                                const time12 = formatTime12(n.hora_noti || '');
+                                                document.getElementById('notifPanelMeta').textContent = `Fecha: ${dateFmt} ${time12}`;
+                                                // attempt to extract matrix/file name (e.g., 'MATRIZ...xlsx') from description
+                                                const matrixEl = document.getElementById('notifMatrixTitle');
+                                                const descText = (n.descripcion || '');
+                                                let matrixName = '';
+                                                const fileMatch = descText.match(/([\w\-\. ]+\.xlsx)/i);
+                                                if (fileMatch) matrixName = fileMatch[1];
+                                                if (!matrixName && n.matriz_nombre) matrixName = n.matriz_nombre; // fallback if server provides field
+                                                if (matrixName) { matrixEl.textContent = matrixName; matrixEl.style.display = 'inline-block'; } else { matrixEl.style.display = 'none'; }
+                                                // build structured content: problem summary, names list, and details
+                                                const body = document.getElementById('notifPanelBody');
+                                                body.innerHTML = '';
+                                                const fullText = (n.descripcion || '').trim();
+                                                // Try to parse the common pattern we generate for duplicated codes
+                                                const codeMatch = fullText.match(/Código de competencia repetido:\s*([\w\-]+)/i);
+                                                const codigo = codeMatch ? codeMatch[1] : null;
+                                                // Extract all names wrapped in single quotes after the 'Nombres encontrados en la matriz' phrase
+                                                let nombresEncontrados = [];
+                                                const startIdx = fullText.search(/Nombres encontrados en la matriz:/i);
+                                                if (startIdx !== -1) {
+                                                    // prefer end at '. Nota' if present
+                                                    const notaIdx = fullText.indexOf('. Nota', startIdx);
+                                                    let slice;
+                                                    if (notaIdx !== -1 && notaIdx > startIdx) {
+                                                        slice = fullText.substring(startIdx, notaIdx);
+                                                    } else {
+                                                        // fallback: take until the next dot after startIdx or to end
+                                                        const dotIdx = fullText.indexOf('.', startIdx);
+                                                        slice = (dotIdx !== -1) ? fullText.substring(startIdx, dotIdx) : fullText.substring(startIdx);
+                                                    }
+                                                    const quoteRe = /'([^']+)'/g;
+                                                    let qm;
+                                                    while ((qm = quoteRe.exec(slice)) !== null) {
+                                                        nombresEncontrados.push(qm[1].trim());
+                                                    }
+                                                }
+                                                if (codigo || nombresEncontrados.length) {
+                                                        if (codigo) {
+                                                            const issue = document.createElement('div');
+                                                            issue.className = 'notif-issue';
+                                                            issue.textContent = `Problema: Código de competencia repetido — ${codigo}`;
+                                                            body.appendChild(issue);
+                                                        }
+                                                        // Extract all codes present in the description (may be multiple)
+                                                        const codes = [];
+                                                        const codeRe = /Código de competencia repetido:\s*([\w\-]+)/ig;
+                                                        let cm;
+                                                        while ((cm = codeRe.exec(fullText)) !== null) {
+                                                            if (cm[1]) codes.push(cm[1]);
+                                                        }
+                                                        // Unique
+                                                        const uniqueCodes = Array.from(new Set(codes));
+                                                        if (uniqueCodes.length) {
+                                                            const codeContainer = document.createElement('div');
+                                                            codeContainer.className = 'notif-code-list';
+                                                            uniqueCodes.forEach(c => {
+                                                                const pill = document.createElement('span');
+                                                                pill.className = 'notif-code-pill';
+                                                                pill.innerHTML = `<span style="font-family:monospace">${c}</span>`;
+                                                                const copyBtn = document.createElement('button');
+                                                                copyBtn.className = 'notif-code-copy';
+                                                                copyBtn.setAttribute('type','button');
+                                                                copyBtn.setAttribute('aria-label','Copiar código');
+                                                                copyBtn.setAttribute('data-code', c);
+                                                                copyBtn.innerHTML = `<i class="bi bi-clipboard" aria-hidden="true"></i>`;
+                                                                copyBtn.addEventListener('click', function(e){
+                                                                    e.stopPropagation();
+                                                                    const code = this.getAttribute('data-code');
+                                                                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                                                                        navigator.clipboard.writeText(code).then(()=>{
+                                                                            if (window.showToast) window.showToast('Código copiado: ' + code, 'success');
+                                                                        }).catch(()=>{
+                                                                            if (window.showToast) window.showToast('No se pudo copiar', 'error');
+                                                                        });
+                                                                    } else {
+                                                                        // fallback
+                                                                        const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); if (window.showToast) window.showToast('Código copiado: ' + code, 'success'); } catch(e){ if (window.showToast) window.showToast('No se pudo copiar', 'error'); } ta.remove();
+                                                                    }
+                                                                });
+                                                                pill.appendChild(copyBtn);
+                                                                codeContainer.appendChild(pill);
+                                                            });
+                                                            body.appendChild(codeContainer);
+                                                        }
+                                                    if (nombresEncontrados.length) {
+                                                        const namesBox = document.createElement('div');
+                                                        namesBox.className = 'notif-names';
+                                                        const namesTitle = document.createElement('div');
+                                                        namesTitle.style.fontWeight = '700';
+                                                        namesTitle.textContent = 'Nombres encontrados en la matriz:';
+                                                        namesBox.appendChild(namesTitle);
+                                                        const ul = document.createElement('ul');
+                                                        nombresEncontrados.forEach(name => {
+                                                            if (!name) return;
+                                                            const li = document.createElement('li');
+                                                            li.textContent = name;
+                                                            ul.appendChild(li);
+                                                        });
+                                                        namesBox.appendChild(ul);
+                                                        body.appendChild(namesBox);
+                                                    }
+                                                    // also append the full detail block
+                                                    const details = document.createElement('div');
+                                                    details.className = 'notif-detail';
+                                                    details.innerHTML = '<strong>Detalle completo:</strong><br>' + fullText.replace(/\n/g, '<br>');
+                                                    body.appendChild(details);
+                                                } else {
+                                                    // fallback: render paragraphs
+                                                    const paragraphs = fullText.split('\n').filter(Boolean);
+                                                    if (paragraphs.length === 0) paragraphs.push(fullText || '');
+                                                    paragraphs.forEach(p => {
+                                                        const el = document.createElement('p');
+                                                        el.textContent = p;
+                                                        body.appendChild(el);
+                                                    });
+                                                }
+                                                const overlay = document.getElementById('notifDetailOverlay');
+                                                overlay.style.display = 'flex';
+                                                overlay.setAttribute('aria-hidden','false');
+                                                // set delete handler: show trash icon and ask confirmation before deleting
+                                                const delBtn = document.getElementById('notifPanelDelete');
+                                                delBtn.onclick = function(){
+                                                    showDeleteConfirm(id, codigo);
+                                                };
+                                                document.getElementById('notifPanelClose').onclick = function(){ overlay.style.display='none'; overlay.setAttribute('aria-hidden','true'); const cb = document.getElementById('notifConfirmBox'); if(cb) cb.remove(); };
+                                                // click outside modal closes
+                                                overlay.onclick = function(e){ if(e.target === this){ this.style.display='none'; this.setAttribute('aria-hidden','true'); const cb = document.getElementById('notifConfirmBox'); if(cb) cb.remove(); } };
+                                                
+                                                // Custom confirmation dialog (inserted into overlay)
+                                                function showDeleteConfirm(id, codigo){
+                                                    // remove existing
+                                                    const existing = document.getElementById('notifConfirmWrapper'); if(existing) existing.remove();
+                                                    const overlay = document.getElementById('notifDetailOverlay');
+                                                    if(!overlay) return;
+                                                    overlay.style.display = 'flex'; overlay.setAttribute('aria-hidden','false');
+                                                    // wrapper ensures centering and does not reflow modal content
+                                                    const wrapper = document.createElement('div');
+                                                    wrapper.id = 'notifConfirmWrapper';
+                                                    wrapper.className = 'notif-confirm-wrapper';
+                                                    // inner box
+                                                    const box = document.createElement('div');
+                                                    box.id = 'notifConfirmBox';
+                                                    box.className = 'notif-confirm-box';
+                                                    box.style.cssText = 'position:relative; z-index:1402;';
+                                                    box.innerHTML = `
+                                                        <div class="confirm-card">
+                                                            <div class="confirm-title">¿Eliminar notificación?</div>
+                                                            <div class="confirm-body">¿Estás seguro de eliminar esta notificación?${codigo ? '<br><strong>Código:</strong> <span style="font-family:monospace">'+codigo+'</span>' : ''}</div>
+                                                            <div class="confirm-actions">
+                                                                <button id="confirmDeleteNo" class="confirm-no" type="button">Cancelar</button>
+                                                                <button id="confirmDeleteYes" class="confirm-yes" type="button">Eliminar</button>
+                                                            </div>
+                                                        </div>`;
+                                                    // clicking wrapper outside box cancels
+                                                    wrapper.addEventListener('click', function(e){ if(e.target === this){ this.remove(); } });
+                                                    wrapper.appendChild(box);
+                                                    overlay.appendChild(wrapper);
+                                                    // handlers
+                                                    document.getElementById('confirmDeleteNo').onclick = function(e){ e.stopPropagation(); wrapper.remove(); };
+                                                    document.getElementById('confirmDeleteYes').onclick = function(e){ e.stopPropagation(); wrapper.remove(); eliminarNotificacion(id); };
+                                                }
+                                            }).catch((err)=>{
+                                                console.error('[notif] detalle error', err);
+                                                alert('No se pudo cargar el detalle de la notificación');
+                                            });
+                                    }
+
+                                    function eliminarNotificacion(id) {
+                                        console.debug('[notif] eliminar', id);
+                                        fetch(`/notificaciones/${id}`, { 
+                                            method: 'DELETE', 
+                                            credentials: 'same-origin',
+                                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                                        })
+                                            .then(r => r.json())
+                                            .then(() => {
+                                                const overlay = document.getElementById('notifDetailOverlay');
+                                                if(overlay){ overlay.style.display='none'; overlay.setAttribute('aria-hidden','true'); }
+                                                const cb = document.getElementById('notifConfirmBox'); if(cb) cb.remove();
+                                                // refresh list
+                                                fetchNotificaciones();
+                                            }).catch((err)=>{
+                                                console.error('[notif] eliminar error', err);
+                                                alert('No se pudo eliminar la notificación');
+                                            });
+                                    }
+
+                                    console.debug('[notif] script init', !!btn, !!dd, !!listContainer);
+                                    if (btn) {
+                                        btn.addEventListener('click', (e) => {
+                                            console.debug('[notif] btn click');
+                                            e.preventDefault();
+                                            const open = dd.style.display === 'block';
+                                            dd.style.display = open ? 'none' : 'block';
+                                            btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+                                            if (!open) fetchNotificaciones();
+                                        });
+                                    }
+                                    const markAllBtn = document.getElementById('notifMarkAll');
+                                    if (markAllBtn) {
+                                        markAllBtn.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            marcarTodasLeidas();
+                                        });
+                                    }
+                                    // start background polling to keep badge updated
+                                    startNotifPolling();
+                                    document.addEventListener('click', (e) => {
+                                        if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
+                                            dd.style.display = 'none';
+                                            btn.setAttribute('aria-expanded', 'false');
+                                        }
+                                    });
+                                    const closeBtn = document.getElementById('notifDetailClose') || document.getElementById('notifPanelClose');
+                                    if(closeBtn) closeBtn.onclick = function() {
+                                        const overlay = document.getElementById('notifDetailOverlay');
+                                        if (overlay) { overlay.style.display = 'none'; overlay.setAttribute('aria-hidden','true'); }
+                                        const cb = document.getElementById('notifConfirmBox'); if(cb) cb.remove();
+                                    };
+                                    // Cerrar modal al hacer click fuera del overlay (ya manejado), pero asegurar que clicks en el modal no lo cierren por accidente
+                                    const modal = document.getElementById('notifDetailModal');
+                                    if(modal) modal.addEventListener('click', function(e){ e.stopPropagation(); });
+                                    // Marcar que ya se inicializó el manejador real de notificaciones
+                                    try { window.__notifRealInit = true; } catch(e){}
+                                })();
+                            </script>
                     <div class="user-menu" id="userMenu">
                         <button class="user-avatar" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" title="Cuenta">
                             <i class="bi bi-person-circle" aria-hidden="true" style="font-size:22px;"></i>
@@ -308,6 +777,8 @@
 
         // === NOTIFICACIONES (logs de carga) ===
         (function(){
+            // Evitar inicializar si ya existe el manejador real de notificaciones
+            if (window.__notifRealInit) return;
             const btn = document.getElementById('notifBtn');
             const dd = document.getElementById('notifDropdown');
             if (!btn || !dd) return;
