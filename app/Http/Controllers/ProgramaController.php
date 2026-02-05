@@ -17,21 +17,4 @@ class ProgramaController extends Controller
         });
         return view('home', compact('programas'));
     }
-
-    public function toggleActivo($id_prog)
-    {
-        $programa = Programa::where('id_prog', $id_prog)->firstOrFail();
-        // Si intenta activar y ya existe uno activo con el mismo código, bloquear
-        if (!$programa->acti) {
-            $existeActivo = Programa::where('id_prog', $id_prog)
-                ->where('acti', 1)
-                ->exists();
-            if ($existeActivo) {
-                return redirect()->route('dashboard')->with('error', 'No pueden haber 2 códigos de competencia repetidos.');
-            }
-        }
-        $programa->acti = !$programa->acti;
-        $programa->save();
-        return redirect()->route('dashboard')->with('success', '✅ Estado de programa actualizado.');
-    }
 }

@@ -18,7 +18,6 @@ Route::get('/setup/create-admin', [SetupController::class, 'createAdmin'])->name
 // Dashboard protegido (contendrá lo que antes estaba en "/")
 Route::middleware('app.auth')->group(function () {
 	Route::get('/dashboard', [ProgramaController::class, 'index'])->name('dashboard');
-		Route::patch('/programa/{id_prog}/toggle', [ProgramaController::class, 'toggleActivo'])->name('programa.toggle');
 
 	// Rutas para Excel
 	Route::get('/excel/upload', [ExcelController::class, 'showUploadForm'])->name('excel.upload');
