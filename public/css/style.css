@@ -662,11 +662,14 @@ svg.icon {
 
 /* Centrado visual del dashboard entre header y footer */
 .dashboard-page .content-wrapper {
-    /* Igualar exactamente la separación superior a la del footer.
-       Top visible = 20px (padding wrapper) + margin-top
-       Bottom visible = 20px (padding wrapper) + margin-top del footer
-       Si ambos usan el mismo clamp, quedan iguales. */
-    margin-top: clamp(120px, 18vh, 220px);
+    /* Centrar el contenedor principal verticalmente dentro del viewport
+       dejando espacio para el header fijo (70px). Usamos flexbox para
+       centrar tanto vertical como horizontalmente la .container blanca. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 120px); /* reserva espacio para header + margen */
+    padding: 40px 20px;
 }
 
 .container {
