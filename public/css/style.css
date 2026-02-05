@@ -25,13 +25,61 @@ body.login-page {
 /* Fondo por defecto (burbujas) */
 body.dashboard-page.dashboard-bg-bubbles,
 body.auth-page.auth-bg-bubbles {
-    background-image: url("../images/bubbles-bg.svg"),
-                      linear-gradient(135deg, #39A900 0%, #00853F 100%);
-    background-repeat: no-repeat, no-repeat;
-    background-size: cover, auto;
-    background-position: center, 0 0;
-    background-attachment: fixed, fixed;
-    background-blend-mode: multiply, normal;
+    /* Fondo base: solo degradado; las burbujas dinámicas van en un SVG aparte */
+    background-image: linear-gradient(135deg, #39A900 0%, #00853F 100%);
+    background-repeat: no-repeat;
+    background-size: auto;
+    background-position: 0 0;
+    background-attachment: fixed;
+    background-blend-mode: normal;
+}
+/* El keyframe anterior ya no es necesario, pero se deja comentado por si se quiere volver a usar
+@keyframes bg-bubbles-orbit { ... }
+*/
+
+/* Capa SVG de burbujas dinámicas */
+.bg-bubbles-svg {
+    position: fixed;
+    inset: 0;
+    z-index: -1; /* siempre por detrás del contenido */
+    pointer-events: none; /* se habilita solo en los círculos */
+    opacity: 0.75; /* burbujas un poco más marcadas */
+}
+
+/* Círculos individuales (burbujas) */
+.bg-bubbles-svg .bg-bubble {
+    pointer-events: auto;
+    cursor: pointer;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+/* Partículas que salen de las burbujas al explotar */
+.bg-bubbles-svg .bg-bubble-particle {
+    pointer-events: none;
+    /* Mismo verde oscuro que las burbujas */
+    stroke: rgba(0, 90, 35, 0.9);
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+@keyframes bubble-pop {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    70% {
+        transform: scale(1.25);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+.bg-bubbles-svg .bg-bubble-pop {
+    animation: bubble-pop 0.2s ease-out forwards;
 }
 
 /* Halftone XL diagonal */

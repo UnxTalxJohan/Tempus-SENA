@@ -41,6 +41,10 @@
         ? ((request()->routeIs('dashboard') ? 'dashboard-page ' : '') . 'auth-page auth-bg-' . $bgStyle)
         : ''))
 <body class="{{ $bodyClass }}">
+    @if(session('app_auth') && $bgStyle === 'bubbles' && !request()->routeIs('login'))
+        <!-- Capa SVG para burbujas animadas en el fondo -->
+        <svg id="bgBubblesSvg" class="bg-bubbles-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+    @endif
     <!-- Pantalla de Carga Global -->
     <div class="global-loader" id="globalLoader">
         <div class="loader-content">
@@ -696,6 +700,428 @@
     </footer>
 
     <script>
+        // === BURBUJAS DE FONDO (SVG) ===
+        (function() {
+            const svg = document.getElementById('bgBubblesSvg');
+            if (!svg) return;
+
+            const NS = 'http://www.w3.org/2000/svg';
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            // Posición del mouse para interacción con burbujas
+            let mouseX = null;
+            let mouseY = null;
+            let mouseActive = false;
+
+            // Estado de arrastre de burbujas
+            let draggingBubble = null;
+            let dragOffsetX = 0;
+            let dragOffsetY = 0;
+            let wasDragged = false;
+            let hoverBubble = null;
+
+            window.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                mouseActive = true;
+
+                if (draggingBubble) {
+                    const x = e.clientX;
+                    const y = e.clientY;
+                    draggingBubble.x = x + dragOffsetX;
+                    draggingBubble.y = y + dragOffsetY;
+                    draggingBubble.vx = 0;
+                    draggingBubble.vy = 0;
+                    wasDragged = true;
+                } else if (bubbles.length) {
+                    // Detectar si el mouse está sobre alguna burbuja para mostrar cursor de mano
+                    const mx = e.clientX;
+                    const my = e.clientY;
+                    let closest = null;
+                    let closestDistSq = Infinity;
+                    for (let i = 0; i < bubbles.length; i++) {
+                        const b = bubbles[i];
+                        const dx = mx - b.x;
+                        const dy = my - b.y;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq < closestDistSq) {
+                            closestDistSq = distSq;
+                            closest = b;
+                        }
+                    }
+                    if (closest && closestDistSq <= closest.r * closest.r) {
+                        hoverBubble = closest;
+                        document.body.style.cursor = 'grab';
+                    } else {
+                        hoverBubble = null;
+                        document.body.style.cursor = '';
+                    }
+                }
+            });
+
+            window.addEventListener('mouseleave', function() {
+                mouseActive = false;
+                draggingBubble = null;
+                hoverBubble = null;
+                document.body.style.cursor = '';
+            });
+
+            window.addEventListener('mouseup', function() {
+                draggingBubble = null;
+                // Si seguimos sobre una burbuja, mantener cursor de mano
+                if (!hoverBubble) {
+                    document.body.style.cursor = '';
+                }
+            });
+
+            // Iniciar arrastre al presionar cerca de una burbuja
+            window.addEventListener('mousedown', function(e) {
+                if (!bubbles.length) return;
+                const x = e.clientX;
+                const y = e.clientY;
+                let closest = null;
+                let closestDistSq = Infinity;
+                for (let i = 0; i < bubbles.length; i++) {
+                    const b = bubbles[i];
+                    const dx = x - b.x;
+                    const dy = y - b.y;
+                    const distSq = dx * dx + dy * dy;
+                    if (distSq < closestDistSq) {
+                        closestDistSq = distSq;
+                        closest = b;
+                    }
+                }
+                if (closest && closestDistSq <= closest.r * closest.r) {
+                    draggingBubble = closest;
+                    dragOffsetX = closest.x - x;
+                    dragOffsetY = closest.y - y;
+                    wasDragged = false;
+                    document.body.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+            });
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                svg.setAttribute('width', width);
+                svg.setAttribute('height', height);
+                svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+            }
+
+            resize();
+            window.addEventListener('resize', resize);
+
+            const bubbles = [];
+            const particles = [];
+            const BUBBLE_COUNT = 32; // 4 burbujas extra (2 medianas, 1 grande, 1 pequeña)
+            const MAX_SPEED = 0.35; // límite de velocidad para mantener suavidad
+
+            // Puntos base (normalizados 0..1) donde suelen haber "huecos" de fondo.
+            // Prioriza la franja superior para que allí siempre haya varias burbujas visibles.
+            const BASE_SPOTS = [
+                // Franja superior (más presencia de burbujas)
+                { x: 0.12, y: 0.12 },
+                { x: 0.32, y: 0.10 },
+                { x: 0.52, y: 0.11 },
+                { x: 0.72, y: 0.13 },
+                { x: 0.88, y: 0.12 },
+                // Zona media
+                { x: 0.18, y: 0.38 },
+                { x: 0.46, y: 0.42 },
+                { x: 0.80, y: 0.40 },
+                // Parte inferior y laterales
+                { x: 0.10, y: 0.76 },
+                { x: 0.30, y: 0.88 },
+                { x: 0.54, y: 0.82 },
+                { x: 0.78, y: 0.90 },
+                { x: 0.94, y: 0.78 }
+            ];
+
+            function rand(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            function spawnParticles(x, y, r) {
+                const count = Math.round(rand(10, 18));
+                for (let i = 0; i < count; i++) {
+                    const angle = rand(0, Math.PI * 2);
+                    const speed = rand(0.7, 1.9);
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+
+                    // Partícula como línea corta que nace en el borde de la burbuja
+                    const startX = x + Math.cos(angle) * (r + 4);
+                    const startY = y + Math.sin(angle) * (r + 4);
+                    const length = rand(r * 0.18, r * 0.32);
+                    const endX = startX + Math.cos(angle) * length;
+                    const endY = startY + Math.sin(angle) * length;
+
+                    const line = document.createElementNS(NS, 'line');
+                    line.classList.add('bg-bubble-particle');
+                    line.setAttribute('x1', startX);
+                    line.setAttribute('y1', startY);
+                    line.setAttribute('x2', endX);
+                    line.setAttribute('y2', endY);
+                    svg.appendChild(line);
+
+                    particles.push({
+                        el: line,
+                        x1: startX,
+                        y1: startY,
+                        x2: endX,
+                        y2: endY,
+                        vx,
+                        vy,
+                        life: 0,
+                        maxLife: rand(26, 46)
+                    });
+                }
+            }
+
+            function triggerBubblePop(bubble) {
+                if (!bubble || bubble.popping) return;
+                const circle = bubble.el;
+                if (!circle) return;
+                bubble.popping = true;
+                // Generar partículas de explosión alrededor de la burbuja
+                spawnParticles(bubble.x, bubble.y, bubble.r);
+                circle.classList.remove('bg-bubble-pop');
+                // Forzar reflujo para reiniciar la animación si se dispara varias veces
+                void circle.offsetWidth;
+                circle.classList.add('bg-bubble-pop');
+            }
+
+            function createBubble(index) {
+                // Tamaños variados: unas pocas grandes, la mayoría pequeñas/medianas
+                // y 4 burbujas adicionales controladas (2 medianas, 1 grande, 1 pequeña)
+                let r;
+                if (index < 5 || index === 30) {
+                    // Burbujas grandes (las primeras + 1 extra)
+                    r = rand(96, 140);
+                } else if (index === 28 || index === 29) {
+                    // 2 burbujas medianas extra
+                    r = rand(46, 88);
+                } else if (index === 31) {
+                    // 1 burbuja pequeña extra
+                    r = rand(18, 32);
+                } else {
+                    // Resto pequeñas/medianas
+                    r = rand(22, 72);
+                }
+
+                // Posición inicial: tomar spot base y ajustarlo al tamaño actual de la ventana
+                const spot = BASE_SPOTS[index % BASE_SPOTS.length];
+                let x = spot.x * width;
+                let y = spot.y * height;
+
+                // Asegurar que el círculo completo quede dentro de la vista
+                if (x - r < 0) x = r;
+                if (x + r > width) x = width - r;
+                if (y - r < 0) y = r;
+                if (y + r > height) y = height - r;
+                const circle = document.createElementNS(NS, 'circle');
+                circle.classList.add('bg-bubble');
+                circle.setAttribute('r', r);
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                // Más oscuras que el fondo: verde profundo y sutil sombra
+                circle.setAttribute('fill', 'rgba(0, 90, 35, 0.55)');
+                // Sin contorno, solo el relleno más oscuro que el fondo
+                circle.setAttribute('stroke', 'none');
+                svg.appendChild(circle);
+
+                const speedBase = 0.08; // muy suave (se ajusta con el mouse)
+                const vx = rand(-speedBase, speedBase);
+                const vy = rand(-speedBase, speedBase);
+
+                const bubble = { el: circle, x, y, vx, vy, r, popping: false };
+
+                // Al terminar la animación, la burbuja desaparece y se reemplaza por una nueva
+                circle.addEventListener('animationend', function() {
+                    circle.classList.remove('bg-bubble-pop');
+                    // Quitar burbuja actual del arreglo y del SVG
+                    const idx = bubbles.indexOf(bubble);
+                    if (idx !== -1) {
+                        bubbles.splice(idx, 1);
+                    }
+                    if (circle.parentNode === svg) {
+                        svg.removeChild(circle);
+                    }
+                    // Después de un pequeño tiempo, crear una nueva burbuja en otro punto
+                    setTimeout(function() {
+                        const newBubble = createBubble(Math.floor(Math.random() * BUBBLE_COUNT));
+                        bubbles.push(newBubble);
+                    }, 600);
+                });
+
+                return bubble;
+            }
+
+            for (let i = 0; i < BUBBLE_COUNT; i++) {
+                bubbles.push(createBubble(i));
+            }
+
+            // Click global aproximado: si el usuario hace clic cerca de una burbuja,
+            // se busca la burbuja más cercana cuyo radio cubra ese punto y se "totea".
+            document.addEventListener('click', function(e) {
+                // Si venimos de un arrastre, ignorar este clic
+                if (wasDragged) {
+                    wasDragged = false;
+                    return;
+                }
+                if (!bubbles.length) return;
+                const x = e.clientX;
+                const y = e.clientY;
+                let closest = null;
+                let closestDistSq = Infinity;
+
+                for (let i = 0; i < bubbles.length; i++) {
+                    const b = bubbles[i];
+                    const dx = x - b.x;
+                    const dy = y - b.y;
+                    const distSq = dx * dx + dy * dy;
+                    if (distSq < closestDistSq) {
+                        closestDistSq = distSq;
+                        closest = b;
+                    }
+                }
+
+                if (closest && closestDistSq <= closest.r * closest.r) {
+                    triggerBubblePop(closest);
+                }
+            });
+
+            function step() {
+                const len = bubbles.length;
+
+                // Movimiento básico + gestión de bordes
+                for (let i = 0; i < len; i++) {
+                    const b = bubbles[i];
+                    b.x += b.vx;
+                    b.y += b.vy;
+
+                    // Rebote horizontal (paredes izquierda/derecha)
+                    if (b.x - b.r < 0) {
+                        b.x = b.r;
+                        b.vx *= -1;
+                    } else if (b.x + b.r > width) {
+                        b.x = width - b.r;
+                        b.vx *= -1;
+                    }
+
+                    // Wrap vertical: si sale por abajo, reaparece arriba y viceversa
+                    if (b.y - b.r > height) {
+                        // salió completamente por abajo → reaparece por arriba
+                        b.y = -b.r;
+                    } else if (b.y + b.r < 0) {
+                        // salió completamente por arriba → reaparece por abajo
+                        b.y = height + b.r;
+                    }
+                }
+
+                // Interacción con el mouse: repulsión suave alrededor del cursor
+                if (mouseActive && mouseX !== null && mouseY !== null) {
+                    const influenceRadius = 260; // zona de influencia del mouse
+                    const influenceRadiusSq = influenceRadius * influenceRadius;
+                    for (let i = 0; i < len; i++) {
+                        const b = bubbles[i];
+                        const dx = b.x - mouseX;
+                        const dy = b.y - mouseY;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq > 0 && distSq < influenceRadiusSq) {
+                            const dist = Math.sqrt(distSq);
+                            const strength = (influenceRadius - dist) / influenceRadius; // 0..1
+                            const force = strength * 0.18; // fuerza pequeña para mantener suavidad
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            b.vx += nx * force;
+                            b.vy += ny * force;
+                        }
+                    }
+                }
+
+                // Colisiones aproximadas entre burbujas
+                for (let i = 0; i < len; i++) {
+                    for (let j = i + 1; j < len; j++) {
+                        const a = bubbles[i];
+                        const b = bubbles[j];
+                        const dx = b.x - a.x;
+                        const dy = b.y - a.y;
+                        const dist = Math.hypot(dx, dy);
+                        const minDist = a.r + b.r - 6; // leve solapamiento permitido
+
+                        if (dist > 0 && dist < minDist) {
+                            // Separar ligeramente para que no se "peguen"
+                            const overlap = (minDist - dist) / 2;
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            a.x -= nx * overlap;
+                            a.y -= ny * overlap;
+                            b.x += nx * overlap;
+                            b.y += ny * overlap;
+
+                            // Intercambiar componentes de velocidad (choque elástico simple)
+                            const tvx = a.vx;
+                            const tvy = a.vy;
+                            a.vx = b.vx;
+                            a.vy = b.vy;
+                            b.vx = tvx;
+                            b.vy = tvy;
+                        }
+                    }
+                }
+
+                // Limitar velocidad para que no se disparen por la interacción
+                for (let i = 0; i < len; i++) {
+                    const b = bubbles[i];
+                    const speed = Math.hypot(b.vx, b.vy);
+                    if (speed > MAX_SPEED) {
+                        const scale = MAX_SPEED / speed;
+                        b.vx *= scale;
+                        b.vy *= scale;
+                    }
+                }
+
+                // Actualizar partículas (líneas que salen del borde de la burbuja)
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    // Los extremos se alejan un poco más rápido para que
+                    // se separen visualmente de la burbuja al desvanecerse
+                    p.x1 += p.vx * 1.15;
+                    p.y1 += p.vy * 1.15;
+                    p.x2 += p.vx * 1.6;
+                    p.y2 += p.vy * 1.6;
+                    p.life += 1;
+                    const t = p.life / p.maxLife;
+                    if (t >= 1) {
+                        if (p.el.parentNode === svg) {
+                            svg.removeChild(p.el);
+                        }
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                    p.el.setAttribute('x1', p.x1);
+                    p.el.setAttribute('y1', p.y1);
+                    p.el.setAttribute('x2', p.x2);
+                    p.el.setAttribute('y2', p.y2);
+                    p.el.setAttribute('opacity', String(1 - t));
+                }
+
+                // Aplicar posiciones de burbujas al SVG
+                for (let i = 0; i < len; i++) {
+                    const b = bubbles[i];
+                    b.el.setAttribute('cx', b.x);
+                    b.el.setAttribute('cy', b.y);
+                }
+
+                requestAnimationFrame(step);
+            }
+
+            requestAnimationFrame(step);
+        })();
+
         // === PANTALLA DE CARGA GLOBAL ===
         const globalLoader = document.getElementById('globalLoader');
         
