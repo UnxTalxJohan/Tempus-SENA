@@ -114,7 +114,8 @@ CREATE TABLE rol (
 ) ENGINE=InnoDB;
 
 CREATE TABLE usuario (
-    cc INT NOT NULL,
+    id_usuario INT NOT NULL AUTO_INCREMENT,
+    cc INT NULL,
     id_rol_fk INT NOT NULL, INDEX (id_rol_fk), FOREIGN KEY (id_rol_fk) REFERENCES rol(id_rol) ON DELETE CASCADE ON UPDATE CASCADE,
     correo VARCHAR(255) UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
@@ -125,8 +126,8 @@ CREATE TABLE usuario (
     avatar_size INT NULL,
     avatar_uploaded_at DATETIME NULL,
     id_vinculacion_fk INT NULL,
-    PRIMARY KEY (cc),
-    INDEX(cc),
+    PRIMARY KEY (id_usuario),
+    UNIQUE KEY uniq_cc (cc),
     INDEX(id_vinculacion_fk),
     FOREIGN KEY (id_vinculacion_fk) REFERENCES vinculacion(id_vinculacion) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;

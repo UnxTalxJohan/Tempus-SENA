@@ -940,6 +940,23 @@ main {
     box-shadow: 0 4px 15px rgba(227, 57, 53, 0.3);
 }
 
+/* Pulsacion lenta para modo editar en botones de la tabla */
+.btn-edit-pulse {
+    animation: edit-pulse 2.2s ease-in-out infinite;
+    border-radius: 999px;
+}
+
+.btn-edit-pulse:hover {
+    transform: none;
+    filter: none;
+}
+
+@keyframes edit-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(11, 124, 37, 0.25); }
+    50% { box-shadow: 0 0 0 5px rgba(11, 124, 37, 0.08); }
+    100% { box-shadow: 0 0 0 0 rgba(11, 124, 37, 0.0); }
+}
+
 .btn:disabled,
 .btn-primary:disabled {
     background: #ccc;

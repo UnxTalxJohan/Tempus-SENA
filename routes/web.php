@@ -37,6 +37,7 @@ Route::middleware('app.auth')->group(function () {
 
 	// Gestión de usuarios (solo admin)
 	Route::get('/usuarios/gestion', [UserAdminController::class, 'index'])->name('usuarios.index');
+	Route::put('/usuarios/actualizar', [UserAdminController::class, 'updateUser'])->name('usuarios.update');
 	Route::get('/usuarios/contratistas/consolidado', [UserAdminController::class, 'showContratistasForm'])->name('usuarios.contratistas.form');
 	Route::post('/usuarios/contratistas/consolidado', [UserAdminController::class, 'previewContratistasExcel'])->name('usuarios.contratistas.preview');
 	Route::post('/usuarios/contratistas/consolidado/process', [UserAdminController::class, 'processContratistasExcel'])->name('usuarios.contratistas.process');

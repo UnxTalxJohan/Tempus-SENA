@@ -25,6 +25,7 @@ class UserAdminController extends Controller
             ->leftJoin('rol', 'usuario.id_rol_fk', '=', 'rol.id_rol')
             ->leftJoin('vinculacion', 'usuario.id_vinculacion_fk', '=', 'vinculacion.id_vinculacion')
             ->select(
+                'usuario.id_usuario',
                 'usuario.cc',
                 'usuario.nombre',
                 'usuario.correo',
@@ -45,6 +46,7 @@ class UserAdminController extends Controller
                 'vinculacion.red'
             )
             ->where('usuario.id_rol_fk', '!=', 1) // ocultar usuarios con rol admin
+            ->orderByRaw('usuario.cc IS NULL DESC')
             ->orderBy('usuario.nombre')
             ->get();
 
@@ -171,6 +173,123 @@ class UserAdminController extends Controller
 
         return redirect()->route('usuarios.titulada.form')
             ->with('error', 'Carga cancelada por el usuario.');
+    }
+
+    /**
+     * Actualiza datos de un usuario desde el modal de edición.
+     */
+    public function updateUser(Request $request)
+    {
+        $data = $request->validate([
+            'id_usuario' => 'required|integer',
+            'cc' => 'nullable|integer',
+            'nombre' => 'nullable|string|max:255',
+            'correo' => 'nullable|string|max:255',
+            'tip_vincul' => 'nullable|string|max:255',
+            'nmr_contrato' => 'nullable|string|max:255',
+            'nvl_formacion' => 'nullable|string|max:255',
+            'pregrado' => 'nullable|string',
+            'postgrado' => 'nullable|string',
+            'coord_pertenece' => 'nullable|string',
+            'modalidad' => 'nullable|string',
+            'especialidad' => 'nullable|string',
+            'fch_inic_contrato' => 'nullable|date',
+            'fch_fin_contrato' => 'nullable|date',
+            'area' => 'nullable|string',
+            'estudios' => 'nullable|string',
+            'red' => 'nullable|string',
+        ]);
+
+        $idUsuario = (int) $data['id_usuario'];
+        $cc = $data['cc'] ?? null;
+
+        if ($cc !== null) {
+            $exists = DB::table('usuario')
+                ->where('cc', $cc)
+                ->where('id_usuario', '!=', $idUsuario)
+                ->exists();
+            if ($exists) {
+                return redirect()->route('usuarios.index')
+                    ->with('error', 'La cédula ya está registrada en otro usuario.');
+            }
+        }
+
+        if (array_key_exists('correo', $data) && $data['correo'] !== null && $data['correo'] !== '') {
+            $correoExists = DB::table('usuario')
+                ->where('correo', $data['correo'])
+                ->where('id_usuario', '!=', $idUsuario)
+                ->exists();
+            if ($correoExists) {
+                return redirect()->route('usuarios.index')
+                    ->with('error', 'El correo ya está registrado en otro usuario.');
+            }
+        }
+
+        $usuario = DB::table('usuario')->where('id_usuario', $idUsuario)->first();
+        if (!$usuario) {
+            return redirect()->route('usuarios.index')
+                ->with('error', 'Usuario no encontrado.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $userData = [];
+            if (array_key_exists('cc', $data)) {
+                $userData['cc'] = $cc;
+            }
+            if (!empty($data['nombre'])) {
+                $userData['nombre'] = $data['nombre'];
+            }
+            if (array_key_exists('correo', $data)) {
+                $userData['correo'] = $data['correo'] !== '' ? $data['correo'] : null;
+            }
+
+            if (!empty($userData)) {
+                DB::table('usuario')->where('id_usuario', $idUsuario)->update($userData);
+            }
+
+            $vincData = [
+                'tip_vincul'       => $this->limitStr($data['tip_vincul'] ?? null),
+                'nmr_contrato'     => $this->limitStr($data['nmr_contrato'] ?? null),
+                'nvl_formacion'    => $this->limitStr($data['nvl_formacion'] ?? null),
+                'pregrado'         => $this->limitStr($data['pregrado'] ?? null),
+                'postgrado'        => $this->limitStr($data['postgrado'] ?? null),
+                'coord_pertenece'  => $this->limitStr($data['coord_pertenece'] ?? null),
+                'modalidad'        => $this->limitStr($data['modalidad'] ?? null),
+                'especialidad'     => $this->limitStr($data['especialidad'] ?? null),
+                'fch_inic_contrato'=> $data['fch_inic_contrato'] ?? null,
+                'fch_fin_contrato' => $data['fch_fin_contrato'] ?? null,
+                'area'             => $this->limitStr($data['area'] ?? null),
+                'estudios'         => $this->limitStr($data['estudios'] ?? null),
+                'red'              => $this->limitStr($data['red'] ?? null),
+            ];
+
+            $hasAnyVinc = false;
+            foreach ($vincData as $val) {
+                if ($val !== null && $val !== '') {
+                    $hasAnyVinc = true;
+                    break;
+                }
+            }
+
+            if ($hasAnyVinc) {
+                if (!empty($usuario->id_vinculacion_fk)) {
+                    DB::table('vinculacion')->where('id_vinculacion', $usuario->id_vinculacion_fk)->update($vincData);
+                } else {
+                    $idVinc = DB::table('vinculacion')->insertGetId($vincData);
+                    DB::table('usuario')->where('id_usuario', $idUsuario)->update(['id_vinculacion_fk' => $idVinc]);
+                }
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->route('usuarios.index')
+                ->with('error', 'Error guardando cambios: ' . $e->getMessage());
+        }
+
+        return redirect()->route('usuarios.index')
+            ->with('success', 'Cambios guardados correctamente.');
     }
 
     /**
@@ -571,19 +690,19 @@ class UserAdminController extends Controller
                     continue;
                 }
 
-                if ($ccRaw === null || $ccRaw === '') {
-                    $errores[] = "Fila $row: sin número de documento (cc); se omitió.";
-                    continue;
-                }
-                $cc = (string) $ccRaw;
+                $cc = ($ccRaw === null || $ccRaw === '') ? null : (string) $ccRaw;
 
-                if (isset($seenCc[$cc])) {
-                    $errores[] = "Fila $row: número de documento $cc duplicado en el archivo; se omitió.";
-                    continue;
+                if ($cc !== null) {
+                    if (isset($seenCc[$cc])) {
+                        $errores[] = "Fila $row: número de documento $cc duplicado en el archivo; se omitió.";
+                        continue;
+                    }
+                    $seenCc[$cc] = true;
+                } else {
+                    $errores[] = "Fila $row: sin número de documento (cc); se registrará con CC vacío.";
                 }
-                $seenCc[$cc] = true;
 
-                $usuario = DB::table('usuario')->where('cc', $cc)->first();
+                $usuario = $cc !== null ? DB::table('usuario')->where('cc', $cc)->first() : null;
 
                 $idVinc = null;
                 $vincActual = null;
@@ -640,7 +759,9 @@ class UserAdminController extends Controller
                         $sinCambios++;
                     }
                 } else {
-                    $dataUser['cc'] = $cc;
+                    if ($cc !== null) {
+                        $dataUser['cc'] = $cc;
+                    }
                     $dataUser['contrasena'] = Hash::make(Str::random(24));
                     DB::table('usuario')->insert($dataUser);
                     $insertados++;

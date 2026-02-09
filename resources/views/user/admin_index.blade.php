@@ -49,6 +49,14 @@
                         <i class="bi bi-mortarboard-fill" aria-hidden="true" style="font-size:16px;"></i>
                         <span>Subir consolidado planta</span>
                     </a>
+                    <button type="button" id="user-edit-toggle" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding-inline:16px; background:#f1f5f1; color:#0b7c25; border:1px solid #0b7c25;">
+                        <i class="bi bi-pencil-square" aria-hidden="true" style="font-size:16px;"></i>
+                        <span>Editar</span>
+                    </button>
+                    <button type="submit" id="user-save-btn" form="user-edit-form" class="btn btn-primary" style="display:none; align-items:center; gap:8px;">
+                        <i class="bi bi-save" aria-hidden="true"></i>
+                        Guardar cambios
+                    </button>
                 </div>
             </div>
 
@@ -72,12 +80,18 @@
                     </thead>
                     <tbody>
                         @forelse($usuarios as $usuario)
-                            <tr data-user-row="1" data-rol-id="{{ $usuario->id_rol_fk ?? '' }}">
+                            <tr data-user-row="1" data-rol-id="{{ $usuario->id_rol_fk ?? '' }}" data-user-id="{{ $usuario->id_usuario ?? '' }}" data-cc="{{ $usuario->cc ?? '' }}" data-nombre="{{ $usuario->nombre ?? '' }}" data-correo="{{ $usuario->correo ?? '' }}" data-coord="{{ $usuario->coord_pertenece ?? '' }}">
                                 <td style="text-align:center;">{{ $loop->iteration }}</td>
-                                <td><strong>{{ $usuario->cc }}</strong></td>
-                                <td>{{ $usuario->nombre }}</td>
-                                <td>{{ $usuario->correo }}</td>
-                                <td>
+                                <td class="user-doc-cell">
+                                    @if($usuario->cc)
+                                        <strong>{{ $usuario->cc }}</strong>
+                                    @else
+                                        <span style="color:#b91c1c; font-weight:700;">Sin CC</span>
+                                    @endif
+                                </td>
+                                <td class="user-name-cell">{{ $usuario->nombre }}</td>
+                                <td class="user-mail-cell">{{ $usuario->correo }}</td>
+                                <td class="user-coord-cell">
                                     @if(($usuario->id_rol_fk ?? null) === 2)
                                         <span style="display:inline-block; padding:2px 8px; border-radius:999px; background:#e6fffa; color:#0b7c25; font-size:11px; font-weight:700;">Contrato</span>
                                     @else
@@ -89,6 +103,7 @@
                                 </td>
                                 <td style="text-align:center;">
                                     <button type="button" class="btn btn-secondary btn-sm btn-ver-usuario"
+                                        data-user-id="{{ $usuario->id_usuario ?? '' }}"
                                         data-cc="{{ $usuario->cc }}"
                                         data-nombre="{{ $usuario->nombre }}"
                                         data-correo="{{ $usuario->correo }}"
@@ -107,7 +122,7 @@
                                         data-area="{{ $usuario->area ?? '' }}"
                                         data-estudios="{{ $usuario->estudios ?? '' }}"
                                         data-red="{{ $usuario->red ?? '' }}">
-                                        Ver
+                                        <span class="ver-label">Ver</span>
                                     </button>
                                     <span style="display:none;" class="user-extra-text">{{ $usuario->nvl_formacion }} {{ $usuario->especialidad }} {{ $usuario->coord_pertenece }} {{ $usuario->modalidad }} {{ $usuario->pregrado }} {{ $usuario->postgrado }}</span>
                                 </td>
@@ -133,16 +148,27 @@
                         </div>
                     </div>
 
+                    <form id="user-edit-form" action="{{ route('usuarios.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="id_usuario" id="ud-id">
+
                     <!-- Sección: Datos básicos -->
                     <div id="ud-section-basic" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #e5e5e5;">
                         <div style="font-size:13px; font-weight:700; color:#0b7c25; margin-bottom:6px;">Datos básicos</div>
                         <div style="display:grid; grid-template-columns:repeat(2, minmax(260px, 1fr)); gap:10px 24px; font-size:13px; align-items:flex-end;">
+                            <div>
+                                <div style="font-weight:600; opacity:.75;">Nombre</div>
+                                <div id="ud-nombre" style="font-size:14px; font-weight:600;"></div>
+                                <input id="ud-nombre-input" name="nombre" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;">
+                            </div>
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Documento</div>
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <span id="ud-cc" style="font-weight:700; font-size:15px;"></span>
                                     <button type="button" class="btn btn-secondary btn-xs" data-copy-target="ud-cc" style="border-radius:999px; padding:3px 10px; font-size:11px; line-height:1; background:#0b7c25; color:#fff; border:1px solid #0b7c25; box-shadow:0 1px 3px rgba(0,0,0,.25);">Copiar</button>
                                 </div>
+                                <input id="ud-cc-input" name="cc" type="number" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;">
                             </div>
                             <div id="ud-row-correo" style="margin-top:10px;">
                                 <div style="font-weight:600; opacity:.75;">Correo</div>
@@ -150,6 +176,7 @@
                                     <span id="ud-correo" style="font-size:14px; border-bottom:2px solid #0b7c25; padding-bottom:1px;"></span>
                                     <button type="button" class="btn btn-secondary btn-xs" data-copy-target="ud-correo" style="border-radius:999px; padding:3px 10px; font-size:11px; line-height:1; background:#0b7c25; color:#fff; border:1px solid #0b7c25; box-shadow:0 1px 3px rgba(0,0,0,.25);">Copiar</button>
                                 </div>
+                                <input id="ud-correo-input" name="correo" type="email" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;">
                             </div>
                         </div>
                     </div>
@@ -161,10 +188,12 @@
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Tipo de vinculación</div>
                                 <div id="ud-tip_vincul" style="font-size:12px; display:inline-block; padding:2px 10px; border-radius:999px; background:#e6fffa; color:#0b7c25; font-weight:700; margin-top:2px;"></div>
+                                <input id="ud-tip_vincul-input" name="tip_vincul" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:6px 8px; font-size:12px;">
                             </div>
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Coordinación a la que pertenece</div>
                                 <div id="ud-coord" style="font-size:12px; display:inline-block; padding:2px 10px; border-radius:999px; background:#e6fffa; color:#0b7c25; font-weight:700; margin-top:2px;"></div>
+                                <input id="ud-coord-input" name="coord_pertenece" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:6px 8px; font-size:12px;">
                             </div>
                             <div>
                                 <div style="font-weight:600; opacity:.75;">N° de contrato</div>
@@ -174,16 +203,24 @@
                                         <button type="button" class="btn btn-secondary btn-xs" data-copy-target="ud-contrato" style="border-radius:999px; padding:3px 10px; font-size:11px; line-height:1; background:#0b7c25; color:#fff; border:1px solid #0b7c25; box-shadow:0 1px 3px rgba(0,0,0,.25);">Copiar</button>
                                     </div>
                                 </div>
+                                <input id="ud-contrato-input" name="nmr_contrato" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:6px 8px; font-size:12px;">
                             </div>
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Modalidad</div>
                                 <div id="ud-modalidad" style="font-size:12px; display:inline-block; padding:2px 10px; border-radius:999px; background:#e6fffa; color:#0b7c25; font-weight:700; margin-top:2px;"></div>
+                                <input id="ud-modalidad-input" name="modalidad" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:6px 8px; font-size:12px;">
                             </div>
                             <div style="min-width:220px;">
                                 <div style="background:#e6fffa; border-radius:10px; padding:10px 14px; border:1px solid #0b7c25;">
                                     <div style="font-size:12px; font-weight:700; color:#0b7c25; margin-bottom:4px;">Vigencia del contrato</div>
                                     <div style="font-size:13px;"><span style="font-weight:600;">Inicio:</span> <span id="ud-fch_ini"></span></div>
                                     <div style="font-size:13px; margin-top:2px;"><span style="font-weight:600;">Fin:</span> <span id="ud-fch_fin"></span></div>
+                                </div>
+                                <div class="ud-input" style="display:none; margin-top:8px;">
+                                    <label style="font-size:11px; font-weight:700; color:#0b7c25;">Inicio</label>
+                                    <input id="ud-fch_ini-input" name="fch_inic_contrato" type="date" style="margin-top:4px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:6px 8px; font-size:12px;">
+                                    <label style="font-size:11px; font-weight:700; color:#0b7c25; margin-top:6px; display:block;">Fin</label>
+                                    <input id="ud-fch_fin-input" name="fch_fin_contrato" type="date" style="margin-top:4px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:6px 8px; font-size:12px;">
                                 </div>
                             </div>
                         </div>
@@ -196,12 +233,15 @@
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Nivel de formación</div>
                                 <div id="ud-nivel" style="font-size:14px; font-weight:600;"></div>
+                                <input id="ud-nivel-input" name="nvl_formacion" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;">
                             </div>
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Pregrado</div>
                                 <div id="ud-pregrado" style="font-size:14px; line-height:1.4; margin-bottom:6px;"></div>
+                                <textarea id="ud-pregrado-input" name="pregrado" class="ud-input" style="display:none; margin:6px 0 10px; width:100%; min-height:60px; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;"></textarea>
                                 <div style="font-weight:600; opacity:.75; margin-top:4px;">Postgrado</div>
                                 <div id="ud-postgrado" style="font-size:14px; line-height:1.4;"></div>
+                                <textarea id="ud-postgrado-input" name="postgrado" class="ud-input" style="display:none; margin-top:6px; width:100%; min-height:60px; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -209,6 +249,12 @@
                     <div id="ud-section-especialidad" style="margin-top:10px;">
                         <div style="font-size:13px; font-weight:700; color:#0b7c25; margin-bottom:4px;">Especialidad / área en el CIDE</div>
                         <div id="ud-especialidad" style="font-size:14px; line-height:1.4;"></div>
+                        <textarea id="ud-especialidad-input" name="especialidad" class="ud-input" style="display:none; margin-top:6px; width:100%; min-height:70px; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;"></textarea>
+                        <div style="margin-top:10px;">
+                            <div style="font-weight:600; opacity:.75;">Red</div>
+                            <div id="ud-red" style="font-size:14px; line-height:1.4;"></div>
+                            <input id="ud-red-input" name="red" type="text" class="ud-input" style="display:none; margin-top:6px; width:100%; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;">
+                        </div>
                     </div>
 
                     <!-- Sección: Área y estudios (titulada) -->
@@ -218,13 +264,17 @@
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Área</div>
                                 <div id="ud-area" style="font-size:14px; line-height:1.4;"></div>
+                                <textarea id="ud-area-input" name="area" class="ud-input" style="display:none; margin-top:6px; width:100%; min-height:60px; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;"></textarea>
                             </div>
                             <div>
                                 <div style="font-weight:600; opacity:.75;">Estudios</div>
                                 <div id="ud-estudios" style="font-size:14px; line-height:1.4;"></div>
+                                <textarea id="ud-estudios-input" name="estudios" class="ud-input" style="display:none; margin-top:6px; width:100%; min-height:60px; border:1px solid #d0d0d0; border-radius:8px; padding:8px; font-size:13px;"></textarea>
                             </div>
                         </div>
                     </div>
+
+                    </form>
                 </div>
             </div>
 
@@ -258,11 +308,166 @@
                     const backdrop = document.getElementById('user-detail-backdrop');
                     const closeBtn = document.getElementById('user-detail-close');
                     const subtitle = document.getElementById('user-detail-subtitle');
+                    const editToggle = document.getElementById('user-edit-toggle');
+                    const saveBtn = document.getElementById('user-save-btn');
+                    let editModeEnabled = false;
+                    let currentIsTitulada = false;
+                    let formDirty = false;
+                    const userDrafts = {};
+                    const rowByUserId = {};
+                    rows.forEach(r => {
+                        const uid = r.getAttribute('data-user-id');
+                        if (uid) rowByUserId[uid] = r;
+                    });
+
+                    function renderDocCell(row, cc) {
+                        const cell = row.querySelector('.user-doc-cell');
+                        if (!cell) return;
+                        if (cc && cc.toString().trim() !== '') {
+                            cell.innerHTML = `<strong>${cc}</strong>`;
+                        } else {
+                            cell.innerHTML = '<span style="color:#b91c1c; font-weight:700;">Sin CC</span>';
+                        }
+                    }
+
+                    function renderCoordCell(row, coord) {
+                        const cell = row.querySelector('.user-coord-cell');
+                        if (!cell) return;
+                        const roleId = row.getAttribute('data-rol-id') || '';
+                        if (roleId === '2') {
+                            cell.innerHTML = '<span style="display:inline-block; padding:2px 8px; border-radius:999px; background:#e6fffa; color:#0b7c25; font-size:11px; font-weight:700;">Contrato</span>';
+                            return;
+                        }
+                        const coordText = coord ? coord : '';
+                        const badge = roleId === '3'
+                            ? ' <span style="display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; background:#fff3e6; color:#b45309; font-size:11px; font-weight:700;">Planta</span>'
+                            : '';
+                        cell.innerHTML = `${coordText}${badge}`;
+                    }
+
+                    function updateRowFromDraft(userId) {
+                        const row = rowByUserId[userId];
+                        if (!row) return;
+                        const draft = userDrafts[userId] || {};
+                        const baseCc = row.getAttribute('data-cc') || '';
+                        const baseNombre = row.getAttribute('data-nombre') || '';
+                        const baseCorreo = row.getAttribute('data-correo') || '';
+                        const baseCoord = row.getAttribute('data-coord') || '';
+
+                        const cc = (draft['ud-cc-input'] ?? baseCc).toString();
+                        const nombre = (draft['ud-nombre-input'] ?? baseNombre).toString();
+                        const correo = (draft['ud-correo-input'] ?? baseCorreo).toString();
+                        const coord = (draft['ud-coord-input'] ?? baseCoord).toString();
+
+                        const nameCell = row.querySelector('.user-name-cell');
+                        const mailCell = row.querySelector('.user-mail-cell');
+                        if (nameCell) nameCell.textContent = nombre;
+                        if (mailCell) mailCell.textContent = correo;
+                        renderDocCell(row, cc);
+                        renderCoordCell(row, coord);
+                    }
+
+                    function captureDraft() {
+                        const udId = document.getElementById('ud-id');
+                        const userId = udId ? udId.value : '';
+                        if (!userId) return;
+                        const data = {};
+                        document.querySelectorAll('.ud-input').forEach(input => {
+                            data[input.id] = input.value;
+                        });
+                        userDrafts[userId] = data;
+                        updateRowFromDraft(userId);
+                    }
+
+                    function applyDraft(userId) {
+                        const data = userDrafts[userId];
+                        if (!data) return false;
+                        Object.keys(data).forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.value = data[id];
+                        });
+                        return true;
+                    }
+
+                    const displayIds = [
+                        'ud-cc','ud-correo','ud-nombre','ud-tip_vincul','ud-coord','ud-contrato','ud-modalidad',
+                        'ud-fch_ini','ud-fch_fin','ud-nivel','ud-pregrado','ud-postgrado','ud-especialidad',
+                        'ud-area','ud-estudios','ud-red'
+                    ];
+
+                    function applyEditMode(enabled) {
+                        displayIds.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.style.display = enabled ? 'none' : '';
+                        });
+                        document.querySelectorAll('.ud-input').forEach(el => {
+                            el.style.display = enabled ? '' : 'none';
+                        });
+                        if (saveBtn) {
+                            saveBtn.style.display = enabled && formDirty ? 'inline-flex' : 'none';
+                            saveBtn.disabled = !formDirty;
+                        }
+                    }
+
+                    if (editToggle) {
+                        editToggle.addEventListener('click', function() {
+                            editModeEnabled = !editModeEnabled;
+                            this.classList.toggle('active', editModeEnabled);
+                            this.style.background = editModeEnabled ? '#0b7c25' : '#f1f5f1';
+                            this.style.color = editModeEnabled ? '#ffffff' : '#0b7c25';
+                            this.style.borderColor = '#0b7c25';
+                            this.querySelector('span').textContent = editModeEnabled ? 'Editando' : 'Editar';
+                            applyEditMode(editModeEnabled);
+                            document.querySelectorAll('.btn-ver-usuario').forEach(btn => {
+                                const label = btn.querySelector('.ver-label');
+                                if (!label) return;
+                                if (editModeEnabled) {
+                                    label.textContent = 'Editar';
+                                    btn.classList.add('btn-edit-pulse');
+                                    btn.style.background = '#0b7c25';
+                                    btn.style.color = '#ffffff';
+                                } else {
+                                    label.textContent = 'Ver';
+                                    btn.classList.remove('btn-edit-pulse');
+                                    btn.style.background = '';
+                                    btn.style.color = '';
+                                }
+                            });
+                            if (currentIsTitulada) {
+                                setSectionVisible('ud-section-area', editModeEnabled || document.getElementById('ud-area')?.textContent || document.getElementById('ud-estudios')?.textContent);
+                                setSectionVisible('ud-section-vinculacion', editModeEnabled ? true : false);
+                                setSectionVisible('ud-section-formacion', editModeEnabled ? true : false);
+                                setSectionVisible('ud-section-especialidad', editModeEnabled ? true : false);
+                                setSectionVisible('ud-row-correo', editModeEnabled ? true : false);
+                            }
+                        });
+                    }
+
+                    document.querySelectorAll('.ud-input').forEach(input => {
+                        input.addEventListener('input', function() {
+                            formDirty = true;
+                            if (saveBtn) {
+                                saveBtn.style.display = editModeEnabled ? 'inline-flex' : 'none';
+                                saveBtn.disabled = false;
+                            }
+                            const udId = document.getElementById('ud-id');
+                            const userId = udId ? udId.value : '';
+                            if (userId) {
+                                captureDraft();
+                            }
+                        });
+                    });
 
                     function setText(id, value) {
                         const el = document.getElementById(id);
                         if (!el) return;
                         el.textContent = value && value.toString().trim() !== '' ? value : 'No registra';
+                    }
+
+                    function setInputValue(id, value) {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        el.value = value && value.toString().trim() !== '' ? value : '';
                     }
 
                     function setTextOrHide(id, value) {
@@ -301,39 +506,82 @@
                         const nombre = btn.getAttribute('data-nombre') || '';
                         const rolId = btn.getAttribute('data-rol-id') || '';
                         const isTitulada = rolId === '3';
+                        currentIsTitulada = isTitulada;
                         subtitle.textContent = nombre ? nombre : '';
 
+                        const idUsuario = btn.getAttribute('data-user-id') || '';
+                        const udId = document.getElementById('ud-id');
+                        if (udId) udId.value = idUsuario;
+
+                        formDirty = false;
+                        if (saveBtn) {
+                            saveBtn.style.display = 'none';
+                            saveBtn.disabled = true;
+                        }
+
+                        setText('ud-nombre', btn.getAttribute('data-nombre'));
                         setText('ud-cc', btn.getAttribute('data-cc'));
+                        setText('ud-correo', btn.getAttribute('data-correo'));
+                        setText('ud-tip_vincul', btn.getAttribute('data-tip_vincul'));
+                        setText('ud-contrato', btn.getAttribute('data-contrato'));
+                        setText('ud-nivel', btn.getAttribute('data-nivel'));
+                        setText('ud-especialidad', btn.getAttribute('data-especialidad'));
+                        setText('ud-coord', btn.getAttribute('data-coord'));
+                        setText('ud-modalidad', btn.getAttribute('data-modalidad'));
+                        setText('ud-pregrado', btn.getAttribute('data-pregrado'));
+                        setText('ud-postgrado', btn.getAttribute('data-postgrado'));
+                        setText('ud-area', btn.getAttribute('data-area'));
+                        setText('ud-estudios', btn.getAttribute('data-estudios'));
+                        setText('ud-red', btn.getAttribute('data-red'));
+                        setText('ud-fch_ini', btn.getAttribute('data-fch_ini'));
+                        setText('ud-fch_fin', btn.getAttribute('data-fch_fin'));
+
+                        setInputValue('ud-nombre-input', btn.getAttribute('data-nombre'));
+                        setInputValue('ud-cc-input', btn.getAttribute('data-cc'));
+                        setInputValue('ud-correo-input', btn.getAttribute('data-correo'));
+                        setInputValue('ud-tip_vincul-input', btn.getAttribute('data-tip_vincul'));
+                        setInputValue('ud-coord-input', btn.getAttribute('data-coord'));
+                        setInputValue('ud-contrato-input', btn.getAttribute('data-contrato'));
+                        setInputValue('ud-modalidad-input', btn.getAttribute('data-modalidad'));
+                        setInputValue('ud-fch_ini-input', btn.getAttribute('data-fch_ini'));
+                        setInputValue('ud-fch_fin-input', btn.getAttribute('data-fch_fin'));
+                        setInputValue('ud-nivel-input', btn.getAttribute('data-nivel'));
+                        setInputValue('ud-pregrado-input', btn.getAttribute('data-pregrado'));
+                        setInputValue('ud-postgrado-input', btn.getAttribute('data-postgrado'));
+                        setInputValue('ud-especialidad-input', btn.getAttribute('data-especialidad'));
+                        setInputValue('ud-area-input', btn.getAttribute('data-area'));
+                        setInputValue('ud-estudios-input', btn.getAttribute('data-estudios'));
+                        setInputValue('ud-red-input', btn.getAttribute('data-red'));
+
+                        if (idUsuario) {
+                            const hadDraft = applyDraft(idUsuario);
+                            if (hadDraft) {
+                                formDirty = true;
+                                if (saveBtn) {
+                                    saveBtn.style.display = editModeEnabled ? 'inline-flex' : 'none';
+                                    saveBtn.disabled = !editModeEnabled;
+                                }
+                                updateRowFromDraft(idUsuario);
+                            }
+                        }
 
                         if (isTitulada) {
                             const hasArea = setTextOrHide('ud-area', btn.getAttribute('data-area'));
                             const hasEst = setTextOrHide('ud-estudios', btn.getAttribute('data-estudios'));
-                            setSectionVisible('ud-section-area', hasArea || hasEst);
-                            setSectionVisible('ud-section-vinculacion', false);
-                            setSectionVisible('ud-section-formacion', false);
-                            setSectionVisible('ud-section-especialidad', false);
-                            setSectionVisible('ud-row-correo', false);
+                            setSectionVisible('ud-section-area', editModeEnabled || hasArea || hasEst);
+                            setSectionVisible('ud-section-vinculacion', editModeEnabled ? true : false);
+                            setSectionVisible('ud-section-formacion', editModeEnabled ? true : false);
+                            setSectionVisible('ud-section-especialidad', editModeEnabled ? true : false);
+                            setSectionVisible('ud-row-correo', editModeEnabled ? true : false);
                         } else {
                             setSectionVisible('ud-section-area', false);
                             setSectionVisible('ud-section-vinculacion', true);
                             setSectionVisible('ud-section-formacion', true);
                             setSectionVisible('ud-section-especialidad', true);
                             setSectionVisible('ud-row-correo', true);
-
-                            setText('ud-correo', btn.getAttribute('data-correo'));
-                            setText('ud-rol', btn.getAttribute('data-rol'));
-                            setText('ud-tip_vincul', btn.getAttribute('data-tip_vincul'));
-                            setText('ud-contrato', btn.getAttribute('data-contrato'));
-                            setText('ud-nivel', btn.getAttribute('data-nivel'));
-                            setText('ud-especialidad', btn.getAttribute('data-especialidad'));
-                            setText('ud-coord', btn.getAttribute('data-coord'));
-                            setText('ud-modalidad', btn.getAttribute('data-modalidad'));
-                            setText('ud-pregrado', btn.getAttribute('data-pregrado'));
-                            setText('ud-postgrado', btn.getAttribute('data-postgrado'));
-                            setText('ud-red', btn.getAttribute('data-red'));
-                            setText('ud-fch_ini', btn.getAttribute('data-fch_ini'));
-                            setText('ud-fch_fin', btn.getAttribute('data-fch_fin'));
                         }
+
+                        applyEditMode(editModeEnabled);
 
                         if (backdrop) {
                             backdrop.style.display = 'flex';
@@ -343,6 +591,9 @@
                     function closeModal() {
                         if (backdrop) {
                             backdrop.style.display = 'none';
+                        }
+                        if (editModeEnabled) {
+                            captureDraft();
                         }
                     }
 
