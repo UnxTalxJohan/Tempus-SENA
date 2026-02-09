@@ -13,6 +13,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use App\Helpers\RouteHasher;
+use App\Models\Notificacion;
+use Carbon\Carbon;
 
 class MatrizController extends Controller
 {
@@ -383,6 +385,9 @@ class MatrizController extends Controller
             return redirect()->route('dashboard')->with('error', 'Programa inválido.');
         }
         try {
+            // Obtener datos del programa antes de eliminar para la notificación
+            $programa = Programa::where('id_prog', $id_prog)->first();
+
             \DB::beginTransaction();
             if (Schema::hasTable('matrs_ext')) {
                 \DB::table('matrs_ext')->where('cod_prog_fk', $id_prog)->delete();
@@ -395,6 +400,55 @@ class MatrizController extends Controller
             }
             Programa::where('id_prog', $id_prog)->delete();
             \DB::commit();
+
+            // Registrar notificación en BD para el usuario autenticado (fallback a session app_auth)
+            try {
+                $cc = null;
+                $appAuth = session('app_auth', []);
+                if (!empty($appAuth['usuario_id']) || !empty($appAuth['email'])) {
+                    $query = \DB::table('usuario');
+                    $uid = $appAuth['usuario_id'] ?? null;
+                    $email = $appAuth['email'] ?? null;
+
+                    $hasIdUsuario = Schema::hasColumn('usuario', 'id_usuario');
+                    $hasId = Schema::hasColumn('usuario', 'id');
+                    $hasCc = Schema::hasColumn('usuario', 'cc');
+                    $hasCorreo = Schema::hasColumn('usuario', 'correo');
+                    $hasEmail = Schema::hasColumn('usuario', 'email');
+
+                    $clauses = 0;
+                    if ($uid !== null) {
+                        if ($hasIdUsuario) { $query = $query->where('id_usuario', $uid); $clauses++; }
+                        if ($hasId) { $query = ($clauses? $query->orWhere('id', $uid) : $query->where('id', $uid)); $clauses++; }
+                        if ($hasCc) { $query = ($clauses? $query->orWhere('cc', $uid) : $query->where('cc', $uid)); $clauses++; }
+                    }
+                    if ($email !== null) {
+                        if ($hasCorreo) { $query = ($clauses? $query->orWhere('correo', $email) : $query->where('correo', $email)); $clauses++; }
+                        if ($hasEmail) { $query = ($clauses? $query->orWhere('email', $email) : $query->where('email', $email)); $clauses++; }
+                    }
+                    if ($clauses > 0) {
+                        $u = $query->first();
+                        if ($u) $cc = $u->cc ?? null;
+                    }
+                }
+
+                $tz = config('app.timezone');
+                if (empty($tz) || strtolower($tz) === 'utc') { $tz = 'America/Bogota'; }
+                $now = Carbon::now($tz);
+                $titulo = 'Matriz eliminada';
+                $descripcion = 'Código: ' . $id_prog . '. Nombre: ' . ($programa->nombre ?? 'N/D');
+                Notificacion::create([
+                    'cc_usuario_fk' => $cc,
+                    'fch_noti' => $now->toDateString(),
+                    'hora_noti' => $now->format('H:i:s'),
+                    'titulo' => $titulo,
+                    'descripcion' => $descripcion,
+                    'estado' => 1,
+                ]);
+            } catch (\Throwable $e) {
+                // Si falla la inserción, ignorar (no romper el flujo de eliminación)
+            }
+
             return redirect()->route('dashboard')->with('success', '✅ Matriz eliminada correctamente.');
         } catch (\Throwable $e) {
             \DB::rollBack();

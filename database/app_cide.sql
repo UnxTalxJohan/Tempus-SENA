@@ -90,6 +90,18 @@ CREATE TABLE matrs_ext (
 CREATE TABLE vinculacion (
     id_vinculacion INT NOT NULL AUTO_INCREMENT,
     tip_vincul VARCHAR(255),
+    nmr_contrato VARCHAR(255),
+    nvl_formacion VARCHAR(255),
+    pregrado TEXT,
+    postgrado TEXT,
+    coord_pertenece TEXT,
+    modalidad TEXT,
+    especialidad TEXT,
+    fch_inic_contrato DATE,
+    fch_fin_contrato DATE,
+    area TEXT,
+    estudios TEXT,
+    red TEXT,   
     PRIMARY KEY (id_vinculacion),
     INDEX(id_vinculacion)
 ) ENGINE=InnoDB;

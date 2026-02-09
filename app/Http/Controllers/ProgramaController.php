@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Programa;
 use App\Helpers\RouteHasher;
+use Illuminate\Support\Facades\DB;
 
 class ProgramaController extends Controller
 {
@@ -15,6 +16,10 @@ class ProgramaController extends Controller
         $programas->each(function($programa) {
             $programa->hash = RouteHasher::encode($programa->id_prog);
         });
-        return view('home', compact('programas'));
+        $countContratistas = DB::table('usuario')->where('id_rol_fk', 2)->count();
+        $countTitulada = DB::table('usuario')->where('id_rol_fk', 3)->count();
+        $countUsuarios = $countContratistas + $countTitulada;
+
+        return view('home', compact('programas', 'countContratistas', 'countTitulada', 'countUsuarios'));
     }
 }

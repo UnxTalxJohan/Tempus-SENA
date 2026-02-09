@@ -34,9 +34,23 @@
                         <div class="card-icon">
                             <i class="bi bi-people" style="font-size:48px;" aria-hidden="true"></i>
                         </div>
-                        <h3>Usuarios</h3>
-                        <p>Administrar usuarios e instructores</p>
-                        <a href="#" class="btn">Ver Usuarios</a>
+                        <h3>Gestión de usuarios</h3>
+                        <p>Administrar usuarios, roles y contrato</p>
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <span class="user-stat-label">Contrato</span>
+                                <span class="user-stat-value">{{ $countContratistas ?? 0 }}</span>
+                            </div>
+                            <div class="user-stat">
+                                <span class="user-stat-label">Planta</span>
+                                <span class="user-stat-value" style="color:#b45309;">{{ $countTitulada ?? 0 }}</span>
+                            </div>
+                            <div class="user-stat total">
+                                <span class="user-stat-label">Total</span>
+                                <span class="user-stat-value">{{ $countUsuarios ?? 0 }}</span>
+                            </div>
+                        </div>
+                        <a href="{{ route('usuarios.index') }}" class="btn">Gestión de usuarios</a>
                     </div>
                 </div>
 
@@ -44,38 +58,32 @@
 
 
                 @if(count($programas) > 0)
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Nombre del Programa</th>
-                                    <th>Versión</th>
-                                    <th>Nivel</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($programas as $programa)
-                                    <tr>
-                                        <td><strong>{{ $programa->id_prog }}</strong></td>
-                                        <td>{{ $programa->nombre }}</td>
-                                        <td>{{ $programa->version }}</td>
-                                        <td>{{ $programa->nivel }}</td>
-                                        <td>
-                                            <a href="{{ route('matriz.show', $programa->hash ?? $programa->id_prog) }}" class="btn btn-small">
-                                                Ver Matriz
-                                            </a>
-                                            <form method="POST" action="{{ route('matriz.destroy', $programa->id_prog) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar esta matriz y sus datos asociados?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-small" style="background:#e53e3e; color:#fff; margin-left:6px;">Eliminar</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="programs-list-dashboard">
+                        <div class="programs-header">
+                            <div>Código</div>
+                            <div>Programa</div>
+                            <div>Versión</div>
+                            <div>Nivel</div>
+                            <div>Acciones</div>
+                        </div>
+                        @foreach($programas as $programa)
+                            <div class="program-row">
+                                <div class="program-code">{{ $programa->id_prog }}</div>
+                                <div class="program-name">{{ $programa->nombre }}</div>
+                                <div class="program-version">{{ $programa->version }}</div>
+                                <div class="program-level">{{ $programa->nivel }}</div>
+                                <div class="program-actions">
+                                    <a href="{{ route('matriz.show', $programa->hash ?? $programa->id_prog) }}" class="btn btn-small">
+                                        Ver Matriz
+                                    </a>
+                                    <form method="POST" action="{{ route('matriz.destroy', $programa->id_prog) }}" onsubmit="return confirm('¿Eliminar esta matriz y sus datos asociados?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-small btn-danger">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @else
                     <div class="empty-state">

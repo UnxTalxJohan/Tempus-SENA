@@ -17,6 +17,35 @@ body {
     display: flex;
     flex-direction: column;
 }
+/* Scrollbar global estilo SENA (body y modales scrollables) */
+body,
+#user-detail-modal {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #0b7c25 #f4fbf4;
+}
+
+body::-webkit-scrollbar,
+#user-detail-modal::-webkit-scrollbar {
+    width: 10px;
+}
+
+body::-webkit-scrollbar-track,
+#user-detail-modal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body::-webkit-scrollbar-thumb,
+#user-detail-modal::-webkit-scrollbar-thumb {
+    background: #0b7c25;
+    border-radius: 999px;
+    border: 2px solid #e6fffa;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+}
+
+body::-webkit-scrollbar-thumb:hover,
+#user-detail-modal::-webkit-scrollbar-thumb:hover {
+    background: #0fa040;
+}
 /* Fondo blanco solo en la página de login (sin verde) */
 body.login-page {
     background: #ffffff !important;
@@ -144,37 +173,42 @@ body.auth-page.auth-bg-hex {
 .bgc-slit {
     position: absolute;
     inset: 0;
-    /* Reducir a la mitad y desplazar hacia el lado derecho */
     --slit-width: 18%;
-    /* Banda blanca sólida */
-    background: #ffffff;
-    /* Banda diagonal ubicada a la derecha de la línea de corte */
+    /* Usar SVG interno (rect con pattern) para panal; aplicar clip-path diagonal */
     clip-path: polygon(
         var(--cut-top) 0,
         calc(var(--cut-top) + var(--slit-width)) 0,
         calc(var(--cut-bottom) + var(--slit-width)) 100%,
         var(--cut-bottom) 100%
     );
-    opacity: 1; /* sólido blanco, sin transparencia */
     z-index: 1; /* por encima de .bgc-layer, detrás del contenido */
     pointer-events: none;
-
-    /* Estado activo (click) para resaltar opción seleccionada en menú usuario */
-    .dropdown-item:active {
-        background: #2f2f2f;
-        color: #fff;
-    }
+    backdrop-filter: blur(6px) saturate(0.9);
 }
+
+.bgc-slit .bg-hex-slit {
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0.5;
+    /* light blur to soften edges, keep hexes visible; increase saturation slightly */
+    filter: blur(3px) saturate(1.15);
+    transform: translateZ(0);
+}
+
+/* Hacer que la zona derecha no aparezca tan blanca detrás del panal */
+.bgc-right { background: transparent !important; }
 
 /* Asegurar que el footer quede por encima del fondo */
 .global-footer { position: relative; z-index: 2; }
-.bgc-left { /* área izquierda hasta la línea diagonal */
-    clip-path: polygon(0 0, var(--cut-top) 0, var(--cut-bottom) 100%, 0 100%);
+.bgc-left { /* fondo completo sin corte diagonal */
+    clip-path: none;
+    width: 100%;
 }
 .bgc-right { /* área derecha complementaria */
     clip-path: polygon(var(--cut-top) 0, 100% 0, 100% 100%, var(--cut-bottom) 100%);
-    /* Lado derecho completamente blanco y opaco */
-    background: #ffffff !important;
+    /* Mantener transparente para que el panal sea visible */
+    background: transparent !important;
     opacity: 1 !important;
 }
 
@@ -456,7 +490,10 @@ body.auth-page.auth-bg-hex {
     ============================================ */
 .global-footer {
     /* Separación por defecto para páginas largas */
-    margin-top: clamp(120px, 18vh, 220px);
+    /* reducir espacio superior para subir el cuadro blanco ligeramente
+       manteniendo espacio inferior para el footer */
+    /* subir ligeramente el cuadro blanco (menos espacio arriba) */
+    margin-top: clamp(60px, 10vh, 120px);
 }
 /* En páginas autenticadas con poco contenido (p.ej. Panel de Usuario),
    empujar el footer al fondo de la ventana. */
@@ -654,19 +691,16 @@ svg.icon {
     padding: 20px;
 }
 
-/* Margen superior uniforme en todas las páginas autenticadas
-   para equilibrar con la separación del footer */
+/* Margen superior más compacto en páginas autenticadas
+   para que el cuadro blanco quede más cerca del header */
 .auth-page .content-wrapper {
-    margin-top: clamp(120px, 18vh, 220px);
+    margin-top: clamp(40px, 7vh, 100px);
 }
 
-/* Centrado visual del dashboard entre header y footer */
+/* Centrado visual del dashboard entre header y footer,
+   usando el mismo margen reducido que el resto de páginas */
 .dashboard-page .content-wrapper {
-    /* Igualar exactamente la separación superior a la del footer.
-       Top visible = 20px (padding wrapper) + margin-top
-       Bottom visible = 20px (padding wrapper) + margin-top del footer
-       Si ambos usan el mismo clamp, quedan iguales. */
-    margin-top: clamp(120px, 18vh, 220px);
+    margin-top: clamp(40px, 7vh, 100px);
 }
 
 .container {
@@ -785,26 +819,62 @@ main {
     line-height: 1.5;
 }
 
+.user-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(80px, 1fr));
+    gap: 10px;
+    margin: 10px 0 18px;
+}
+
+.user-stat {
+    background: #f3fff7;
+    border: 1px solid #d7f3e2;
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.user-stat.total {
+    background: #ffffff;
+    border-color: #cfe9da;
+}
+
+.user-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #3d5b49;
+    font-weight: 700;
+    letter-spacing: .2px;
+}
+
+.user-stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0b7c25;
+    margin-top: 2px;
+}
+
 /* ============================================
    BOTONES
    ============================================ */
 
 .btn {
     display: inline-block;
-    background: #39A900;
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
     color: white;
     padding: 12px 30px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
     border: none;
     cursor: pointer;
 }
 
 .btn:hover {
-    background: #00853F;
-    transform: scale(1.05);
+    filter: brightness(0.95);
+    transform: translateY(-1px);
 }
 
 .btn-small {
@@ -889,10 +959,143 @@ main {
     border-bottom: 3px solid #39A900;
 }
 
+.programs-list-dashboard {
+    background: #ffffff;
+    border: 1px solid #e6e6e6;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.programs-header {
+    display: grid;
+    grid-template-columns: 130px 1.6fr 120px 140px 220px;
+    gap: 10px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.program-row {
+    display: grid;
+    grid-template-columns: 130px 1.6fr 120px 140px 220px;
+    gap: 10px;
+    padding: 14px 16px;
+    align-items: center;
+    border-bottom: 1px solid #eef2f2;
+}
+
+.program-row:nth-child(even) {
+    background: #fbfffb;
+}
+
+.program-row:hover {
+    background: #f4fff6;
+}
+
+.program-code {
+    font-weight: 800;
+    color: #0b7c25;
+}
+
+.program-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.program-version {
+    font-weight: 700;
+    color: #111827;
+}
+
+.program-level {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eef9f1;
+    color: #0b7c25;
+    font-weight: 700;
+    font-size: 12px;
+    width: fit-content;
+}
+
+.program-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.program-actions form {
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .programs-header,
+    .program-row {
+        grid-template-columns: 110px 1fr 90px 120px 200px;
+    }
+}
+
+@media (max-width: 860px) {
+    .programs-header {
+        display: none;
+    }
+    .program-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 14px;
+    }
+    .program-actions {
+        justify-content: flex-start;
+    }
+}
+
 .table-container {
     overflow-x: auto;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    /* Limitar altura para que el listado no empuje el footer; permitir scroll vertical */
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+/* Asegurar botones consistentes dentro de la tabla de programas */
+.table-container .btn,
+.table-container .btn-small,
+.table-container a.btn,
+.table-container button.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 18px !important;
+    min-height: 38px;
+    line-height: 1;
+    gap: 8px;
+    font-size: 0.95em;
+}
+.table-container button.btn { appearance: none; -webkit-appearance: none; }
+
+/* Color específico para el botón Eliminar cuando se usa inline-style rojo */
+.table-container button.btn[style*="background:#e53e3e"] {
+    background: #e53e3e !important;
+    color: #fff !important;
+}
+
+/* Reducir padding para tablas contenidas y mejorar densidad visual */
+.table-container table th,
+.table-container table td {
+    padding: 10px;
+}
+
+@media (max-width: 720px) {
+    .table-container { max-height: 360px; }
+    .table-container table th,
+    .table-container table td { padding: 8px; font-size: 13px; }
+    .btn-small { padding: 6px 12px; }
 }
 
 table {
@@ -952,6 +1155,13 @@ table td {
     background: #f8d7da;
     border-left: 4px solid #dc3545;
     color: #721c24;
+}
+
+/* Advertencias en rojo para mayor claridad */
+.alert-warning {
+    background: #fff1f1;
+    border-left: 4px solid #e53e3e;
+    color: #7a1a1a;
 }
 
 /* ============================================
@@ -1513,13 +1723,13 @@ table td {
        y ancho del contenedor general
        ----------------------------------- */
     width: 100%;
-    max-width: none; /* permitir usar todo el ancho */
-    margin: 0; /* evitar centrado */
-    padding: 10px 0 10px 10px; /* sin padding a la derecha */
-    min-height: calc(100vh - 120px); /* resta header y margen superior */
+    max-width: none;
+    margin: 0;
+    padding: 32px 16px;
+    min-height: calc(100vh - 120px);
     display: flex;
-    align-items: center;  /* centra vertical */
-    justify-content: flex-end; /* alinea hacia la derecha */
+    align-items: center;
+    justify-content: center;
     position: relative;
     z-index: 1; /* por encima del fondo */
 }
@@ -2380,75 +2590,89 @@ input[type="file"] {
 }
 
 /* ============================================
-   AUTH (LOGIN) - SPLIT LAYOUT + WATERMARK
+    AUTH (LOGIN) - STACKED CARDS
    ============================================ */
 .auth-split-card {
      /* -----------------------------------
          Ancho del cuadro de login (mucho más corto)
          ----------------------------------- */
-    width: min(60vw, 760px);
-    max-width: 760px;
-    /* pegar al lado derecho del wrapper con margen mayor para desplazar a la izquierda */
-    margin-left: auto !important;
-    margin-right: 72px !important;
-    /* Glass aplicado a todo el cuadro */
-    background: transparent; /* el velo irá en ::before para teñir también la imagen */
-    backdrop-filter: blur(12px) saturate(120%);
-    -webkit-backdrop-filter: blur(12px) saturate(120%);
-    position: relative; /* superposición del velo */
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.35);
-    /* Sombra exterior aún más tenue (fuera del borde) */
-    box-shadow:
-        0 -8px 16px rgba(0,0,0,0.10), /* superior muy suave */
-        0 6px 14px rgba(0,0,0,0.08);  /* general muy ligera */
-    display: grid;
+    width: min(92vw, 900px);
+    max-width: 900px;
+    margin: 0 auto;
+    background: transparent;
+    position: relative;
+    border-radius: 18px;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     /* -----------------------------------
        Balance de columnas en login (centrado visual)
        Antes: 1.2fr 1fr (izquierda más grande)
        Ahora: 1fr 1fr para equilibrio y mejor centrado
        ----------------------------------- */
-    grid-template-columns: 1fr 1fr;
-    overflow: hidden;
+    grid-template-columns: none;
+    overflow: visible;
+    gap: 18px;
 }
 .auth-split-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    /* Más transparencia para que se vea el fondo (verde) */
-    background: rgba(255, 255, 255, 0.30);
-    border-radius: inherit;
-    pointer-events: none;
-    z-index: 1; /* sobre fondos, bajo contenido */
+    content: none;
 }
 /* Eliminada sombra interna superior; se usa box-shadow exterior */
 .auth-left {
     position: relative;
-    z-index: 2; /* contenido por encima del velo */
-    min-height: 520px;
-    /* Fondo azul más intenso sin patrón */
-    background: linear-gradient(180deg, #e1effb 0%, #cfe5ff 100%);
+    z-index: 2;
+    min-height: 460px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    flex: 1 1 0;
 }
 .auth-left::before {
-    content: "";
+    content: none;
+}
+
+/* Fondo real rotatorio (imagen) dentro del lado izquierdo */
+#bgcLeft {
     position: absolute;
     inset: 0;
-    /* Sin patrón: dejar transparente para glassmorphism */
-    background: none;
-    opacity: 0;
-    mix-blend-mode: normal;
-    z-index: 0; /* por debajo del overlay y contenido */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    transition: opacity 0.6s ease, filter 0.6s ease;
+    filter: saturate(1.25) contrast(1.05);
+}
+
+/* Overlay hexagonal semi-transparente y borroso en diagonal */
+.hex-overlay {
+    width: min(92vw, 900px);
+    max-width: 900px;
+    margin: 0 auto;
+    background: transparent;
+    position: relative;
+    border-radius: 24px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    overflow: visible;
+}
+
+/* Clip the overlay to a diagonal (matching the white band on the right) */
+.hex-overlay {
+    clip-path: polygon(22% 0, 100% 0, 100% 100%, 28% 100%);
+}
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     pointer-events: none;
-}
-.auth-left::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    /* Velo azul sutil para reforzar el color */
-    background: linear-gradient(180deg, rgba(208,228,255,0.38), rgba(198,220,255,0.28));
-    opacity: 1;
-    z-index: 1;
-}
 .auth-left-overlay {
     position: absolute;
     inset: 20px;
@@ -2457,21 +2681,49 @@ input[type="file"] {
     z-index: 2;
 }
 .auth-right {
-    padding: 16px;
-    background: transparent; /* el glass lo aplica el contenedor completo */
-    position: absolute; /* posicionar sobre la banda blanca */
-    z-index: 3; /* por encima del velo y del fondo */
-    /* Fuente del cuadro de login (moderna) */
+    position: relative;
+    z-index: 2;
+    padding: 30px 34px 32px;
+    background: #ffffff;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-weight: 600; /* un poco más gruesa */
-    /* Ubicar dentro de la banda blanca (lado derecho) */
-    /* Anclar al borde derecho del contenedor para asegurar movimiento visible */
-    right: 6%;
-    left: auto;
-    top: 50%;
-    transform: translateY(-50%);
-    width: min(92vw, 280px);
-    max-width: 280px;
+    font-weight: 600;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.22);
+}
+.auth-right, .auth-left { overflow: visible; }
+
+.auth-left-box {
+    position: relative;
+    left: -60px; /* se asoma como puerta corrediza */
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 34px 40px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.45);
+    backdrop-filter: blur(14px) saturate(125%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.16);
+    min-width: 320px;
+    max-width: 360px;
+    min-height: 320px;
+}
+.auth-left-logo {
+    width: 90px;
+    height: 90px;
+    filter: brightness(0) saturate(100%) invert(35%) sepia(98%) saturate(1000%) hue-rotate(88deg) brightness(95%) contrast(101%);
+}
+.auth-left-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #00853F;
+    letter-spacing: 1px;
 }
 .auth-password { position: relative; }
 .auth-show {
@@ -2488,19 +2740,14 @@ input[type="file"] {
 .auth-show:hover { color: #3e4b56; }
 .auth-show svg { display:block; width:18px; height:18px; }
 @media (max-width: 640px) {
-    .auth-split-card { grid-template-columns: 1fr; }
-    .auth-left { min-height: 220px; }
+    .auth-wrapper { justify-content: center; padding: 24px 12px; }
+    .auth-split-card { flex-direction: column; align-items: center; }
+    .auth-left { position: static; order: 1; }
+    .auth-left-box { left: 0; min-width: 0; width: 100%; max-width: 360px; }
+    .auth-right { order: 2; max-width: 360px; margin-top: 10px; }
 }
 @media (max-width: 720px) {
-    /* En móviles, re-centrar el cuadro y permitir ancho fluido */
-    .auth-right {
-        position: static;
-        transform: none;
-        left: auto; top: auto;
-        width: auto; max-width: none;
-        z-index: 2;
-        padding: 22px;
-    }
+    .auth-right { padding: 22px; }
 }
 
 /* Watermark Tempus-SENA */
