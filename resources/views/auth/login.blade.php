@@ -37,6 +37,10 @@
                     </div>
                 </div>
 
+                <div class="login-remember">
+                    <a href="#" class="login-link" onclick="forgotPassword(event)">¿Olvidaste tu contraseña?</a>
+                </div>
+
                 <button type="submit" class="login-btn">Entrar</button>
             </form>
         </div>
@@ -44,15 +48,19 @@
     </div>
 
 <style>
+/* Solo en login: que el footer suba para quedar visible sin scroll */
+body.login-page .global-footer {
+    margin-top: 0;
+}
 /* Barra verde animada detrás del formulario */
 .login-green-bar {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 65%;
-    max-width: 200px;
+    width: 78%;
+    max-width: 260px;
     height: 100%;
-    background: rgba(25, 143, 58, 0.18);
+    background: rgba(25, 143, 58, 0.28);
     border-radius: 22px 0 0 22px;
     z-index: 2;
     box-shadow: 0 4px 24px rgba(25,143,58,0.13);
@@ -60,15 +68,15 @@
     opacity: 1;
     transform: translate(-50%, -50%) scaleX(0);
     transform-origin: left center;
-    backdrop-filter: blur(10px) saturate(1.2);
-    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    backdrop-filter: blur(10px) saturate(1.5);
+    -webkit-backdrop-filter: blur(10px) saturate(1.5);
     border: 1.5px solid rgba(0, 174, 49, 0.18);
 }
 .login-green-brand {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -56%);
+    transform: translate(-80%, -56%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -109,7 +117,8 @@
     margin-top: 3px;
 }
 .login-bg {
-    min-height: 100vh;
+    /* Reducir altura para que, sumando el footer, todo quepa en la pantalla */
+    min-height: calc(100vh - 120px);
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -128,9 +137,9 @@
     background: #fff !important;
     border-radius: 22px;
     box-shadow: 0 12px 40px 0 rgba(0,0,0,0.22);
-    padding: 38px 36px 32px 36px;
-    min-width: 340px;
-    max-width: 370px;
+    padding: 46px 42px 38px 42px;
+    min-width: 380px;
+    max-width: 430px;
     width: 100%;
     display: flex;
     flex-direction: column;
