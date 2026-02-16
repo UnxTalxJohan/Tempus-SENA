@@ -50,6 +50,85 @@ body::-webkit-scrollbar-thumb:hover,
 body.login-page {
     background: #ffffff !important;
 }
+
+@keyframes login-wave-scroll {
+    0% { background-position-x: 0; }
+    100% { background-position-x: -160px; }
+}
+
+@keyframes login-wave-scroll-reverse {
+    0% { background-position-x: 0; }
+    100% { background-position-x: 160px; }
+}
+/* Olas pequeñas decorativas solo en login */
+body.login-page .global-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32px;
+    background-image: url("../images/login-wave.svg");
+    background-repeat: repeat-x;
+    background-size: 64px 32px;
+    opacity: 1;
+    animation: login-wave-scroll 10s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+body.login-page .global-footer .footer-bar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 32px;
+    background-image: url("../images/login-wave.svg");
+    background-repeat: repeat-x;
+    background-size: 64px 32px;
+    opacity: 1;
+    animation: login-wave-scroll-reverse 10s linear infinite;
+    transform: scaleY(-1);
+    transform-origin: top center;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Neblina adicional en la parte baja del footer (mismo sentido que el header) */
+body.login-page .global-footer .footer-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32px;
+    background-image: url("../images/login-wave.svg");
+    background-repeat: repeat-x;
+    background-size: 64px 32px;
+    background-position: center bottom;
+    opacity: 1;
+    animation: login-wave-scroll 10s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Asegurar que el patrón wayuu quede dentro del header/footer
+   y por detrás de logos y textos solo en la página de login */
+body.login-page .global-header {
+    overflow: hidden;
+}
+
+body.login-page .header-container {
+    position: relative;
+    z-index: 1;
+}
+
+body.login-page .global-footer .footer-bar {
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
 /* Patrón de puntitos grandes en el fondo del dashboard */
 /* Fondo por defecto (burbujas) */
 body.dashboard-page.dashboard-bg-bubbles,

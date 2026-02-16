@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32" viewBox="0 0 64 32" preserveAspectRatio="none">
+  <!-- Franja tipo neblina: nubes suaves y translúcidas sobre fondo transparente -->
+  <g fill="#ffffff" opacity="0.45">
+    <!-- Capa de neblina baja -->
+    <path d="M-8 24
+             Q 0 20 8 22
+             T 24 22
+             T 40 23
+             T 56 22
+             T 72 24
+             L72 32 L-8 32 Z"/>
+
+    <!-- Capa intermedia con ondas suaves -->
+    <path d="M-8 18
+             Q 0 14 10 16
+             T 28 17
+             T 46 16
+             T 72 18
+             L72 24 L-8 24 Z" opacity="0.6"/>
+
+    <!-- Capa alta muy difusa -->
+    <path d="M-8 12
+             Q 4 10 16 11
+             T 40 12
+             T 72 13
+             L72 18 L-8 18 Z" opacity="0.35"/>
+  </g>
+</svg>

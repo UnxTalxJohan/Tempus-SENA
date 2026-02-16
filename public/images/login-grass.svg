@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="20" viewBox="0 0 64 20" preserveAspectRatio="none">
+  <!-- Césped simple estilizado para el borde del login -->
+  <rect width="64" height="8" y="12" fill="#0a5a1e"/>
+  <path d="M0 12
+           L2 4 4 12
+           L6 2 8 12
+           L10 5 12 12
+           L14 3 16 12
+           L18 1 20 12
+           L22 4 24 12
+           L26 2 28 12
+           L30 5 32 12
+           L34 3 36 12
+           L38 1 40 12
+           L42 4 44 12
+           L46 2 48 12
+           L50 5 52 12
+           L54 3 56 12
+           L58 1 60 12
+           L62 4 64 12
+           L64 20 L0 20 Z"
+        fill="#15a136"/>
+</svg>
