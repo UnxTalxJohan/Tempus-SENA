@@ -9,3 +9,22 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Selector compacto para filtrar por código de competencia en la matriz */
+.filter-codigo-select {
+    font-size: 13px;
+    padding: 2px 8px;
+    border: 1px solid #2d6a4f; /* verde principal */
+    border-radius: 999px;
+    background-color: #ffffff;
+    color: #1b4332;
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.filter-codigo-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.3);
+}

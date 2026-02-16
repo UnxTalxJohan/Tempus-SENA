@@ -50,25 +50,23 @@
         <div class="loader-content">
             <img src="{{ asset('images/logo-sena.svg') }}" alt="SENA" class="loader-logo">
             <div class="spinner"></div>
+            <div class="loader-text">Cargando, por favor espera...</div>
         </div>
     </div>
 
     @if(request()->routeIs('login'))
-    <!-- Fondo carrusel diagonal global solo en login -->
+    <!-- Fondo carrusel completo solo en login -->
     <div class="bg-carousel" id="bgCarousel" aria-hidden="true">
         <div class="bgc-layer bgc-left" id="bgcLeft"></div>
-        <!-- Banda diagonal centrada en la separación -->
-        <div class="bgc-slit"></div>
-        <div class="bgc-layer bgc-right" id="bgcRight"></div>
     </div>
     @endif
 
     <header class="global-header {{ session('app_auth') ? 'inverted' : '' }}">
         <div class="header-container">
-            <div class="logo-section">
+            <a href="{{ session('app_auth') ? route('dashboard') : route('login') }}" class="logo-section" style="text-decoration:none;">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">
                 <span class="logo-text">CIDE</span>
-            </div>
+            </a>
 
             @php($appAuthHeader = session('app_auth'))
             @if($appAuthHeader && ($appAuthHeader['rol_id'] ?? 0) == 1)
@@ -136,6 +134,8 @@
                             .notif-item:not(:last-child){ margin-bottom:6px; }
                             .notif-unread{ border-left:4px solid #e53e3e; background: linear-gradient(90deg,#fff7f7,#fff); }
                             .notif-success{ border-left:4px solid #00A859; background: linear-gradient(90deg,#f3fff7,#fff); }
+                            .notif-error{ border-left:4px solid #e53e3e; background: linear-gradient(90deg,#fff3f3,#fff); }
+                            .notif-warn{ border-left:4px solid #e53e3e; background: linear-gradient(90deg,#fff3f3,#fff); }
                             .notif-icon{ color:#e53e3e; font-size:18px; margin-top:2px; }
                             .notif-icon.success{ color:#00A859; }
                             .notif-title{ font-weight:700; font-size:13px; color:#111; max-width:160px; }
@@ -178,6 +178,8 @@
                             #notifDetailModal .panel-body{ color:#222; white-space:pre-wrap; max-height:60vh; overflow:auto; line-height:1.5; font-size:15px; margin-top:14px; }
                             /* Structured content inside modal */
                             .notif-issue{ background:#fff5f5; border:1px solid #f5c6cb; color:#7a1a1a; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-weight:700; }
+                            .notif-list-danger{ background:#fff5f5; border:1px solid #f5c6cb; color:#7a1a1a; padding:10px 12px; border-radius:8px; margin-bottom:10px; }
+                            .notif-list-danger ul{ margin:6px 0 0 18px; }
                             .notif-names{ background:#f7fff7; border:1px solid #dff4e6; color:#065f3b; padding:10px 12px; border-radius:8px; margin-bottom:10px; }
                             .notif-success-box{ background:#f3fff7; border:1px solid #bfe7d0; color:#0b5f3a; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-weight:700; }
                             .notif-code-list{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
@@ -340,8 +342,11 @@
                                             const excerpt = (n.descripcion||'').replace(/\s+/g,' ').substring(0,80) + ((n.descripcion||'').length>80?'...':'');
                                             const time12 = formatTime12(n.hora_noti || '');
                                             const dateFmt = formatDate(n.fch_noti || '');
-                                            const isSuccess = /exito|éxito|subida con éxito|subidas con éxito/i.test(n.titulo || '');
-                                            const itemClass = `notif-item${n.estado==1?' notif-unread':''}${isSuccess?' notif-success':''}`;
+                                            const title = n.titulo || '';
+                                            const isSuccess = /exito|éxito|subida con éxito|subidas con éxito/i.test(title);
+                                            const isError = /error|fallo|no cargado|sin cc|sin c[ée]dula/i.test(title);
+                                            const isWarn = /advertencia|aviso|precaucion/i.test(title);
+                                            const itemClass = `notif-item${n.estado==1?' notif-unread':''}${isSuccess?' notif-success':''}${isError?' notif-error':''}${(!isError && isWarn)?' notif-warn':''}`;
                                             const iconClass = isSuccess ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
                                             html += `<li class="${itemClass}" data-id="${n.id_noti}">
                                                 <div class="notif-icon${isSuccess?' success':''}"><i class="bi ${iconClass}" aria-hidden="true"></i></div>
@@ -373,6 +378,12 @@
 
                                     function verDetalleNotificacion(id) {
                                         console.debug('[notif] verDetalleNotificacion', id);
+                                        if (dd) {
+                                            dd.style.display = 'none';
+                                        }
+                                        if (btn) {
+                                            btn.setAttribute('aria-expanded', 'false');
+                                        }
                                         fetch(`/notificaciones/${id}`, { credentials: 'same-origin' })
                                             .then(r => r.json())
                                             .then(n => {
@@ -381,8 +392,8 @@
                                                 document.getElementById('notifPanelTitle').textContent = titleText;
                                                 // success/warn/error styling for modal
                                                 const isSuccessModal = /exito|éxito|subida con éxito|subidas con éxito/i.test(titleText);
-                                                const isErrorModal = /error/i.test(titleText);
-                                                const isWarnModal = /advertencia/i.test(titleText);
+                                                const isErrorModal = /error|fallo|no cargado|sin cc|sin c[ée]dula/i.test(titleText);
+                                                const isWarnModal = /advertencia|aviso|precaucion/i.test(titleText);
                                                 const iconWrap = document.getElementById('notifModalIconWrap');
                                                 const iconEl = document.getElementById('notifModalIcon');
                                                 const titlePill = document.getElementById('notifPanelTitle');
@@ -421,6 +432,7 @@
                                                 const body = document.getElementById('notifPanelBody');
                                                 body.innerHTML = '';
                                                 const fullText = (n.descripcion || '').trim();
+                                                const filaMatches = fullText.match(/Fila\s+\d+\s*:\s*[^;]+/gi) || [];
                                                 // Try to parse the common pattern we generate for duplicated codes
                                                 const codeMatch = fullText.match(/Código de competencia repetido:\s*([\w\-]+)/i);
                                                 const codigo = codeMatch ? codeMatch[1] : null;
@@ -444,12 +456,28 @@
                                                         nombresEncontrados.push(qm[1].trim());
                                                     }
                                                 }
-                                                if (codigo || nombresEncontrados.length) {
+                                                if (codigo || nombresEncontrados.length || filaMatches.length) {
                                                         if (codigo) {
                                                             const issue = document.createElement('div');
                                                             issue.className = 'notif-issue';
                                                             issue.textContent = `Problema: Código de competencia repetido — ${codigo}`;
                                                             body.appendChild(issue);
+                                                        }
+                                                        if (filaMatches.length) {
+                                                            const listBox = document.createElement('div');
+                                                            listBox.className = 'notif-list-danger';
+                                                            const title = document.createElement('div');
+                                                            title.style.fontWeight = '700';
+                                                            title.textContent = 'Usuarios sin cédula:';
+                                                            listBox.appendChild(title);
+                                                            const ul = document.createElement('ul');
+                                                            filaMatches.forEach(item => {
+                                                                const li = document.createElement('li');
+                                                                li.textContent = item.replace(/\s+/g, ' ').trim();
+                                                                ul.appendChild(li);
+                                                            });
+                                                            listBox.appendChild(ul);
+                                                            body.appendChild(listBox);
                                                         }
                                                         // Extract all codes present in the description (may be multiple)
                                                         const codes = [];
@@ -518,7 +546,7 @@
                                                     if (isSuccessModal) {
                                                         const okBox = document.createElement('div');
                                                         okBox.className = 'notif-success-box';
-                                                        okBox.textContent = 'Éxito: Matriz subida con éxito.';
+                                                        okBox.textContent = 'Éxito: carga completada.';
                                                         body.appendChild(okBox);
                                                     }
                                                     // fallback: render paragraphs
@@ -1123,30 +1151,40 @@
         })();
 
         // === PANTALLA DE CARGA GLOBAL ===
-        const globalLoader = document.getElementById('globalLoader');
-        
-        // Ocultar loader al cargar la página
-        window.addEventListener('load', function() {
-            setTimeout(() => {
+        (function() {
+            const globalLoader = document.getElementById('globalLoader');
+            if (!globalLoader) return;
+
+            function ocultarLoader() {
                 globalLoader.classList.add('hidden');
-            }, 250); // cuarto de segundo
-        });
-        
-        // Mostrar loader al hacer clic en links internos
-        document.addEventListener('click', function(e) {
-            const link = e.target.closest('a');
-            if (link && link.href && !link.target && link.href.startsWith(window.location.origin)) {
-                // Solo para links internos sin target="_blank"
-                if (!link.href.includes('#') && link.href !== window.location.href) {
-                    globalLoader.classList.remove('hidden');
-                }
             }
-        });
-        
-        // Mostrar loader en submit de formularios
-        document.addEventListener('submit', function(e) {
-            globalLoader.classList.remove('hidden');
-        });
+
+            // Ocultar loader al cargar la página
+            window.addEventListener('load', function() {
+                setTimeout(ocultarLoader, 250); // cuarto de segundo
+            });
+
+            // También al volver con el botón Atrás / bfcache
+            window.addEventListener('pageshow', function() {
+                ocultarLoader();
+            });
+
+            // Mostrar loader al hacer clic en links internos
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && link.href && !link.target && link.href.startsWith(window.location.origin)) {
+                    // Solo para links internos sin target="_blank"
+                    if (!link.href.includes('#') && link.href !== window.location.href) {
+                        globalLoader.classList.remove('hidden');
+                    }
+                }
+            });
+
+            // Mostrar loader en submit de formularios
+            document.addEventListener('submit', function() {
+                globalLoader.classList.remove('hidden');
+            });
+        })();
 
         // === BÚSQUEDA GLOBAL DEL HEADER ===
         const globalSearch = document.getElementById('globalSearch');

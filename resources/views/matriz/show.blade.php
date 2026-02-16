@@ -47,25 +47,61 @@
                             <span>{{ $programa->nivel }}</span>
                         </div>
                     </div>
+                    @php
+                        $fechaSubida = $programa->fch_sub_prg ? \Carbon\Carbon::parse($programa->fch_sub_prg)->format('Y-m-d H:i') : null;
+                        $fechaActualizacion = $programa->fhc_utl_act_prg ? \Carbon\Carbon::parse($programa->fhc_utl_act_prg)->format('Y-m-d H:i') : null;
+                    @endphp
+                    <div class="info-grid" style="margin-top:10px;">
+                        <div class="info-item">
+                            <strong>Subido</strong>
+                            <span>
+                                @if($fechaSubida)
+                                    {{ $fechaSubida }}
+                                @else
+                                    Sin registro
+                                @endif
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Última actualización</strong>
+                            <span>
+                                @if($fechaActualizacion)
+                                    {{ $fechaActualizacion }}
+                                @else
+                                    Sin registro
+                                @endif
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="actions">
-                    <div class="stats">
-                        <div class="stat-badge">
-                            <i class="bi bi-clipboard" aria-hidden="true"></i>
-                            {{ count($competencias) }} Competencias
+                    <div style="display:flex; flex-direction:column; gap:6px; flex:1 1 auto;">
+                        <div class="stats">
+                            <div class="stat-badge">
+                                <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                {{ count($competencias) }} Competencias
+                            </div>
+                            <div class="stat-badge">
+                                <i class="bi bi-check2" aria-hidden="true"></i>
+                                {{ $competencias->sum(function($c) { return count($c->resultados); }) }} Resultados
+                            </div>
+                            <div id="compHmaxSummary" class="stat-badge summary-badge" style="display:none;"></div>
+                            <!-- Filtro de trimestres desactivado temporalmente -->
+                            <input type="text" 
+                                   id="searchCompetencias" 
+                                   class="search-competencias-input" 
+                                   placeholder="Buscar competencia..."
+                                   onkeyup="filtrarCompetencias()">
                         </div>
-                        <div class="stat-badge">
-                            <i class="bi bi-check2" aria-hidden="true"></i>
-                            {{ $competencias->sum(function($c) { return count($c->resultados); }) }} Resultados
+                        <div>
+                            <select id="filterCodigoComp" class="filter-codigo-select" onchange="filtrarCompetencias()" style="font-size:13px; padding:2px 6px; max-width:260px;">
+                                <option value="">Filtrar por código de competencia...</option>
+                                @foreach($competencias as $c)
+                                    <option value="{{ $c->cod_comp }}">{{ $c->cod_comp }} - {{ \Illuminate\Support\Str::limit($c->nombre, 60) }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <div id="compHmaxSummary" class="stat-badge summary-badge" style="display:none;"></div>
-                        <!-- Filtro de trimestres desactivado temporalmente -->
-                        <input type="text" 
-                               id="searchCompetencias" 
-                               class="search-competencias-input" 
-                               placeholder="Buscar competencia..."
-                               onkeyup="filtrarCompetencias()">
                     </div>
                     <div style="display:flex; gap:10px; align-items:center;">
                         <button id="guardarCambiosBtn" class="btn">
@@ -600,14 +636,17 @@
 
         // Función para filtrar competencias (agrupadas por rowspan)
         function filtrarCompetencias() {
-            const searchValue = document.getElementById('searchCompetencias').value.toLowerCase();
+            const searchValue = (document.getElementById('searchCompetencias')?.value || '').toLowerCase();
+            const selectedCodigo = (document.getElementById('filterCodigoComp')?.value || '').toLowerCase();
             const rows = document.querySelectorAll('#excelGrid tbody tr');
             let visibleByComp = new Map();
 
             rows.forEach(row => {
                 const nombre = (row.dataset.compNombre || '').toLowerCase();
                 const codigo = (row.dataset.compCodigo || '').toLowerCase();
-                const match = !searchValue || codigo.includes(searchValue) || nombre.includes(searchValue);
+                const matchTexto = !searchValue || codigo.includes(searchValue) || nombre.includes(searchValue);
+                const matchCodigo = !selectedCodigo || codigo === selectedCodigo;
+                const match = matchTexto && matchCodigo;
                 const key = `${codigo}|${nombre}`;
                 if (!visibleByComp.has(key)) visibleByComp.set(key, match);
                 // Ocultar/mostrar fila individual según el match del grupo
@@ -620,7 +659,10 @@
                 const total = Array.from(visibleByComp.keys()).length;
                 const visibles = Array.from(visibleByComp.values()).filter(Boolean).length;
                 const clipIcon = `<i class=\"bi bi-clipboard\" aria-hidden=\"true\"></i>`;
-                statBadge.innerHTML = searchValue ? `${clipIcon} ${visibles} de ${total} Competencias` : `${clipIcon} ${total} Competencias`;
+                const hayFiltroTexto = !!searchValue;
+                const hayFiltroCodigo = !!selectedCodigo;
+                const hayFiltro = hayFiltroTexto || hayFiltroCodigo;
+                statBadge.innerHTML = hayFiltro ? `${clipIcon} ${visibles} de ${total} Competencias` : `${clipIcon} ${total} Competencias`;
             }
         }
 

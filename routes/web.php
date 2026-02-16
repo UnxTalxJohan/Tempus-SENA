@@ -4,8 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\MatrizController;
+use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\Auth\WebLoginController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\SedeController;
+use App\Http\Controllers\FichaController;
 
 // Login (raíz muestra el formulario)
 Route::get('/', [WebLoginController::class, 'showLoginForm'])->name('login');
@@ -33,6 +36,27 @@ Route::middleware('app.auth')->group(function () {
 	Route::get('/matriz/{hash}', [MatrizController::class, 'show'])->name('matriz.show');
 	Route::get('/matriz/exportar/{hash}', [MatrizController::class, 'exportar'])->name('matriz.exportar');
 	Route::delete('/matriz/{id_prog}', [MatrizController::class, 'destroy'])->name('matriz.destroy');
+
+	// Gestión de usuarios (solo admin)
+	Route::get('/usuarios/gestion', [UserAdminController::class, 'index'])->name('usuarios.index');
+	Route::put('/usuarios/actualizar', [UserAdminController::class, 'updateUser'])->name('usuarios.update');
+	Route::get('/usuarios/contratistas/consolidado', [UserAdminController::class, 'showContratistasForm'])->name('usuarios.contratistas.form');
+	Route::post('/usuarios/contratistas/consolidado', [UserAdminController::class, 'previewContratistasExcel'])->name('usuarios.contratistas.preview');
+	Route::post('/usuarios/contratistas/consolidado/process', [UserAdminController::class, 'processContratistasExcel'])->name('usuarios.contratistas.process');
+	Route::get('/usuarios/titulada/consolidado', [UserAdminController::class, 'showTituladaForm'])->name('usuarios.titulada.form');
+	Route::post('/usuarios/titulada/consolidado', [UserAdminController::class, 'previewTituladaExcel'])->name('usuarios.titulada.preview');
+	Route::post('/usuarios/titulada/consolidado/process', [UserAdminController::class, 'processTituladaExcel'])->name('usuarios.titulada.process');
+	Route::post('/usuarios/titulada/consolidado/cancel', [UserAdminController::class, 'cancelTituladaExcel'])->name('usuarios.titulada.cancel');
+
+	// Sedes y ambientes
+	Route::get('/sedes', [SedeController::class, 'index'])->name('sede.index');
+	Route::get('/sedes/cargar', [SedeController::class, 'uploadForm'])->name('sede.upload');
+	Route::post('/sedes/preview', [SedeController::class, 'preview'])->name('sede.preview');
+	Route::post('/sedes/process', [SedeController::class, 'process'])->name('sede.process');
+	Route::post('/sedes/registrar-lugar', [SedeController::class, 'storeLugar'])->name('sede.store.lugar');
+
+	// Panel de fichas
+	Route::get('/fichas', [FichaController::class, 'index'])->name('ficha.index');
 
 	// Panel de Usuario
 	Route::get('/usuario/panel', [\App\Http\Controllers\UserPanelController::class, 'index'])->name('user.panel');
