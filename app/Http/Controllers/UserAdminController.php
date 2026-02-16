@@ -116,6 +116,9 @@ class UserAdminController extends Controller
      */
     public function processTituladaExcel(Request $request)
     {
+        // Extender el tiempo máximo de ejecución a 60 segundos solo para este proceso
+        try { @set_time_limit(60); } catch (\Throwable $e) {}
+
         $request->validate([
             'file_name' => 'required|string',
         ]);
@@ -334,6 +337,9 @@ class UserAdminController extends Controller
      */
     public function processContratistasExcel(Request $request)
     {
+        // Extender el tiempo máximo de ejecución a 60 segundos solo para este proceso
+        try { @set_time_limit(60); } catch (\Throwable $e) {}
+
         $request->validate([
             'file_name' => 'required|string',
         ]);

@@ -503,9 +503,9 @@ body.auth-page.auth-bg-hex {
     /* subir ligeramente el cuadro blanco (menos espacio arriba) */
     margin-top: clamp(60px, 10vh, 120px);
 }
-/* En páginas autenticadas con poco contenido (p.ej. Panel de Usuario),
-   empujar el footer al fondo de la ventana. */
-.auth-page .global-footer { margin-top: auto; }
+/* En páginas autenticadas, usar la misma separación visual
+    entre el contenido principal y el footer que respecto al header */
+.auth-page .global-footer { margin-top: clamp(60px, 10vh, 120px); }
 
 /* Asegurar que contenedores principales puedan ocupar el espacio restante */
 .content-wrapper,
@@ -699,16 +699,14 @@ svg.icon {
     padding: 20px;
 }
 
-/* Margen superior más compacto en páginas autenticadas
-   para que el cuadro blanco quede más cerca del header */
+/* Margen superior simétrico respecto a header y footer
+   en páginas autenticadas y dashboard (excepto login) */
 .auth-page .content-wrapper {
-    margin-top: clamp(40px, 7vh, 100px);
+    margin-top: clamp(60px, 10vh, 120px);
 }
 
-/* Centrado visual del dashboard entre header y footer,
-   usando el mismo margen reducido que el resto de páginas */
 .dashboard-page .content-wrapper {
-    margin-top: clamp(40px, 7vh, 100px);
+    margin-top: clamp(60px, 10vh, 120px);
 }
 
 .container {

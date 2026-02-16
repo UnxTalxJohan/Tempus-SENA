@@ -108,11 +108,18 @@ class WebLoginController extends Controller
         $nombre = $usuario->nombre ?? ($usuario->name ?? null);
         $correo = $usuario->email ?? ($usuario->correo ?? null);
 
+        // Intentar recuperar avatar persistido si existe columna correspondiente
+        $avatarPath = null;
+        if (in_array('avatar_path', $columns, true)) {
+            $avatarPath = $usuario->avatar_path ?? null;
+        }
+
         $request->session()->put('app_auth', [
             'usuario_id' => $usuarioId,
             'rol_id' => $rolId,
             'nombre' => $nombre,
             'email' => $correo,
+            'avatar' => $avatarPath,
         ]);
 
         // Regenerar sesión por seguridad

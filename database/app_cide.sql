@@ -1,4 +1,3 @@
-
 drop database if exists app_cide;
 CREATE database app_cide;
 use app_cide;
@@ -195,16 +194,16 @@ CREATE TABLE evento (
     id_fich_fk INT NOT NULL,
     cc_fk INT NOT NULL,
     cod_sede_fk INT NOT NULL,
-    id_resu_fk INT NOT NULL,
-    PRIMARY KEY (id_fich_fk, cc_fk, cod_sede_fk, id_resu_fk),
+    cod_comp_fk INT NOT NULL,
+    PRIMARY KEY (id_fich_fk, cc_fk, cod_sede_fk, cod_comp_fk),
     INDEX(id_fich_fk),
     INDEX(cc_fk),
     INDEX(cod_sede_fk),
-    INDEX(id_resu_fk),
+    INDEX(cod_comp_fk),
     FOREIGN KEY (id_fich_fk) REFERENCES ficha(id_fich) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (cc_fk) REFERENCES usuario(cc) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (cod_sede_fk) REFERENCES sede(cod_sede) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_resu_fk) REFERENCES resultado(id_resu) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (cod_comp_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS programa_competencia (
