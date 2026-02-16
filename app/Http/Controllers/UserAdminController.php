@@ -461,6 +461,14 @@ class UserAdminController extends Controller
             $area    = trim((string) $sheet->getCell('D' . $row)->getValue());
             $estudios= trim((string) $sheet->getCell('E' . $row)->getValue());
 
+            // Saltar posibles filas de encabezado que vienen repetidas en algunas plantillas
+            $nombreUpper = strtoupper($nombre);
+            $ccText = is_string($ccRaw) ? strtoupper(trim($ccRaw)) : strtoupper(trim((string) $ccRaw));
+            if ($nombreUpper === 'NOMBRE Y APELLIDOS' || $nombreUpper === 'NOMBRE Y APELLIDO' || $ccText === 'CEDULA' || $ccText === 'CÉDULA') {
+                $totalRows--;
+                continue;
+            }
+
             $allEmpty = ($nombre === '' && ($ccRaw === null || $ccRaw === '') && $area === '' && $estudios === '');
             if ($allEmpty) {
                 $totalRows--;
@@ -684,6 +692,13 @@ class UserAdminController extends Controller
                 $ccRaw    = $sheet->getCell('C' . $row)->getValue();
                 $area     = trim((string) $sheet->getCell('D' . $row)->getValue());
                 $estudios = trim((string) $sheet->getCell('E' . $row)->getValue());
+
+                // Ignorar posibles filas de encabezado que llegan como datos ("Nombre y apellidos" / "CEDULA")
+                $nombreUpper = strtoupper($nombre);
+                $ccText = is_string($ccRaw) ? strtoupper(trim($ccRaw)) : strtoupper(trim((string) $ccRaw));
+                if ($nombreUpper === 'NOMBRE Y APELLIDOS' || $nombreUpper === 'NOMBRE Y APELLIDO' || $ccText === 'CEDULA' || $ccText === 'CÉDULA') {
+                    continue;
+                }
 
                 $allEmpty = ($nombre === '' && ($ccRaw === null || $ccRaw === '') && $area === '' && $estudios === '');
                 if ($allEmpty) {

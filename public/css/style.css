@@ -324,6 +324,14 @@ body.auth-page.auth-bg-hex {
     animation: spin 0.4s linear infinite;
 }
 
+.loader-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2e7d32;
+    letter-spacing: 0.2px;
+    text-align: center;
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);

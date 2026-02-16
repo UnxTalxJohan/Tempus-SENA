@@ -21,8 +21,7 @@
                     <p style="margin:0;">
                         <strong>Archivo:</strong> {{ $fileName }}<br>
                         <strong>Filas con datos:</strong> {{ $totalRows }}<br>
-                        <strong>Filas con CC valida:</strong> {{ $validRows }}<br>
-                        <strong>Filas sin CC (se omitiran al procesar):</strong> {{ $skippedNoCc }}
+                        <strong>Filas con CC valida:</strong> {{ $validRows }}
                     </p>
                 </div>
 
@@ -31,7 +30,7 @@
                     <i class="bi bi-exclamation-triangle-fill" aria-hidden="true" style="font-size:16px;"></i>
                     <div>
                         <strong>Advertencia:</strong> se encontraron {{ $skippedNoCc }} fila(s) sin cedula.
-                        <div style="margin-top:4px;">Puedes cancelar o subir de todas formas (esas filas se omitiran).</div>
+                        <div style="margin-top:4px;">Puedes cancelar o subir de todas formas.</div>
                     </div>
                 </div>
                 @endif
@@ -77,7 +76,7 @@
                         <tbody>
                             @forelse($rows as $r)
                                 <tr @if($r['sin_cc']) style="background:#fff5f5;" @endif>
-                                    <td>{{ $r['row'] }}</td>
+                                    <td>{{ $loop->iteration }}</td>
                                     <td>
                                         @if($r['cc'])
                                             <strong>{{ $r['cc'] }}</strong>
@@ -110,7 +109,7 @@
                 <div style="flex:1;">
                     <h3 style="margin:0 0 6px; font-size:18px; font-weight:800; color:#0b7c25;">Confirmar carga</h3>
                     <p style="margin:0; color:#333;">Hay filas sin cedula. Deseas continuar y subir el archivo de todas formas?</p>
-                    <p style="margin:8px 0 0; color:#7a1a1a; font-weight:700;">Esas filas se omitiran.</p>
+                    <p style="margin:8px 0 0; color:#7a1a1a; font-weight:700;">Puedes continuar si deseas.</p>
                 </div>
             </div>
             <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">

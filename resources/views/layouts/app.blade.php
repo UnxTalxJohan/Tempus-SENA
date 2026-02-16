@@ -50,6 +50,7 @@
         <div class="loader-content">
             <img src="{{ asset('images/logo-sena.svg') }}" alt="SENA" class="loader-logo">
             <div class="spinner"></div>
+            <div class="loader-text">Cargando, por favor espera...</div>
         </div>
     </div>
 
@@ -1150,30 +1151,40 @@
         })();
 
         // === PANTALLA DE CARGA GLOBAL ===
-        const globalLoader = document.getElementById('globalLoader');
-        
-        // Ocultar loader al cargar la página
-        window.addEventListener('load', function() {
-            setTimeout(() => {
+        (function() {
+            const globalLoader = document.getElementById('globalLoader');
+            if (!globalLoader) return;
+
+            function ocultarLoader() {
                 globalLoader.classList.add('hidden');
-            }, 250); // cuarto de segundo
-        });
-        
-        // Mostrar loader al hacer clic en links internos
-        document.addEventListener('click', function(e) {
-            const link = e.target.closest('a');
-            if (link && link.href && !link.target && link.href.startsWith(window.location.origin)) {
-                // Solo para links internos sin target="_blank"
-                if (!link.href.includes('#') && link.href !== window.location.href) {
-                    globalLoader.classList.remove('hidden');
-                }
             }
-        });
-        
-        // Mostrar loader en submit de formularios
-        document.addEventListener('submit', function(e) {
-            globalLoader.classList.remove('hidden');
-        });
+
+            // Ocultar loader al cargar la página
+            window.addEventListener('load', function() {
+                setTimeout(ocultarLoader, 250); // cuarto de segundo
+            });
+
+            // También al volver con el botón Atrás / bfcache
+            window.addEventListener('pageshow', function() {
+                ocultarLoader();
+            });
+
+            // Mostrar loader al hacer clic en links internos
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && link.href && !link.target && link.href.startsWith(window.location.origin)) {
+                    // Solo para links internos sin target="_blank"
+                    if (!link.href.includes('#') && link.href !== window.location.href) {
+                        globalLoader.classList.remove('hidden');
+                    }
+                }
+            });
+
+            // Mostrar loader en submit de formularios
+            document.addEventListener('submit', function() {
+                globalLoader.classList.remove('hidden');
+            });
+        })();
 
         // === BÚSQUEDA GLOBAL DEL HEADER ===
         const globalSearch = document.getElementById('globalSearch');

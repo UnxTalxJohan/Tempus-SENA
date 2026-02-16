@@ -23,15 +23,6 @@
                 <div class="cards">
                     <div class="card">
                         <div class="card-icon">
-                            <i class="bi bi-clipboard" style="font-size:48px;" aria-hidden="true"></i>
-                        </div>
-                        <h3>Fichas</h3>
-                        <p>Administrar fichas de formación</p>
-                        <a href="#" class="btn">Ver Fichas</a>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon">
                             <i class="bi bi-people" style="font-size:48px;" aria-hidden="true"></i>
                         </div>
                         <h3>Gestión de usuarios</h3>
@@ -52,6 +43,24 @@
                         </div>
                         <a href="{{ route('usuarios.index') }}" class="btn">Gestión de usuarios</a>
                     </div>
+
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="bi bi-collection" style="font-size:48px;" aria-hidden="true"></i>
+                        </div>
+                        <h3>Fichas de formación</h3>
+                        <p>Consulta las fichas, sus programas y los usuarios/resultados vinculados.</p>
+                        <a href="{{ route('ficha.index') }}" class="btn">Ver fichas</a>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="bi bi-geo-alt" style="font-size:48px;" aria-hidden="true"></i>
+                        </div>
+                        <h3>Sedes y ambientes</h3>
+                        <p>Consulta y carga las sedes del CIDE y sus ambientes de formación.</p>
+                        <a href="{{ route('sede.index') }}" class="btn">Ver sedes</a>
+                    </div>
                 </div>
 
                 <h2 class="section-title">Programas Registrados</h2>
@@ -64,6 +73,8 @@
                             <div>Programa</div>
                             <div>Versión</div>
                             <div>Nivel</div>
+                            <div>Subido</div>
+                            <div>Última actualización</div>
                             <div>Acciones</div>
                         </div>
                         @foreach($programas as $programa)
@@ -72,6 +83,20 @@
                                 <div class="program-name">{{ $programa->nombre }}</div>
                                 <div class="program-version">{{ $programa->version }}</div>
                                 <div class="program-level">{{ $programa->nivel }}</div>
+                                <div class="program-date">
+                                    @if($programa->fch_sub_prg)
+                                        {{ \Carbon\Carbon::parse($programa->fch_sub_prg)->format('Y-m-d H:i') }}
+                                    @else
+                                        <span style="opacity:.6;">Sin registro</span>
+                                    @endif
+                                </div>
+                                <div class="program-date">
+                                    @if($programa->fhc_utl_act_prg)
+                                        {{ \Carbon\Carbon::parse($programa->fhc_utl_act_prg)->format('Y-m-d H:i') }}
+                                    @else
+                                        <span style="opacity:.6;">Sin registro</span>
+                                    @endif
+                                </div>
                                 <div class="program-actions">
                                     <a href="{{ route('matriz.show', $programa->hash ?? $programa->id_prog) }}" class="btn btn-small">
                                         Ver Matriz

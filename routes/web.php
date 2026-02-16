@@ -7,6 +7,8 @@ use App\Http\Controllers\MatrizController;
 use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\Auth\WebLoginController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\SedeController;
+use App\Http\Controllers\FichaController;
 
 // Login (raíz muestra el formulario)
 Route::get('/', [WebLoginController::class, 'showLoginForm'])->name('login');
@@ -45,6 +47,16 @@ Route::middleware('app.auth')->group(function () {
 	Route::post('/usuarios/titulada/consolidado', [UserAdminController::class, 'previewTituladaExcel'])->name('usuarios.titulada.preview');
 	Route::post('/usuarios/titulada/consolidado/process', [UserAdminController::class, 'processTituladaExcel'])->name('usuarios.titulada.process');
 	Route::post('/usuarios/titulada/consolidado/cancel', [UserAdminController::class, 'cancelTituladaExcel'])->name('usuarios.titulada.cancel');
+
+	// Sedes y ambientes
+	Route::get('/sedes', [SedeController::class, 'index'])->name('sede.index');
+	Route::get('/sedes/cargar', [SedeController::class, 'uploadForm'])->name('sede.upload');
+	Route::post('/sedes/preview', [SedeController::class, 'preview'])->name('sede.preview');
+	Route::post('/sedes/process', [SedeController::class, 'process'])->name('sede.process');
+	Route::post('/sedes/registrar-lugar', [SedeController::class, 'storeLugar'])->name('sede.store.lugar');
+
+	// Panel de fichas
+	Route::get('/fichas', [FichaController::class, 'index'])->name('ficha.index');
 
 	// Panel de Usuario
 	Route::get('/usuario/panel', [\App\Http\Controllers\UserPanelController::class, 'index'])->name('user.panel');

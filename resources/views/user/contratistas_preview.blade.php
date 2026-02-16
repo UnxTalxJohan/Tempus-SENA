@@ -21,8 +21,7 @@
                     <p style="margin:0;">
                         <strong>Archivo:</strong> {{ $fileName }}<br>
                         <strong>Filas con datos:</strong> {{ $totalRows }}<br>
-                        <strong>Filas con CC válida:</strong> {{ $validRows }}<br>
-                        <strong>Filas sin CC (se omitirán al procesar):</strong> {{ $skippedNoCc }}
+                        <strong>Filas con CC válida:</strong> {{ $validRows }}
                     </p>
                 </div>
 
@@ -63,7 +62,7 @@
                         <tbody>
                             @forelse($rows as $r)
                                 <tr @if($r['sin_cc']) style="background:#fff5f5;" @endif>
-                                    <td>{{ $r['row'] }}</td>
+                                    <td>{{ $loop->iteration }}</td>
                                     <td>
                                         @if($r['cc'])
                                             <strong>{{ $r['cc'] }}</strong>

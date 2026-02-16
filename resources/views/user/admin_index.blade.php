@@ -284,12 +284,31 @@
                     const roleFilter = document.getElementById('user-role-filter');
                     const rows = Array.from(document.querySelectorAll('tbody tr[data-user-row="1"]'));
 
+                    function normalizeText(text) {
+                        let t = (text || '').toString().toLowerCase();
+                        if (typeof t.normalize === 'function') {
+                            t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                        }
+                        return t;
+                    }
+
                     function applyFilters() {
-                        const term = (input ? input.value : '').toLowerCase().trim();
+                        const rawTerm = (input ? input.value : '').trim();
+                        const term = normalizeText(rawTerm);
                         const roleVal = roleFilter ? roleFilter.value : '';
 
                         rows.forEach(function(row) {
-                            const text = row.innerText.toLowerCase();
+                            const cc = row.getAttribute('data-cc') || '';
+                            const nombre = row.getAttribute('data-nombre') || '';
+                            const correo = row.getAttribute('data-correo') || '';
+                            const coord = row.getAttribute('data-coord') || '';
+                            const extraSpan = row.querySelector('.user-extra-text');
+                            const extra = extraSpan ? extraSpan.innerText : '';
+                            const btn = row.querySelector('.btn-ver-usuario');
+                            const especialidad = btn ? (btn.getAttribute('data-especialidad') || '') : '';
+
+                            const combined = [cc, nombre, correo, coord, especialidad, extra].join(' ');
+                            const text = normalizeText(combined);
                             const rowRole = row.getAttribute('data-rol-id') || '';
                             const matchesText = !term || text.includes(term);
                             const matchesRole = !roleVal || rowRole === roleVal;
@@ -628,6 +647,15 @@
                             }
                         });
                     }
+
+                    // Cerrar el panel de detalle con la tecla ESC
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape' || e.key === 'Esc') {
+                            if (backdrop && backdrop.style.display === 'flex') {
+                                closeModal();
+                            }
+                        }
+                    });
                 })();
             </script>
         </main>
