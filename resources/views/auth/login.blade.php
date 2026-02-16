@@ -51,7 +51,7 @@
     top: 50%;
     width: 65%;
     max-width: 200px;
-    height: 89%;
+    height: 100%;
     background: rgba(25, 143, 58, 0.18);
     border-radius: 22px 0 0 22px;
     z-index: 2;
@@ -80,7 +80,7 @@
     width: 92px;
     max-width: 70%;
     height: auto;
-    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18));
+    filter: brightness(0) invert(1) drop-shadow(0 3px 8px rgba(0,0,0,0.35));
 }
 .login-green-title {
     margin-top: 10px;
@@ -88,7 +88,7 @@
     font-size: 1.08rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #0b7c25;
+    color: #ffffff;
 }
 .login-green-title::before,
 .login-green-title::after {
@@ -96,7 +96,7 @@
     display: block;
     margin: 4px auto 0;
     border-radius: 999px;
-    background: linear-gradient(90deg, rgba(0,168,89,0.08), rgba(0,168,89,0.8), rgba(0,168,89,0.08));
+    background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.9), rgba(255,255,255,0.1));
 }
 .login-green-title::before {
     width: 78%;
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const images = [
         '{{ asset("images/img_fondo/cazuca.png") }}',
         '{{ asset("images/img_fondo/cide.png") }}',
-        '{{ asset("images/img_fondo/ciudad verde.png") }}',
+        '{{ asset("images/img_fondo/SENA Ciudad Verde.png") }}',
         '{{ asset("images/img_fondo/sibate.png") }}'
     ];
     let idx = 0;
