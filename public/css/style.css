@@ -394,13 +394,51 @@ body.auth-page.auth-bg-hex {
     }
 }
 
+/* Loader tipo cronómetro */
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgba(57, 169, 0, 0.2);
-    border-top-color: #39A900;
+    position: relative;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    animation: spin 0.4s linear infinite;
+    border: 4px solid #39A900;
+    background: radial-gradient(circle at center, #e8ffe8 0, #e8ffe8 45%, #ffffff 100%);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+/* Botón superior del cronómetro */
+.spinner::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 10px;
+    border-radius: 8px 8px 4px 4px;
+    background: #39A900;
+    box-shadow: -8px 4px 0 -4px rgba(57, 169, 0, 0.5), 8px 4px 0 -4px rgba(57, 169, 0, 0.5);
+}
+
+/* Manecilla del cronómetro (animada) */
+.spinner::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2px;
+    height: 20px;
+    background: #e53935;
+    border-radius: 999px;
+    transform-origin: bottom center;
+    transform: translate(-50%, -100%) rotate(0deg);
+    animation: stopwatch-hand 0.9s linear infinite;
+    box-shadow: 0 0 0 4px #ffffff;
+}
+
+@keyframes stopwatch-hand {
+    to {
+        transform: translate(-50%, -100%) rotate(360deg);
+    }
 }
 
 .loader-text {
