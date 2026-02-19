@@ -57,6 +57,11 @@ Route::middleware('app.auth')->group(function () {
 
 	// Panel de fichas
 	Route::get('/fichas', [FichaController::class, 'index'])->name('ficha.index');
+	Route::get('/fichas/crear', [FichaController::class, 'create'])->name('ficha.create');
+	Route::post('/fichas', [FichaController::class, 'store'])->name('ficha.store');
+	Route::delete('/fichas/{id_fich}', [FichaController::class, 'destroy'])->name('ficha.destroy');
+	Route::get('/fichas/{id_fich}/horario', [FichaController::class, 'editSchedule'])->name('ficha.horario.edit');
+	Route::post('/fichas/{id_fich}/horario', [FichaController::class, 'updateSchedule'])->name('ficha.horario.update');
 
 	// Panel de Usuario
 	Route::get('/usuario/panel', [\App\Http\Controllers\UserPanelController::class, 'index'])->name('user.panel');
