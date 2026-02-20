@@ -66,8 +66,8 @@
             </div>
             @endif
 
-            <div class="table-container">
-                <table>
+            <div class="table-container user-table-container">
+                <table class="user-table">
                     <thead>
                         <tr>
                             <th style="width:60px; text-align:center;">#</th>

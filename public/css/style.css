@@ -1277,6 +1277,10 @@ table th {
     font-weight: 600;
     position: sticky;
     top: 0;
+    /* Mantener el fondo verde cuando el encabezado queda fijo */
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
+    color: #ffffff;
+    z-index: 1;
 }
 
 table tbody tr {
@@ -1291,6 +1295,19 @@ table tbody tr:hover {
 table td {
     padding: 15px;
     vertical-align: top;
+}
+
+/* Tabla de gestión de usuarios: encabezado fijo con verde sólido */
+.user-table-container table thead {
+    background: #329601;
+}
+
+.user-table-container table th {
+    position: sticky;
+    top: 0;
+    background: #329601;
+    color: #ffffff;
+    z-index: 2;
 }
 
 /* ============================================

@@ -75,7 +75,7 @@
                     </div>
                 </div>
 
-                <div class="actions">
+                <div class="actions matriz-actions">
                     <div style="display:flex; flex-direction:column; gap:6px; flex:1 1 auto;">
                         <div class="stats">
                             <div class="stat-badge">
@@ -103,7 +103,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
+                    <div class="matriz-actions-buttons">
                         <button id="guardarCambiosBtn" class="btn">
                             <i class="bi bi-save" aria-hidden="true"></i>
                             Guardar cambios
