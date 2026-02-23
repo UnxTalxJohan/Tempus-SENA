@@ -534,7 +534,8 @@ body.auth-page.auth-bg-hex {
     left: 0;
     right: 0;
     background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    /* Sombra más marcada para separar mejor el header del contenido/desplegables */
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
     z-index: 1000;
     height: 70px;
     overflow: visible; /* permitir que el dropdown se muestre fuera del header */
@@ -543,7 +544,8 @@ body.auth-page.auth-bg-hex {
 /* Estado invertido (después de iniciar sesión): header claro y textos oscuros */
 .global-header.inverted {
     background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    /* Mantener la misma lógica de separación visual en el header claro */
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16);
     border-bottom: 1px solid #e6e6e6;
 }
 .global-header.inverted .logo-section img { filter: none; }
@@ -585,18 +587,119 @@ body.auth-page.auth-bg-hex {
 }
 /* User section additions */
 .user-menu{ position:relative; }
-.user-avatar{ background:transparent; border:none; cursor:pointer; padding:6px; border-radius:999px; color:#1f2937; }
+/* Botón de avatar circular, alineado a la campana */
+.user-avatar{
+    position:relative;
+    background:transparent;
+    border:2px solid transparent; /* sin contorno gris por defecto */
+    border-radius:50%;
+    cursor:pointer;
+    width:38px;
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    color:#1f2937;
+}
 .user-avatar:hover{ background:rgba(0,0,0,.06); }
 .user-menu{ position:relative; z-index:2500; }
-.user-dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:220px; z-index:2600; padding:6px; }
-.user-dropdown .dropdown-item:hover{ background:#f4f4f5; }
+/* Estado seleccionado igual que la campana: verde con icono/texto blanco */
+.user-avatar[aria-expanded="true"]{
+    background:#00853F;
+    border-color:#00853F;
+    color:#ffffff;
+}
+.user-avatar[aria-expanded="true"] i{
+    color:#ffffff;
+}
+.user-avatar i{
+    display:block;
+    line-height:1;
+    transform: translateY(1px);
+    transform-origin: top center;
+}
+/* right:-12px compensa casi todo el padding del header y deja solo un margen pequeño */
+.user-dropdown{ position:absolute; right:-12px; top:calc(100% + 20px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:260px; z-index:2600; padding:6px; }
+/* Opciones del menú de usuario: estilo y sombreado al pasar el mouse */
+.user-dropdown .dropdown-item{
+    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border-radius:8px;
+    color:#111827;
+    text-decoration:none;
+    background:transparent; /* sin gris por defecto, solo en hover */
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.user-dropdown .dropdown-item i{
+    flex-shrink:0;
+}
+.user-dropdown .dropdown-item:hover{
+    background:rgba(0,0,0,0.06);
+}
+/* Hover especial en rojo solo para la opción de cerrar sesión (va dentro de un form) */
+.user-dropdown form .dropdown-item:hover{
+    background:#dc2626; /* rojo intenso para el cuadro */
+    color:#ffffff;      /* texto blanco sobre rojo */
+}
+.user-dropdown form .dropdown-item:hover i{
+    color:#ffffff;
+}
 /* === Notificaciones (campana + dropdown) === */
 .notif-menu{ position:relative; z-index:2500; }
-.notif-bell{ position:relative; background:transparent; border:2px solid rgba(0,0,0,0.15); border-radius:8px; cursor:pointer; padding:6px; color:#1f2937; }
+/* Botón de campana perfectamente circular */
+.notif-bell{
+    position:relative;
+    background:transparent;
+    border:2px solid rgba(0,0,0,0.15);
+    border-radius:50%;
+    cursor:pointer;
+    width:38px;
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    color:#1f2937;
+}
+.notif-bell i{
+    display:block;
+    line-height:1;
+    transform: translateY(1px); /* pequeño ajuste óptico vertical */
+    transform-origin: top center;
+}
 .notif-bell:hover{ background:rgba(0,0,0,.06); }
+/* Clase .tap se añade por JS al hacer clic para que
+   la animación continúe incluso después de abrir el dropdown */
+.notif-bell.tap i{
+    animation: notif-bell-tap 1s ease-out;
+}
+
+@keyframes notif-bell-tap {
+    0%   { transform: translateY(1px) rotate(0deg); }
+    15%  { transform: translateY(1px) rotate(16deg); }
+    30%  { transform: translateY(1px) rotate(-16deg); }
+    45%  { transform: translateY(1px) rotate(12deg); }
+    60%  { transform: translateY(1px) rotate(-12deg); }
+    75%  { transform: translateY(1px) rotate(6deg); }
+    90%  { transform: translateY(1px) rotate(-4deg); }
+    100% { transform: translateY(1px) rotate(0deg); }
+}
 .global-header.inverted .notif-bell{ border-color:#e0e0e0; }
+.notif-bell[aria-expanded="true"]{
+    background: #00853F; /* verde cuando está activa */
+    border-color: #00853F;
+    color: #ffffff;
+}
+.notif-bell[aria-expanded="true"] i{
+    color: #ffffff;
+}
 .notif-dot{ position:absolute; top:-4px; right:-4px; width:12px; height:12px; background:#39A900; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.08); }
-.notif-dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:360px; z-index:2600; padding:12px; }
+/* Igual desplazamiento que el menú de usuario para mantener alineación */
+.notif-dropdown{ position:absolute; right:-12px; top:calc(100% + 20px); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:360px; z-index:2600; padding:12px; }
 .notif-header{ font-weight:700; color:#1f2937; padding:6px 8px 8px 8px; }
 .notif-empty{ padding:10px; color:#6b7280; }
 .notif-list{ list-style:none; padding:0; margin:0; max-height:340px; overflow:auto; }

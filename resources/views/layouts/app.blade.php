@@ -109,7 +109,8 @@
                         </button>
                         <style>
                             .notif-dropdown { background:#fff; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.12); padding:8px; }
-                            .notif-bell{ background:transparent; border:none; box-shadow:none; padding:6px; border-radius:50%; position:relative; outline:none; }
+                            /* Sin padding y usando flex para centrar el ícono dentro del botón redondo global */
+                            .notif-bell{ background:transparent; border:none; box-shadow:none; padding:0; border-radius:50%; position:relative; outline:none; display:inline-flex; align-items:center; justify-content:center; }
                             .notif-bell:focus, .notif-bell:focus-visible{ outline:none; box-shadow:none; }
                             .notif-dot{ position:absolute; top:2px; right:2px; width:8px; height:8px; background:#2ecc71; border-radius:50%; box-shadow:0 0 0 2px #fff; }
                             .notif-header{ font-weight:700; padding:8px 12px; border-bottom:1px solid #f1f1f1; display:flex; align-items:center; justify-content:space-between; gap:8px; }
@@ -638,6 +639,11 @@
                                             dd.style.display = open ? 'none' : 'block';
                                             btn.setAttribute('aria-expanded', open ? 'false' : 'true');
                                             if (!open) fetchNotificaciones();
+                                            // Disparar animación de campana que continúa aunque el dropdown esté abierto
+                                            btn.classList.remove('tap');
+                                            void btn.offsetWidth; // reflow para reiniciar animación
+                                            btn.classList.add('tap');
+                                            setTimeout(() => btn.classList.remove('tap'), 1000);
                                         });
                                     }
                                     const markAllBtn = document.getElementById('notifMarkAll');
@@ -670,12 +676,7 @@
                             </script>
                     <div class="user-menu" id="userMenu">
                         <button class="user-avatar" id="userMenuBtn" aria-haspopup="true" aria-expanded="false" title="Cuenta">
-                            @php($avatar = $appAuth['avatar'] ?? null)
-                            @if($avatar)
-                                <img src="{{ asset('storage/'.$avatar) }}" alt="Avatar" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:2px solid #00A859;">
-                            @else
-                                <i class="bi bi-person-circle" aria-hidden="true" style="font-size:26px;"></i>
-                            @endif
+                            <i class="bi bi-person-circle" aria-hidden="true" style="font-size:22px;"></i>
                         </button>
                         <div class="user-dropdown" id="userDropdown" style="display:none;">
                             <div class="user-info" style="padding:6px 10px 8px 10px;">
@@ -685,13 +686,13 @@
                                 @endif
                             </div>
                             <div style="height:1px; background:#eee; margin:6px 0;"></div>
-                            <a href="{{ route('user.panel') }}" class="dropdown-item" style="display:block; width:100%; text-align:left; background:none; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; text-decoration:none;">
+                            <a href="{{ route('user.panel') }}" class="dropdown-item" style="display:block; width:100%; text-align:left; border:none; cursor:pointer;">
                                 <i class="bi bi-person-badge" aria-hidden="true" style="margin-right:8px;"></i>
                                 Ingresar al panel de Usuario
                             </a>
                             <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                                 @csrf
-                                <button type="submit" class="dropdown-item" style="width:100%; text-align:left; background:none; border:none; padding:8px 10px; border-radius:8px; cursor:pointer;">
+                                <button type="submit" class="dropdown-item" style="width:100%; text-align:left; border:none; cursor:pointer;">
                                     <i class="bi bi-box-arrow-right" aria-hidden="true" style="margin-right:8px;"></i>
                                     Cerrar sesión
                                 </button>
@@ -1299,6 +1300,11 @@
                 const open = dd.style.display === 'block';
                 dd.style.display = open ? 'none' : 'block';
                 btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+                // Disparar animación de campana también en el modo fallback
+                btn.classList.remove('tap');
+                void btn.offsetWidth;
+                btn.classList.add('tap');
+                setTimeout(() => btn.classList.remove('tap'), 1000);
             });
             document.addEventListener('click', (e) => {
                 if (!dd.contains(e.target) && !btn.contains(e.target)) {
