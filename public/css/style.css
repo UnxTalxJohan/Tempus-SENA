@@ -225,6 +225,18 @@ body.auth-page.auth-bg-hex {
     z-index: 0;
 }
 
+/* Ajuste fino: desplazar el carrusel hacia la izquierda solo en login */
+body.login-page .bgc-layer {
+    background-position: calc(50% - 220px) center;
+}
+
+@media (max-width: 1024px) {
+    /* En pantallas pequeñas, mantener centrado */
+    body.login-page .bgc-layer {
+        background-position: center;
+    }
+}
+
 /* Banda diagonal centrada: imagen blanca siguiendo la separación */
 .bgc-slit {
     position: absolute;
@@ -1021,7 +1033,11 @@ body.auth-page.auth-bg-hex {
 }
 .footer-left { display: flex; align-items: center; gap: 10px; }
 .footer-left img { height: 22px; width: auto; filter: brightness(0) invert(1); }
-.footer-brand { font-weight: 700; letter-spacing: .3px; }
+.footer-brand {
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: #ffffff; /* texto blanco sobre la barra verde del footer */
+}
 .footer-right { font-size: 12px; opacity: .95; }
 
 /* Estado invertido (después de iniciar sesión): footer blanco y texto verde */
@@ -1044,6 +1060,14 @@ body.login-page .footer-sep {
     background: transparent;
 }
 
+/* En el login, solo ajustar el color de la fuente (sin fondo) */
+body.login-page .footer-brand {
+    background: transparent;
+    color: #098d49; /* verde oscuro que se ve bien sobre blanco y verde claro */
+    font-size: 18px;
+    font-weight: 700; /* negrilla más marcada en el login */
+}
+
 /* En login, el footer no debe separarse del contenido con margen extra */
 body.login-page .global-footer {
     margin-top: 0 !important;
@@ -1060,17 +1084,22 @@ body.login-page .global-header .nav-link {
     color: #ffffff;
 }
 
+/* En la página de login, subir un poco el bloque logo SENA + CIDE */
+body.login-page .logo-section {
+    transform: translateY(-10px);
+}
+
 /* (Se removió la textura en header/footer según preferencia) */
 
 .logo-section img {
-    height: 36px;
+    height: 32px;
     width: auto;
     /* En header verde, mostramos el logo en blanco para mejor contraste */
     filter: brightness(0) invert(1);
 }
 
 .logo-text {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: #ffffff;
 }
@@ -3329,7 +3358,7 @@ input[type="file"] {
     position: fixed; /* sobreescrito a absolute dentro de .auth-left */
     left: 32px;
     top: 28px;
-    color: #00853F; /* verde SENA con buena legibilidad */
+    color: #a3f0bb; /* verde claro para resaltar sobre el fondo oscuro */
     /* Fuente moderna para el watermark */
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 700; /* peso limpio para contorno fino */
@@ -3338,13 +3367,8 @@ input[type="file"] {
     /* Contorno externo real sin artefactos internos: drop-shadow */
     -webkit-text-stroke: 0 transparent; /* sin stroke interno */
     text-shadow: none; /* evitar líneas internas */
-    filter:
-        drop-shadow(0 0 1px #ffffff)
-        drop-shadow(1px 0 0 #ffffff)
-        drop-shadow(-1px 0 0 #ffffff)
-        drop-shadow(0 1px 0 #ffffff)
-        drop-shadow(0 -1px 0 #ffffff);
-    opacity: 0.98;
+    filter: none; /* sin contorno blanco para un look más limpio */
+    opacity: 1;
     pointer-events: none;
     user-select: none;
     mix-blend-mode: normal;
@@ -3367,7 +3391,7 @@ input[type="file"] {
     width: 2px;
     height: 1em;
     margin-left: 3px;
-    background: #00853F; /* caret verde */
+    background: #a3f0bb; /* caret verde claro a juego con el texto */
     vertical-align: -0.15em;
     animation: wmBlink 1s steps(1, end) infinite;
 }

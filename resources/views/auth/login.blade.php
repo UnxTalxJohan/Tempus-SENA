@@ -73,10 +73,10 @@
         </svg>
     </div>
 
-    <!-- Footer solo de concepto para esta vista -->
+    <!-- Footer solo de concepto para esta vista (sin texto visible) -->
     <footer class="login-footer">
         <div class="login-footer-inner">
-            <span>© TEMPUS · SENA</span>
+            <span class="login-footer-brand" aria-hidden="true"></span>
         </div>
     </footer>
 
@@ -112,8 +112,8 @@ html, body {
 .login-footer-inner {
     display: flex;
     align-items: center;
-    justify-content: flex-end; /* empuja el nav a la esquina superior derecha */
-    max-width: 1120px;
+    justify-content: flex-end; /* empuja el nav hacia la derecha */
+    max-width: 100%; /* usar todo el ancho disponible para llegar más al borde */
     margin: 0 auto;
 }
 
@@ -219,9 +219,10 @@ html, body {
 }
 .login-leaf-graphic {
     position: absolute;
-    left: -150%;
+    left: -215%;
     top: 40%;
-    transform: translate(-50%, -30%);
+    /* 20px extra hacia la izquierda respecto a la posición original */
+    transform: translate(calc(-50% - 20px), -30%);
     z-index: 3;
 }
 .login-leaf-img {
