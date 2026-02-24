@@ -73,6 +73,9 @@
         </svg>
     </div>
 
+    <!-- Capa SVG para burbujas blancas del footer solo en login -->
+    <svg id="loginBubblesSvg" class="login-bubbles-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+
     <!-- Footer solo de concepto para esta vista (sin texto visible) -->
     <footer class="login-footer">
         <div class="login-footer-inner">
@@ -154,6 +157,34 @@ html, body {
     width: 100%;
     height: 100%;
     display: block;
+}
+
+/* Animación suave tipo "mar" para la curva blanca */
+.login-wave-svg path {
+    transform-origin: center bottom;
+    transform-box: fill-box; /* que el origen use el propio path */
+    animation: login-wave-sway 10s ease-in-out infinite;
+    /* Brillo suave similar al de las burbujas */
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+}
+
+/* Movimiento tipo ola: se mece de lado a lado, con ligera torsión */
+@keyframes login-wave-sway {
+    0% {
+        transform: translateX(-6px) rotate(0.4deg) scaleY(1);
+    }
+    25% {
+        transform: translateX(0px) rotate(-0.2deg) scaleY(1.02);
+    }
+    50% {
+        transform: translateX(6px) rotate(0.3deg) scaleY(1);
+    }
+    75% {
+        transform: translateX(0px) rotate(-0.3deg) scaleY(1.02);
+    }
+    100% {
+        transform: translateX(-6px) rotate(0.4deg) scaleY(1);
+    }
 }
 
 /* Barra verde animada detrás del formulario */
@@ -486,6 +517,132 @@ document.addEventListener('DOMContentLoaded', () => {
     left.style.backgroundColor = 'transparent';
     left.style.filter = 'none';
     left.style.opacity = '1';
+});
+
+// Burbujas blancas pequeñas saliendo del footer en el login
+document.addEventListener('DOMContentLoaded', () => {
+    const svg = document.getElementById('loginBubblesSvg');
+    if (!svg) return;
+
+    const NS = 'http://www.w3.org/2000/svg';
+    let width = window.innerWidth;
+    const height = 220; // igual a .login-wave-bottom
+
+    function resize() {
+        width = window.innerWidth;
+        svg.setAttribute('width', String(width));
+        svg.setAttribute('height', String(height));
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+
+    function rand(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function spawnParticles(x, y, r) {
+        const count = Math.round(rand(12, 20));
+        for (let i = 0; i < count; i++) {
+            const angle = rand(0, Math.PI * 2);
+            // Un poco más de velocidad para que la animación se vea más rápida
+            const speed = rand(0.7, 1.3);
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+
+            const startX = x + Math.cos(angle) * (r + 1);
+            const startY = y + Math.sin(angle) * (r + 1);
+            // Líneas cortas y claramente proporcionales al tamaño de la burbuja
+            const length = rand(r * 0.25, r * 0.6);
+            const endX = startX + Math.cos(angle) * length;
+            const endY = startY + Math.sin(angle) * length;
+
+            const line = document.createElementNS(NS, 'line');
+            line.classList.add('login-bubble-particle');
+            line.setAttribute('x1', startX);
+            line.setAttribute('y1', startY);
+            line.setAttribute('x2', endX);
+            line.setAttribute('y2', endY);
+            svg.appendChild(line);
+
+            particles.push({
+                el: line,
+                x1: startX,
+                y1: startY,
+                x2: endX,
+                y2: endY,
+                vx,
+                vy,
+                life: 0,
+                // Vida aún más corta para que la explosión sea más rápida
+                maxLife: rand(10, 20)
+            });
+        }
+    }
+
+    function createBubble() {
+        // Burbujas más pequeñas, con algo más de variación de tamaño
+        const r = rand(4, 14);
+        const x = rand(r, width - r);
+        // Más arriba: cerca del borde donde empieza la curva blanca
+        const baseY = height - 80;
+
+        const circle = document.createElementNS(NS, 'circle');
+        circle.classList.add('login-bubble');
+        circle.setAttribute('r', r);
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', baseY);
+        svg.appendChild(circle);
+
+        // Explosión de partículas cerca del final de la animación (1.5s),
+        // en la zona donde la burbuja desaparece visualmente
+        setTimeout(() => {
+            // "60" coincide con el translateY(-60px) del keyframe login-bubble-rise
+            spawnParticles(x, baseY - 60, r);
+        }, 1400);
+
+        // Retirar la burbuja después de completar su animación
+        setTimeout(() => {
+            if (circle.parentNode === svg) svg.removeChild(circle);
+        }, 1700);
+    }
+
+    function tick() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            // Paso moderado: explosión rápida pero en radio contenido
+            p.x1 += p.vx * 0.8;
+            p.y1 += p.vy * 0.8;
+            p.x2 += p.vx * 1.1;
+            p.y2 += p.vy * 1.1;
+            p.life += 1;
+            const t = p.life / p.maxLife;
+            if (t >= 1) {
+                if (p.el.parentNode === svg) {
+                    svg.removeChild(p.el);
+                }
+                particles.splice(i, 1);
+                continue;
+            }
+            p.el.setAttribute('x1', p.x1);
+            p.el.setAttribute('y1', p.y1);
+            p.el.setAttribute('x2', p.x2);
+            p.el.setAttribute('y2', p.y2);
+            p.el.setAttribute('opacity', String(1 - t));
+        }
+        requestAnimationFrame(tick);
+    }
+
+    tick();
+    // Más burbujas: menor intervalo y posibilidad de burbuja doble
+    setInterval(() => {
+        createBubble();
+        if (Math.random() < 0.6) {
+            createBubble();
+        }
+    }, 480);
 });
 </script>
 
