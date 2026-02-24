@@ -501,6 +501,12 @@ class ExcelController extends Controller
         $filaMaxima = $sheet->getHighestRow();
         $competenciasInsertadas = [];
         $competenciaActual = null;
+
+        // buffers para inserciones masivas (batch) en bloques de hasta 1000 filas
+        $batchSize = 1000;
+        $matrsExtBatch = [];
+        $duracionBatch = [];
+
         for ($fila = 4; $fila <= $filaMaxima; $fila++) {
             $nombre_comp = trim($sheet->getCell("E$fila")->getValue());
             $cod_comp = trim($sheet->getCell("F$fila")->getValue());
@@ -564,11 +570,15 @@ class ExcelController extends Controller
                         ->where('id_resu_fk', $resultado->id_resu)
                         ->exists();
                     if (!$existeMx) {
-                        DB::table('matrs_ext')->insert([
+                        $matrsExtBatch[] = [
                             'cod_prog_fk' => $programa->id_prog,
                             'cod_com_fk' => $competenciaActual,
                             'id_resu_fk' => $resultado->id_resu,
-                        ]);
+                        ];
+                        if (count($matrsExtBatch) >= $batchSize) {
+                            DB::table('matrs_ext')->insert($matrsExtBatch);
+                            $matrsExtBatch = [];
+                        }
                     }
                 }
                 if ($usaTablaDuracion) {
@@ -589,9 +599,20 @@ class ExcelController extends Controller
                     if (Schema::hasColumn('duracion', 'id_prog_fk')) {
                         $payload['id_prog_fk'] = $programa->id_prog;
                     }
-                    DB::table('duracion')->insert($payload);
+                    $duracionBatch[] = $payload;
+                    if (count($duracionBatch) >= $batchSize) {
+                        DB::table('duracion')->insert($duracionBatch);
+                        $duracionBatch = [];
+                    }
                 }
             }
+        }
+        // insertar cualquier remanente de los lotes
+        if ($usaMatrsExt && !empty($matrsExtBatch)) {
+            DB::table('matrs_ext')->insert($matrsExtBatch);
+        }
+        if ($usaTablaDuracion && !empty($duracionBatch)) {
+            DB::table('duracion')->insert($duracionBatch);
         }
         DB::commit();
         if (file_exists($fullPath)) unlink($fullPath);
