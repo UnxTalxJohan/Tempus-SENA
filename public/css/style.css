@@ -46,9 +46,28 @@ body::-webkit-scrollbar-thumb:hover,
 #user-detail-modal::-webkit-scrollbar-thumb:hover {
     background: #0fa040;
 }
-/* Fondo blanco solo en la página de login (sin verde) */
+/* Fondo degradado verde en la página de login con efecto borroso */
 body.login-page {
-    background: #ffffff !important;
+    position: relative;
+    background: transparent !important; /* el degradado real va en ::before */
+    overflow: hidden;
+}
+
+body.login-page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1; /* detrás de todo el contenido */
+    background: linear-gradient(
+        to bottom,
+        #012b12 0%,   /* verde muy oscuro */
+        #065623 25%,  /* verde oscuro */
+        #0e8f38 50%,  /* verde medio */
+        #24bf58 75%,  /* verde claro */
+        #a3f0bb 100%  /* verde muy claro */
+    );
+    filter: blur(10px);
+    transform: scale(1.06); /* evita bordes duros del blur en las orillas */
 }
 
 @keyframes login-wave-scroll {
@@ -60,57 +79,15 @@ body.login-page {
     0% { background-position-x: 0; }
     100% { background-position-x: 160px; }
 }
-/* Olas pequeñas decorativas solo en login */
+/* Olas pequeñas decorativas solo en login (desactivadas por diseño actual) */
 body.login-page .global-header::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 32px;
-    background-image: url("../images/login-wave.svg");
-    background-repeat: repeat-x;
-    background-size: 64px 32px;
-    opacity: 1;
-    animation: login-wave-scroll 10s linear infinite;
-    z-index: 0;
-    pointer-events: none;
+    content: none !important;
 }
 
-body.login-page .global-footer .footer-bar::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 32px;
-    background-image: url("../images/login-wave.svg");
-    background-repeat: repeat-x;
-    background-size: 64px 32px;
-    opacity: 1;
-    animation: login-wave-scroll-reverse 10s linear infinite;
-    transform: scaleY(-1);
-    transform-origin: top center;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* Neblina adicional en la parte baja del footer (mismo sentido que el header) */
+body.login-page .global-footer .footer-bar::before,
 body.login-page .global-footer .footer-bar::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 32px;
-    background-image: url("../images/login-wave.svg");
-    background-repeat: repeat-x;
-    background-size: 64px 32px;
-    background-position: center bottom;
-    opacity: 1;
-    animation: login-wave-scroll 10s linear infinite;
-    z-index: 0;
-    pointer-events: none;
+    /* Sin neblina ni olas animadas en el login */
+    content: none !important;
 }
 
 /* Asegurar que el patrón wayuu quede dentro del header/footer
@@ -125,7 +102,7 @@ body.login-page .header-container {
 }
 
 body.login-page .global-footer .footer-bar {
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     z-index: 1;
 }
@@ -1057,18 +1034,44 @@ body.auth-page.auth-bg-hex {
 .global-footer.inverted .footer-brand { color: #00853F; }
 .global-footer.inverted .footer-right { color: #00853F; opacity: 1; }
 
+/* ---- LOGIN: footer transparente sobre el fondo del login ---- */
+body.login-page .footer-bar {
+    background: transparent !important;
+    color: #ffffff;
+    border-top: none;
+}
+body.login-page .footer-sep {
+    background: transparent;
+}
+
+/* En login, el footer no debe separarse del contenido con margen extra */
+body.login-page .global-footer {
+    margin-top: 0 !important;
+}
+
+/* ---- LOGIN: header transparente sobre el fondo del login ---- */
+body.login-page .global-header {
+    background: transparent !important;
+    box-shadow: none;
+    border-bottom: none;
+}
+body.login-page .global-header .logo-text,
+body.login-page .global-header .nav-link {
+    color: #ffffff;
+}
+
 /* (Se removió la textura en header/footer según preferencia) */
 
 .logo-section img {
-    height: 50px;
+    height: 36px;
     width: auto;
     /* En header verde, mostramos el logo en blanco para mejor contraste */
     filter: brightness(0) invert(1);
 }
 
 .logo-text {
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
     color: #ffffff;
 }
 
