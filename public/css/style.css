@@ -292,6 +292,296 @@ body.auth-page.auth-bg-hex {
 }
 
 /* ============================================
+   PANEL DE USUARIO (perfil tipo tarjeta)
+   ============================================ */
+.user-panel-page {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 32px;
+}
+
+.user-panel-container {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.user-card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 45px rgba(15, 118, 110, 0.18);
+    overflow: hidden;
+    padding: 64px 24px 22px;
+}
+
+.user-card-header-bg {
+    position: absolute;
+    inset: 0;
+    height: 150px;
+    background: linear-gradient(135deg, #22c55e, #059669);
+    overflow: hidden;
+}
+
+.user-card-header-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+        background-image:
+            url("https://www.svgrepo.com/show/353320/tools.svg"),
+            url("https://www.svgrepo.com/show/352972/archive.svg"),
+            url("https://www.svgrepo.com/show/447483/shield.svg"),
+            url("https://www.svgrepo.com/show/479234/gear-10.svg");
+        background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+        background-size: 170px 170px, 140px 140px, 150px 150px, 190px 190px;
+        background-position: 3% 43%, 32% 30%, 65% 26%, 95% 22%;
+    opacity: 0.20;
+    pointer-events: none;
+}
+
+.user-card-header-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.0) 22%,
+        rgba(255, 255, 255, 0.0) 78%,
+        rgba(255, 255, 255, 0.12) 100%
+    );
+    pointer-events: none;
+}
+
+.user-card-avatar-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.user-card-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    border: 4px solid #ffffff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.20);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-top: 52px;
+}
+
+.user-card-avatar-empty {
+    background: #e5f3eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #16a34a;
+}
+
+.user-card-avatar-empty i {
+    font-size: 106px;
+    line-height: 0;
+    display: block;
+    transform: translateX(0.5px);
+}
+
+.user-card-avatar-btn {
+    position: absolute;
+    right: calc(50% - 55px);
+    bottom: -4px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: none;
+    background: #284734;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(22, 163, 74, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.user-card-avatar-btn:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(22, 163, 74, 0.45);
+}
+
+.user-card-avatar-btn i {
+    font-size: 18px;
+}
+
+.user-card-body {
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+    text-align: center;
+}
+
+.user-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.user-card-role {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.user-card-stats {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    margin-top: 16px;
+}
+
+.user-card-stat .label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+}
+
+.user-card-stat .value {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.user-card-links {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.user-card-link {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: none;
+    background: #f1f5f9;
+    color: #0f766e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.user-card-link:hover {
+    background: #0f766e;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.user-card-link i {
+    font-size: 16px;
+}
+
+.user-panel-section {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 20px 22px 18px;
+    box-shadow: 0 14px 35px rgba(15, 118, 110, 0.14);
+}
+
+.user-panel-section + .user-panel-section {
+    margin-top: 2px;
+}
+
+.user-panel-section .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+}
+
+.user-panel-section .section-text {
+    font-size: 13px;
+    color: #4b5563;
+    margin-bottom: 14px;
+}
+
+.user-panel-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 18px;
+}
+
+.user-field .label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin-bottom: 3px;
+}
+
+.user-field .value {
+    display: block;
+    font-size: 13px;
+    color: #111827;
+}
+
+.user-field .muted {
+    color: #9ca3af;
+}
+
+.user-field .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.user-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.user-tags .tag {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+@media (max-width: 768px) {
+    .user-panel-page {
+        padding-top: 16px;
+    }
+    .user-card {
+        padding-inline: 18px;
+    }
+    .user-card-stats {
+        gap: 20px;
+    }
+    .user-panel-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ============================================
    TOASTS GLOBALES
    ============================================ */
 .toast-container {

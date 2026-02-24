@@ -4,7 +4,6 @@
 
 @section('content')
 @php($appAuth = session('app_auth', []))
-@php($avatar = $appAuth['avatar'] ?? null)
 @php($nombre = $appAuth['nombre'] ?? $appAuth['name'] ?? 'Usuario CIDE')
 @php($correo = $appAuth['correo'] ?? $appAuth['email'] ?? null)
 @php($cc = $appAuth['cc'] ?? $appAuth['documento'] ?? null)
@@ -18,153 +17,134 @@
     }
 )
 
-<div class="page-container" style="padding:24px; max-width:1100px; margin:0 auto;">
-    
+<div class="user-panel-page">
+    <div class="user-panel-container">
+        {{-- Tarjeta principal de perfil --}}
+        <section class="user-card">
+            <div class="user-card-header-bg"></div>
 
-    <div style="display:grid; grid-template-columns:minmax(260px, 320px) minmax(0, 1fr); gap:20px; align-items:flex-start; flex-wrap:wrap;">
-        <!-- Columna izquierda: avatar + resumen -->
-        <div class="card" style="background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:18px; text-align:left; cursor:default;">
-            <h2 style="font-size:18px; font-weight:700; margin-bottom:14px; color:#064e3b;">Tu perfil</h2>
+            <div class="user-card-avatar-wrapper">
+                <div class="user-card-avatar user-card-avatar-empty">
+                    <i class="bi bi-person-circle" aria-hidden="true"></i>
+                </div>
+                <button class="user-card-avatar-btn" id="avatarCameraBtn" title="Cambiar avatar" aria-label="Cambiar avatar">
+                    <i class="bi bi-camera" aria-hidden="true"></i>
+                </button>
+            </div>
 
-            <div class="avatar-section" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
-                <div class="avatar-wrapper" style="position:relative; width:180px; height:180px;">
-                    <div class="avatar-circle" style="
-                        width: 180px;
-                        height: 180px;
-                        border-radius: 50%;
-                        background-size: cover;
-                        background-position: center;
-                        background-repeat: no-repeat;
-                        border: 4px solid #00A859;
-                        box-shadow: 0 6px 18px rgba(0,0,0,.12);
-                        background-image: url('{{ $avatar ? asset('storage/'.$avatar) : asset('images/logo-sena.svg') }}');
-                    "></div>
-                    <button class="avatar-camera" id="avatarCameraBtn" title="Cambiar avatar" aria-label="Cambiar avatar" style="
-                        position:absolute;
-                        right:-6px;
-                        bottom:-6px;
-                        background:#00A859;
-                        color:#fff;
-                        border:none;
-                        width:40px;
-                        height:40px;
-                        border-radius:50%;
-                        box-shadow:0 6px 16px rgba(0,168,89,.25);
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        cursor:pointer;
-                    ">
-                        <i class="bi bi-camera" style="font-size:18px;" aria-hidden="true"></i>
+            <div class="user-card-body">
+                <h1 class="user-card-name">{{ $nombre }}</h1>
+                <p class="user-card-role">{{ $rolNombre }} &bull; Usuario CIDE</p>
+
+                <div class="user-card-stats">
+                    <div class="user-card-stat">
+                        <span class="label">Programas</span>
+                        <span class="value">—</span>
+                    </div>
+                    <div class="user-card-stat">
+                        <span class="label">Fichas</span>
+                        <span class="value">—</span>
+                    </div>
+                    <div class="user-card-stat">
+                        <span class="label">Matriz</span>
+                        <span class="value">—</span>
+                    </div>
+                </div>
+
+                <div class="user-card-links">
+                    @if($correo)
+                        <a href="mailto:{{ $correo }}" class="user-card-link" aria-label="Correo institucional">
+                            <i class="bi bi-envelope-fill" aria-hidden="true"></i>
+                        </a>
+                    @endif
+                    <button type="button" class="user-card-link" title="Próximamente">
+                        <i class="bi bi-person-badge-fill" aria-hidden="true"></i>
                     </button>
                 </div>
-
-                <div style="text-align:center;">
-                    <div style="font-size:18px; font-weight:700; color:#111827;">{{ $nombre }}</div>
-                    @if($correo)
-                        <div style="font-size:13px; color:#6b7280; margin-top:4px;">{{ $correo }}</div>
-                    @endif
-                    @if($cc)
-                        <div style="font-size:12px; color:#6b7280; margin-top:2px;">Documento: <strong>{{ number_format($cc, 0, ',', '.') }}</strong></div>
-                    @endif
-                </div>
-
-                <form id="avatarForm" method="POST" action="{{ route('user.avatar.upload') }}" enctype="multipart/form-data" style="display:none;">
-                    @csrf
-                    <input type="file" name="avatar" id="avatarInput" accept="image/*">
-                </form>
-
-                <div style="font-size:12px; color:#6b7280; text-align:left; width:100%; background:#f9fafb; border-radius:10px; padding:10px 12px; border:1px dashed #d1d5db;">
-                    <div style="font-weight:600; margin-bottom:4px;">Consejos para tu foto</div>
-                    <ul style="margin:0; padding-left:18px; line-height:1.4;">
-                        <li>Formatos permitidos: JPG, PNG, WEBP (máx. 2&nbsp;MB).</li>
-                        <li>Usa una foto clara y centrada.</li>
-                    </ul>
-                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Columna derecha: datos personales y de cuenta -->
-        <div style="display:flex; flex-direction:column; gap:16px;">
-            <div class="card" style="background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:18px; text-align:left; cursor:default;">
-                <h2 style="font-size:16px; font-weight:700; margin-bottom:12px; color:#064e3b;">Datos personales</h2>
-                <div style="display:grid; grid-template-columns:minmax(120px, 180px) minmax(0, 1fr); row-gap:8px; column-gap:18px; font-size:13px;">
-                    <div style="font-weight:600; color:#6b7280;">Nombre completo</div>
-                    <div style="font-weight:600; color:#111827;">{{ $nombre }}</div>
+        {{-- Sobre mí --}}
+        <section class="user-panel-section">
+            <h2 class="section-title">Sobre mí</h2>
+            <p class="section-text">
+                Este panel resume tu información básica dentro del Sistema de Gestión CIDE.
+                Próximamente podrás actualizar más datos de tu perfil y ver tu historial
+                de actividades, cargas de matrices y participación en fichas de formación.
+            </p>
 
-                    <div style="font-weight:600; color:#6b7280;">Documento</div>
-                    <div>
+            <div class="user-panel-grid">
+                <div class="user-field">
+                    <span class="label">Nombre completo</span>
+                    <span class="value">{{ $nombre }}</span>
+                </div>
+                <div class="user-field">
+                    <span class="label">Documento</span>
+                    <span class="value">
                         @if($cc)
-                            <span style="font-weight:600;">{{ number_format($cc, 0, ',', '.') }}</span>
+                            {{ number_format($cc, 0, ',', '.') }}
                         @else
-                            <span style="opacity:.7;">Sin documento registrado</span>
+                            <span class="muted">Sin documento registrado</span>
                         @endif
-                    </div>
-
-                    <div style="font-weight:600; color:#6b7280;">Correo electrónico</div>
-                    <div>
+                    </span>
+                </div>
+                <div class="user-field">
+                    <span class="label">Correo electrónico</span>
+                    <span class="value">
                         @if($correo)
-                            <span>{{ $correo }}</span>
+                            {{ $correo }}
                         @else
-                            <span style="opacity:.7;">Sin correo registrado</span>
+                            <span class="muted">Sin correo registrado</span>
                         @endif
-                    </div>
-
-                    <div style="font-weight:600; color:#6b7280;">Rol</div>
-                    <div>
-                        <span style="display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700; background:#e6fffa; color:#0b7c25;">
-                            {{ $rolNombre }}
-                        </span>
-                    </div>
+                    </span>
+                </div>
+                <div class="user-field">
+                    <span class="label">Rol en el sistema</span>
+                    <span class="value">
+                        <span class="pill">{{ $rolNombre }}</span>
+                    </span>
                 </div>
             </div>
+        </section>
 
-            <div class="card" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; padding:18px; text-align:left; cursor:default;">
-                <h2 style="font-size:16px; font-weight:700; margin-bottom:10px; color:#064e3b;">Información de cuenta</h2>
-                <p style="font-size:13px; color:#4b5563; margin:0 0 10px;">Estos datos se utilizan para el acceso al sistema y la trazabilidad de tus acciones dentro del CIDE.</p>
-                <div style="display:grid; grid-template-columns:minmax(120px, 190px) minmax(0, 1fr); row-gap:8px; column-gap:18px; font-size:13px;">
-                    <div style="font-weight:600; color:#6b7280;">Identificador interno</div>
-                    <div>
-                        @if(!empty($appAuth['usuario_id']))
-                            <span>#{{ $appAuth['usuario_id'] }}</span>
-                        @else
-                            <span style="opacity:.7;">No disponible</span>
-                        @endif
-                    </div>
+        {{-- "Habilidades" adaptado a contexto CIDE --}}
+        <section class="user-panel-section">
+            <h2 class="section-title">Áreas y accesos</h2>
+            <p class="section-text">Funciones a las que tienes acceso dentro del CIDE.</p>
 
-                    <div style="font-weight:600; color:#6b7280;">Sesión actual</div>
-                    <div style="opacity:.8;">Iniciaste sesión como <strong>{{ $rolNombre }}</strong>.
-                        @if($correo)
-                            <span> Correo de acceso: {{ $correo }}.</span>
-                        @endif
-                    </div>
-
-                    <div style="font-weight:600; color:#6b7280;">Último acceso</div>
-                    <div>
-                        @if(!empty($appAuth['last_login_at']))
-                            <span>{{ $appAuth['last_login_at'] }}</span>
-                        @else
-                            <span style="opacity:.7;">Próximamente podrás ver el historial de accesos.</span>
-                        @endif
-                    </div>
-                </div>
+            <div class="user-tags">
+                <span class="tag">Dashboard</span>
+                <span class="tag">Matriz de programas</span>
+                <span class="tag">Fichas de formación</span>
+                <span class="tag">Sedes y ambientes</span>
+                @if($rolNombre === 'Administrador')
+                    <span class="tag">Gestión de usuarios</span>
+                    <span class="tag">Cargas masivas</span>
+                @endif
             </div>
-        </div>
+        </section>
     </div>
+
+    <form id="avatarForm" method="POST" action="{{ route('user.avatar.upload') }}" enctype="multipart/form-data" style="display:none;">
+        @csrf
+        <input type="file" name="avatar" id="avatarInput" accept="image/*">
+    </form>
 </div>
 
 @section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function () {
     const cameraBtn = document.getElementById('avatarCameraBtn');
     const input = document.getElementById('avatarInput');
     const form = document.getElementById('avatarForm');
     if (!cameraBtn || !input || !form) return;
-    cameraBtn.addEventListener('click', function(e){
+
+    cameraBtn.addEventListener('click', function (e) {
         e.preventDefault();
         input.click();
     });
-    input.addEventListener('change', function(){
+
+    input.addEventListener('change', function () {
         if (this.files && this.files.length > 0) {
             form.submit();
         }
