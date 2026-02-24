@@ -529,53 +529,125 @@ class UserAdminController extends Controller
 
         // Para validar unicidad por CC dentro del mismo archivo
         $seenCc = [];
+        $rowsData = [];
+        $ccList = [];
+
+        // Primera pasada: leer y normalizar filas, sin acceder a la BD
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $contrato   = trim((string) $sheet->getCell('B' . $row)->getValue());
+            $nombre     = trim((string) $sheet->getCell('C' . $row)->getValue());
+            $ccRaw      = $sheet->getCell('D' . $row)->getValue();
+            $correo     = trim((string) $sheet->getCell('E' . $row)->getValue());
+            $nivelForm  = trim((string) $sheet->getCell('F' . $row)->getValue());
+            $pregrado   = trim((string) $sheet->getCell('G' . $row)->getValue());
+            $postgrado  = trim((string) $sheet->getCell('H' . $row)->getValue());
+            $coord      = trim((string) $sheet->getCell('I' . $row)->getValue());
+            $modalidad  = trim((string) $sheet->getCell('J' . $row)->getValue());
+            $especial   = trim((string) $sheet->getCell('K' . $row)->getValue());
+            $fecIniRaw  = $sheet->getCell('L' . $row)->getValue();
+            $fecFinRaw  = $sheet->getCell('M' . $row)->getValue();
+
+            $allEmpty = ($contrato === '' && $nombre === '' && ($ccRaw === null || $ccRaw === '') && $correo === ''
+                && $nivelForm === '' && $pregrado === '' && $postgrado === '' && $coord === ''
+                && $modalidad === '' && $especial === '' && ($fecIniRaw === null || $fecIniRaw === '') && ($fecFinRaw === null || $fecFinRaw === ''));
+            if ($allEmpty) {
+                continue;
+            }
+
+            if ($ccRaw === null || $ccRaw === '') {
+                $errores[] = "Fila $row: sin número de documento (cc); se omitió.";
+                continue;
+            }
+            $cc = (string) $ccRaw;
+
+            // Validar que dentro del archivo no haya CC repetidas
+            if (isset($seenCc[$cc])) {
+                $errores[] = "Fila $row: número de documento $cc duplicado en el archivo; se omitió.";
+                continue;
+            }
+            $seenCc[$cc] = true;
+
+            $fecIni = $this->parseExcelDate($fecIniRaw);
+            $fecFin = $this->parseExcelDate($fecFinRaw);
+
+            $rowsData[] = [
+                'row'        => $row,
+                'cc'         => $cc,
+                'contrato'   => $contrato,
+                'nombre'     => $nombre,
+                'correo'     => $correo,
+                'nivelForm'  => $nivelForm,
+                'pregrado'   => $pregrado,
+                'postgrado'  => $postgrado,
+                'coord'      => $coord,
+                'modalidad'  => $modalidad,
+                'especial'   => $especial,
+                'fecIni'     => $fecIni,
+                'fecFin'     => $fecFin,
+            ];
+
+            $ccList[] = $cc;
+        }
+
+        if (empty($rowsData)) {
+            return [
+                'mensaje' => 'El archivo no contiene filas válidas para procesar.',
+                'errores' => $errores,
+            ];
+        }
+
+        // Cargar de una sola vez los usuarios y sus vinculaciones existentes
+        $usuariosByCc = [];
+        $vincById = [];
+
+        if (!empty($ccList)) {
+            $usuarios = DB::table('usuario')
+                ->whereIn('cc', array_unique($ccList))
+                ->get();
+
+            foreach ($usuarios as $u) {
+                $usuariosByCc[$u->cc] = $u;
+            }
+
+            $vincIds = [];
+            foreach ($usuarios as $u) {
+                if (!empty($u->id_vinculacion_fk)) {
+                    $vincIds[] = (int) $u->id_vinculacion_fk;
+                }
+            }
+            if (!empty($vincIds)) {
+                $vinculaciones = DB::table('vinculacion')
+                    ->whereIn('id_vinculacion', array_unique($vincIds))
+                    ->get();
+                foreach ($vinculaciones as $v) {
+                    $vincById[$v->id_vinculacion] = $v;
+                }
+            }
+        }
 
         DB::beginTransaction();
         try {
-            for ($row = 2; $row <= $highestRow; $row++) {
-                $contrato   = trim((string) $sheet->getCell('B' . $row)->getValue());
-                $nombre     = trim((string) $sheet->getCell('C' . $row)->getValue());
-                $ccRaw      = $sheet->getCell('D' . $row)->getValue();
-                $correo     = trim((string) $sheet->getCell('E' . $row)->getValue());
-                $nivelForm  = trim((string) $sheet->getCell('F' . $row)->getValue());
-                $pregrado   = trim((string) $sheet->getCell('G' . $row)->getValue());
-                $postgrado  = trim((string) $sheet->getCell('H' . $row)->getValue());
-                $coord      = trim((string) $sheet->getCell('I' . $row)->getValue());
-                $modalidad  = trim((string) $sheet->getCell('J' . $row)->getValue());
-                $especial   = trim((string) $sheet->getCell('K' . $row)->getValue());
-                $fecIniRaw  = $sheet->getCell('L' . $row)->getValue();
-                $fecFinRaw  = $sheet->getCell('M' . $row)->getValue();
+            foreach ($rowsData as $rowData) {
+                $cc        = $rowData['cc'];
+                $contrato  = $rowData['contrato'];
+                $nombre    = $rowData['nombre'];
+                $correo    = $rowData['correo'];
+                $nivelForm = $rowData['nivelForm'];
+                $pregrado  = $rowData['pregrado'];
+                $postgrado = $rowData['postgrado'];
+                $coord     = $rowData['coord'];
+                $modalidad = $rowData['modalidad'];
+                $especial  = $rowData['especial'];
+                $fecIni    = $rowData['fecIni'];
+                $fecFin    = $rowData['fecFin'];
 
-                $allEmpty = ($contrato === '' && $nombre === '' && ($ccRaw === null || $ccRaw === '') && $correo === ''
-                    && $nivelForm === '' && $pregrado === '' && $postgrado === '' && $coord === ''
-                    && $modalidad === '' && $especial === '' && ($fecIniRaw === null || $fecIniRaw === '') && ($fecFinRaw === null || $fecFinRaw === ''));
-                if ($allEmpty) {
-                    continue;
-                }
-
-                if ($ccRaw === null || $ccRaw === '') {
-                    $errores[] = "Fila $row: sin número de documento (cc); se omitió.";
-                    continue;
-                }
-                $cc = (string) $ccRaw;
-
-                // Validar que dentro del archivo no haya CC repetidas
-                if (isset($seenCc[$cc])) {
-                    $errores[] = "Fila $row: número de documento $cc duplicado en el archivo; se omitió.";
-                    continue;
-                }
-                $seenCc[$cc] = true;
-
-                $fecIni = $this->parseExcelDate($fecIniRaw);
-                $fecFin = $this->parseExcelDate($fecFinRaw);
-
-                $usuario = DB::table('usuario')->where('cc', $cc)->first();
+                $usuario = $usuariosByCc[$cc] ?? null;
 
                 $idVinc = null;
                 $vincActual = null;
                 if ($usuario && !empty($usuario->id_vinculacion_fk)) {
                     $idVinc = (int) $usuario->id_vinculacion_fk;
-                    $vincActual = DB::table('vinculacion')->where('id_vinculacion', $idVinc)->first();
+                    $vincActual = $vincById[$idVinc] ?? null;
                     $dataV = [
                         'tip_vincul'       => $this->limitStr('Contrato'),
                         'nmr_contrato'     => $this->limitStr($contrato),
@@ -687,49 +759,104 @@ class UserAdminController extends Controller
         $sinCambios = 0;
         $errores = [];
         $seenCc = [];
+        $rowsData = [];
+        $ccList = [];
 
         // Asegurar rol planta (id 3) antes de insertar
         $this->ensureRolExists(3, 'planta');
 
+        // Primera pasada: leer y normalizar filas, sin acceder a la BD
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $nombre   = trim((string) $sheet->getCell('B' . $row)->getValue());
+            $ccRaw    = $sheet->getCell('C' . $row)->getValue();
+            $area     = trim((string) $sheet->getCell('D' . $row)->getValue());
+            $estudios = trim((string) $sheet->getCell('E' . $row)->getValue());
+
+            // Ignorar posibles filas de encabezado que llegan como datos ("Nombre y apellidos" / "CEDULA")
+            $nombreUpper = strtoupper($nombre);
+            $ccText = is_string($ccRaw) ? strtoupper(trim($ccRaw)) : strtoupper(trim((string) $ccRaw));
+            if ($nombreUpper === 'NOMBRE Y APELLIDOS' || $nombreUpper === 'NOMBRE Y APELLIDO' || $ccText === 'CEDULA' || $ccText === 'CÉDULA') {
+                continue;
+            }
+
+            $allEmpty = ($nombre === '' && ($ccRaw === null || $ccRaw === '') && $area === '' && $estudios === '');
+            if ($allEmpty) {
+                continue;
+            }
+
+            $cc = ($ccRaw === null || $ccRaw === '') ? null : (string) $ccRaw;
+
+            if ($cc !== null) {
+                if (isset($seenCc[$cc])) {
+                    $errores[] = "Fila $row: número de documento $cc duplicado en el archivo; se omitió.";
+                    continue;
+                }
+                $seenCc[$cc] = true;
+                $ccList[] = $cc;
+            } else {
+                $errores[] = "Fila $row: sin número de documento (cc); se registrará con CC vacío.";
+            }
+
+            $rowsData[] = [
+                'row'      => $row,
+                'cc'       => $cc,
+                'nombre'   => $nombre,
+                'area'     => $area,
+                'estudios' => $estudios,
+            ];
+        }
+
+        if (empty($rowsData)) {
+            return [
+                'mensaje' => 'El archivo no contiene filas válidas para procesar.',
+                'errores' => $errores,
+            ];
+        }
+
+        // Cargar de una sola vez los usuarios y sus vinculaciones existentes
+        $usuariosByCc = [];
+        $vincById = [];
+
+        if (!empty($ccList)) {
+            $usuarios = DB::table('usuario')
+                ->whereIn('cc', array_unique($ccList))
+                ->get();
+
+            foreach ($usuarios as $u) {
+                $usuariosByCc[$u->cc] = $u;
+            }
+
+            $vincIds = [];
+            foreach ($usuarios as $u) {
+                if (!empty($u->id_vinculacion_fk)) {
+                    $vincIds[] = (int) $u->id_vinculacion_fk;
+                }
+            }
+            if (!empty($vincIds)) {
+                $vinculaciones = DB::table('vinculacion')
+                    ->whereIn('id_vinculacion', array_unique($vincIds))
+                    ->get();
+                foreach ($vinculaciones as $v) {
+                    $vincById[$v->id_vinculacion] = $v;
+                }
+            }
+        }
+
         DB::beginTransaction();
         try {
-            for ($row = 2; $row <= $highestRow; $row++) {
-                $nombre   = trim((string) $sheet->getCell('B' . $row)->getValue());
-                $ccRaw    = $sheet->getCell('C' . $row)->getValue();
-                $area     = trim((string) $sheet->getCell('D' . $row)->getValue());
-                $estudios = trim((string) $sheet->getCell('E' . $row)->getValue());
+            foreach ($rowsData as $rowData) {
+                $cc       = $rowData['cc'];
+                $nombre   = $rowData['nombre'];
+                $area     = $rowData['area'];
+                $estudios = $rowData['estudios'];
 
-                // Ignorar posibles filas de encabezado que llegan como datos ("Nombre y apellidos" / "CEDULA")
-                $nombreUpper = strtoupper($nombre);
-                $ccText = is_string($ccRaw) ? strtoupper(trim($ccRaw)) : strtoupper(trim((string) $ccRaw));
-                if ($nombreUpper === 'NOMBRE Y APELLIDOS' || $nombreUpper === 'NOMBRE Y APELLIDO' || $ccText === 'CEDULA' || $ccText === 'CÉDULA') {
-                    continue;
-                }
-
-                $allEmpty = ($nombre === '' && ($ccRaw === null || $ccRaw === '') && $area === '' && $estudios === '');
-                if ($allEmpty) {
-                    continue;
-                }
-
-                $cc = ($ccRaw === null || $ccRaw === '') ? null : (string) $ccRaw;
-
-                if ($cc !== null) {
-                    if (isset($seenCc[$cc])) {
-                        $errores[] = "Fila $row: número de documento $cc duplicado en el archivo; se omitió.";
-                        continue;
-                    }
-                    $seenCc[$cc] = true;
-                } else {
-                    $errores[] = "Fila $row: sin número de documento (cc); se registrará con CC vacío.";
-                }
-
-                $usuario = $cc !== null ? DB::table('usuario')->where('cc', $cc)->first() : null;
+                $usuario = ($cc !== null) ? ($usuariosByCc[$cc] ?? null) : null;
 
                 $idVinc = null;
                 $vincActual = null;
                 if ($usuario && !empty($usuario->id_vinculacion_fk)) {
                     $idVinc = (int) $usuario->id_vinculacion_fk;
-                    $vincActual = DB::table('vinculacion')->where('id_vinculacion', $idVinc)->first();
+                    $vincActual = $vincById[$idVinc] ?? null;
                     $dataV = [
                         'tip_vincul'      => $this->limitStr('Planta'),
                         'area'            => $this->limitStr($area),
