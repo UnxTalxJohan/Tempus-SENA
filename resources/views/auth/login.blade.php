@@ -24,8 +24,9 @@
                 </div>
             </div>
 
-            <!-- Hoja grande blanca decorativa a la izquierda del login -->
+            <!-- Ícono decorativo a la izquierda del login (carrusel de SVG) -->
             <div class="login-leaf-graphic" aria-hidden="true">
+                <!-- Ícono inicial: hoja; luego el JS va rotando entre todos los SVG (incluido el bombillo) -->
                 <img src="https://www.svgrepo.com/show/195611/leaf.svg" alt="" class="login-leaf-img">
             </div>
             <div class="login-card" id="loginCardRef">
@@ -462,14 +463,17 @@ function togglePassword(){
     }, 250);
 }
 
-// Carrusel simple para el ícono decorativo (hoja / trabajador)
+// Carrusel simple para el ícono decorativo (hoja / trabajador / bombillo)
 document.addEventListener('DOMContentLoaded', () => {
     const leafImg = document.querySelector('.login-leaf-img');
     if (!leafImg) return;
 
     const icons = [
         'https://www.svgrepo.com/show/195611/leaf.svg',
-        'https://www.svgrepo.com/show/115899/industry-worker-with-cap-protection-and-a-laptop.svg'
+        'https://www.svgrepo.com/show/115899/industry-worker-with-cap-protection-and-a-laptop.svg',
+        'https://www.svgrepo.com/show/347782/light-bulb.svg',
+        'https://www.svgrepo.com/show/479989/building-2.svg',
+        'https://www.svgrepo.com/show/237885/cross-faith.svg'
     ];
 
     let iconIndex = 0;
