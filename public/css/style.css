@@ -874,7 +874,11 @@ body.login-page .bgc-layer {
     box-shadow: 0 4px 16px rgba(0,0,0,0.16);
     border-bottom: 1px solid #e6e6e6;
 }
-.global-header.inverted .logo-section img { filter: none; }
+.global-header.inverted .logo-section img {
+    /* En header claro: logo normal, sin brillo ni inversión */
+    filter: none;
+    animation: none;
+}
 .global-header.inverted .logo-text { color: #00853F; }
 .global-header.inverted .header-search-box {
     background: rgba(0,0,0,0.06);
@@ -1131,24 +1135,65 @@ body.login-page .global-header .nav-link {
     color: #ffffff;
 }
 
-/* En la página de login, subir un poco el bloque logo SENA + CIDE */
+/* En la página de login, ajustar ligeramente la posición del bloque logo SENA + CIDE */
 body.login-page .logo-section {
-    transform: translateY(-10px);
+    transform: translate(10px, 0px); /* un poco hacia la derecha y levemente arriba */
 }
 
 /* (Se removió la textura en header/footer según preferencia) */
 
 .logo-section img {
-    height: 32px;
+    height: 56px;
     width: auto;
-    /* En header verde, mostramos el logo en blanco para mejor contraste */
-    filter: brightness(0) invert(1);
+    /* En header verde, mostramos el logo en blanco con brillo suave */
+    filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.95)); /* brillo fijo */
 }
 
 .logo-text {
-    font-size: 14px;
+    font-size: 26px;
     font-weight: 600;
     color: #ffffff;
+    /* Efecto de brillo suave y estático sobre el texto CIDE */
+    text-shadow:
+        0 0 5px rgba(255, 255, 255, 0.8),
+        0 0 12px rgba(255, 255, 255, 0.95);
+    position: relative;
+    cursor: default;
+}
+
+.logo-text .logo-tooltip {
+    position: absolute;
+    left: 50%;
+    top: 115%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.92);
+    color: #f9fafb;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: top center;
+    scale: 0.95;
+    transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+    z-index: 1200;
+}
+
+.logo-text .logo-tooltip span {
+    display: block;
+}
+
+.logo-text .logo-tooltip strong {
+    color: #22c55e;
+    margin-right: 2px;
+}
+
+.logo-text:hover .logo-tooltip {
+    opacity: 1;
+    scale: 1;
 }
 
 .search-section {

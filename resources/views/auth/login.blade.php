@@ -636,13 +636,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     tick();
-    // Más burbujas: menor intervalo y posibilidad de burbuja doble
-    setInterval(() => {
-        createBubble();
-        if (Math.random() < 0.6) {
+
+    // Control de creación de burbujas con pausa cuando la pestaña no está visible
+    let bubbleInterval = null;
+
+    function startBubbles() {
+        if (bubbleInterval) return;
+        bubbleInterval = setInterval(() => {
             createBubble();
+            if (Math.random() < 0.6) {
+                createBubble();
+            }
+        }, 480);
+    }
+
+    function stopBubbles() {
+        if (!bubbleInterval) return;
+        clearInterval(bubbleInterval);
+        bubbleInterval = null;
+    }
+
+    // Iniciar solo cuando la pestaña está visible
+    if (!document.hidden) {
+        startBubbles();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopBubbles();
+        } else {
+            startBubbles();
         }
-    }, 480);
+    });
 });
 </script>
 

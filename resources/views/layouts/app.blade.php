@@ -65,7 +65,15 @@
         <div class="header-container">
             <a href="{{ session('app_auth') ? route('dashboard') : route('login') }}" class="logo-section" style="text-decoration:none;">
                 <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA">
-                <span class="logo-text">CIDE</span>
+                <span class="logo-text">
+                    CIDE
+                    <span class="logo-tooltip" aria-hidden="true">
+                        <span><strong>C</strong>entro</span>
+                        <span><strong>I</strong>ndustrial</span>
+                        <span><strong>D</strong>e Desarrollo</span>
+                        <span><strong>E</strong>mpresarial</span>
+                    </span>
+                </span>
             </a>
 
             @php($appAuthHeader = session('app_auth'))
