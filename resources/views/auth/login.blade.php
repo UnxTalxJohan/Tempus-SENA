@@ -194,16 +194,16 @@ html, body {
     top: 50%;
     width: 0;
     height: 100%;
-    background: rgba(1, 43, 18, 0.78);
+    background: rgba(43, 245, 124, 0.08);
     border-radius: 22px 0 0 22px;
     z-index: 2;
-    box-shadow: 0 4px 24px rgba(25,143,58,0.13);
+    box-shadow: 0 4px 24px rgba(68, 230, 114, 0.13);
     transition: width 0.55s cubic-bezier(.24,1.16,.24,1), background 0.3s;
     opacity: 1;
     transform: translate(-100%, -50%);
     backdrop-filter: blur(10px) saturate(1.5);
     -webkit-backdrop-filter: blur(10px) saturate(1.5);
-    border: 1.5px solid rgba(0, 174, 49, 0.18);
+    border: 1.5px solid rgba(98, 235, 137, 0.18);
 }
 .login-green-brand {
     position: absolute;
