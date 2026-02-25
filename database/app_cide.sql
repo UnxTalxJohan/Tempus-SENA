@@ -2,24 +2,37 @@ drop database if exists app_cide;
 CREATE database app_cide;
 use app_cide;
 
+CREATE TABLE proyecto (
+    id_proy INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    cod_proy INT not NULL UNIQUE,
+    descrip_proy TEXT,
+    fch_registro DATETIME,
+    fch_ult_act DATETIME,
+    INDEX(id_proy),
+    INDEX(cod_proy)
+) ENGINE=InnoDB;
 
 CREATE TABLE programa (
     id_prog INT NOT NULL,
+    cod_prog INT NOT NULL,
     nombre VARCHAR(255),
     version INT(255),
     nivel VARCHAR(255),
     cant_trim VARCHAR(255),
     fch_sub_prg DATETIME,
     fhc_utl_act_prg DATETIME,
+    cod_proy_fk INT NOT NULL,
     PRIMARY KEY (id_prog),
-    INDEX(id_prog)
+    INDEX(id_prog),
+    INDEX(cod_proy_fk),
+    CONSTRAINT uniq_prog_proy UNIQUE (cod_prog, cod_proy_fk),
+    FOREIGN KEY (cod_proy_fk) REFERENCES proyecto(id_proy) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 
 CREATE TABLE ficha (
     id_fich INT NOT NULL,
     caracterizacion_fich VARCHAR(255),
-    cod_prog_fk INT NOT NULL,
     fecha_inic_lec DATE,
     fecha_fin_lec DATE,
     proy_formativo_enruto TEXT,
@@ -28,10 +41,13 @@ CREATE TABLE ficha (
     CDF TEXT,
     cerr_convenio VARCHAR(255),
     jornada VARCHAR(255),
+    cod_proy_fk INT NOT NULL,
+    fch_registro DATETIME,
+    fch_ult_act DATETIME,
     PRIMARY KEY (id_fich),
     INDEX(id_fich),
-    INDEX(cod_prog_fk),
-    FOREIGN KEY (cod_prog_fk) REFERENCES programa(id_prog) ON DELETE CASCADE ON UPDATE CASCADE
+    INDEX(cod_proy_fk),
+    FOREIGN KEY (cod_proy_fk) REFERENCES proyecto(id_proy) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE horario (
@@ -71,7 +87,7 @@ CREATE TABLE resultado (
     cod_resu INT NOT NULL,
     nombre VARCHAR(255),
     cod_comp_fk INT NOT NULL,
-    id_prog_fk INT NULL,
+    id_prog_fk INT NOT NULL,
     PRIMARY KEY (id_resu),
     INDEX(id_resu),
     INDEX(cod_resu),
@@ -94,22 +110,6 @@ create Table duracion (
     FOREIGN KEY (id_prog_fk) REFERENCES programa(id_prog) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE matrs_ext (
-    ID_matrx INT NOT NULL AUTO_INCREMENT,
-    cod_prog_fk INT NOT NULL,
-    cod_com_fk INT NOT NULL,
-    id_resu_fk INT NOT NULL,
-    PRIMARY KEY (ID_matrx),
-    INDEX(ID_matrx),
-    INDEX(cod_prog_fk),
-    INDEX(cod_com_fk),
-    INDEX(id_resu_fk),
-    UNIQUE KEY uniq_matrs_ext (cod_prog_fk, cod_com_fk, id_resu_fk),
-    FOREIGN KEY (cod_prog_fk) REFERENCES programa(id_prog) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (cod_com_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_resu_fk) REFERENCES resultado(id_resu) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
-
 
 CREATE TABLE vinculacion (
     id_vinculacion INT NOT NULL AUTO_INCREMENT,
@@ -126,6 +126,8 @@ CREATE TABLE vinculacion (
     area TEXT,
     estudios TEXT,
     red TEXT,   
+    fch_registro DATETIME,
+    fch_ult_act DATETIME,
     PRIMARY KEY (id_vinculacion),
     INDEX(id_vinculacion)
 ) ENGINE=InnoDB;
@@ -144,11 +146,12 @@ CREATE TABLE usuario (
     correo VARCHAR(255) UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
     nombre VARCHAR(255) NOT NULL, 
-    -- Datos de avatar/foto del usuario (recomendado almacenar archivo en disco y ruta aquí)
     avatar_path VARCHAR(255) NULL,
     avatar_mime VARCHAR(100) NULL,
     avatar_size INT NULL,
     avatar_uploaded_at DATETIME NULL,
+    fch_registro DATETIME,
+    fch_ult_act DATETIME,
     id_vinculacion_fk INT NULL,
     PRIMARY KEY (id_usuario),
     UNIQUE KEY uniq_cc (cc),
@@ -174,6 +177,8 @@ CREATE TABLE notificacion (
 CREATE TABLE sede (
     cod_sede INT NOT NULL AUTO_INCREMENT,
     nom_sede VARCHAR(255),
+    fch_registro DATETIME,
+    fch_ult_act DATETIME,
     PRIMARY KEY (cod_sede),
     INDEX(cod_sede)
 ) ENGINE=InnoDB;
@@ -191,19 +196,20 @@ CREATE TABLE ambiente (
 
 
 CREATE TABLE evento (
+    id_evento INT NOT NULL AUTO_INCREMENT,
     id_fich_fk INT NOT NULL,
-    cc_fk INT NOT NULL,
+    id_usuario_fk INT NOT NULL,
     cod_sede_fk INT NOT NULL,
-    cod_comp_fk INT NOT NULL,
-    PRIMARY KEY (id_fich_fk, cc_fk, cod_sede_fk, cod_comp_fk),
+    fch_registro DATETIME,
+    fch_ult_act DATETIME,
+    INDEX(id_evento),
+    PRIMARY KEY (id_evento),
     INDEX(id_fich_fk),
-    INDEX(cc_fk),
+    INDEX(id_usuario_fk),
     INDEX(cod_sede_fk),
-    INDEX(cod_comp_fk),
     FOREIGN KEY (id_fich_fk) REFERENCES ficha(id_fich) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (cc_fk) REFERENCES usuario(cc) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (cod_sede_fk) REFERENCES sede(cod_sede) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (cod_comp_fk) REFERENCES competencia(cod_comp) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id_usuario_fk) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (cod_sede_fk) REFERENCES sede(cod_sede) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS programa_competencia (
@@ -214,21 +220,7 @@ CREATE TABLE IF NOT EXISTS programa_competencia (
   INDEX (cod_comp_fk)
 );
 INSERT IGNORE INTO programa_competencia (id_prog_fk, cod_comp_fk)
-  SELECT id_prog_fk, cod_comp FROM competencia;
-
-CREATE TRIGGER tr_matrs_ext_insert_programa
-BEFORE INSERT ON matrs_ext
-FOR EACH ROW
-    UPDATE programa
-    SET fch_sub_prg = NOW()
-    WHERE id_prog = NEW.cod_prog_fk;
-
-CREATE TRIGGER tr_matrs_ext_update_programa
-BEFORE UPDATE ON matrs_ext
-FOR EACH ROW
-    UPDATE programa
-    SET fhc_utl_act_prg = NOW()
-    WHERE id_prog = NEW.cod_prog_fk;
+    SELECT id_prog_fk, cod_comp FROM competencia;
 
 CREATE TRIGGER tr_programa_update_programa
 BEFORE UPDATE ON programa
@@ -279,7 +271,7 @@ INSERT INTO horario (dia) VALUES
 ('Viernes'),
 ('Sábado');
 
-    INSERT INTO rol (id_rol, nombre_rol) VALUES
+INSERT INTO rol (id_rol, nombre_rol) VALUES
 (1, 'admin'),
 (2, 'contrato'),
 (3, 'planta');

@@ -459,7 +459,6 @@ class ExcelController extends Controller
         $spreadsheet = $this->loadSpreadsheet($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
         $usaTablaDuracion = Schema::hasTable('duracion');
-        $usaMatrsExt = Schema::hasTable('matrs_ext');
         $idProg = trim($sheet->getCell('A4')->getValue());
         $programa = Programa::where('id_prog', $idProg)->first();
         if ($programa) {
@@ -477,9 +476,6 @@ class ExcelController extends Controller
             }
             $programa->save();
             // Limpiar vínculos del programa para reimportar
-            if ($usaMatrsExt) {
-                DB::table('matrs_ext')->where('cod_prog_fk', $programa->id_prog)->delete();
-            }
             if (Schema::hasTable('programa_competencia')) {
                 DB::table('programa_competencia')->where('id_prog_fk', $programa->id_prog)->delete();
             }
@@ -504,7 +500,6 @@ class ExcelController extends Controller
 
         // buffers para inserciones masivas (batch) en bloques de hasta 1000 filas
         $batchSize = 1000;
-        $matrsExtBatch = [];
         $duracionBatch = [];
 
         for ($fila = 4; $fila <= $filaMaxima; $fila++) {
@@ -541,8 +536,9 @@ class ExcelController extends Controller
             if (!empty($nombre_resultado) && $competenciaActual !== null) {
                 $nombreNormalizado = preg_replace('/\s+/u', ' ', trim($nombre_resultado));
                 $nombreCorto = mb_substr($nombreNormalizado, 0, 255);
-                // Buscar resultado globalmente por cod_comp_fk y nombre (en cualquier programa)
+                // Buscar resultado dentro de este programa por competencia y nombre
                 $resultado = Resultado::where('cod_comp_fk', $competenciaActual)
+                    ->where('id_prog_fk', $programa->id_prog)
                     ->where('nombre', $nombreCorto)
                     ->first();
                 if (!$resultado) {
@@ -562,24 +558,6 @@ class ExcelController extends Controller
                             : null;
                     }
                     $resultado->save();
-                }
-                if ($usaMatrsExt) {
-                    $existeMx = DB::table('matrs_ext')
-                        ->where('cod_prog_fk', $programa->id_prog)
-                        ->where('cod_com_fk', $competenciaActual)
-                        ->where('id_resu_fk', $resultado->id_resu)
-                        ->exists();
-                    if (!$existeMx) {
-                        $matrsExtBatch[] = [
-                            'cod_prog_fk' => $programa->id_prog,
-                            'cod_com_fk' => $competenciaActual,
-                            'id_resu_fk' => $resultado->id_resu,
-                        ];
-                        if (count($matrsExtBatch) >= $batchSize) {
-                            DB::table('matrs_ext')->insert($matrsExtBatch);
-                            $matrsExtBatch = [];
-                        }
-                    }
                 }
                 if ($usaTablaDuracion) {
                     $d_i = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
@@ -608,9 +586,6 @@ class ExcelController extends Controller
             }
         }
         // insertar cualquier remanente de los lotes
-        if ($usaMatrsExt && !empty($matrsExtBatch)) {
-            DB::table('matrs_ext')->insert($matrsExtBatch);
-        }
         if ($usaTablaDuracion && !empty($duracionBatch)) {
             DB::table('duracion')->insert($duracionBatch);
         }

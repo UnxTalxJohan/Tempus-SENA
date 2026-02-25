@@ -67,9 +67,9 @@
 
     <!-- Ola blanca inferior (solo decorativa) -->
     <div class="login-wave-bottom" aria-hidden="true">
-        <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="login-wave-svg">
-            <!-- Varias montañas: pico a la izquierda, valle al centro y pico a la derecha -->
-            <path fill="#ffffff" fill-opacity="1" d="M0,260C160,200,320,140,480,160C640,180,800,260,960,240C1120,220,1280,260,1440,240L1440,320L0,320Z"></path>
+        <svg class="login-wave-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <!-- Path dinámico generado por JS para la ola -->
+            <path id="loginWaveDynamicPath" fill="#ffffff" fill-opacity="1"></path>
         </svg>
     </div>
 
@@ -161,30 +161,8 @@ html, body {
 
 /* Animación suave tipo "mar" para la curva blanca */
 .login-wave-svg path {
-    transform-origin: center bottom;
-    transform-box: fill-box; /* que el origen use el propio path */
-    animation: login-wave-sway 10s ease-in-out infinite;
     /* Brillo suave similar al de las burbujas */
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
-}
-
-/* Movimiento tipo ola: se mece de lado a lado, con ligera torsión */
-@keyframes login-wave-sway {
-    0% {
-        transform: translateX(-6px) rotate(0.4deg) scaleY(1);
-    }
-    25% {
-        transform: translateX(0px) rotate(-0.2deg) scaleY(1.02);
-    }
-    50% {
-        transform: translateX(6px) rotate(0.3deg) scaleY(1);
-    }
-    75% {
-        transform: translateX(0px) rotate(-0.3deg) scaleY(1.02);
-    }
-    100% {
-        transform: translateX(-6px) rotate(0.4deg) scaleY(1);
-    }
 }
 
 /* Barra verde animada detrás del formulario */
@@ -668,6 +646,98 @@ document.addEventListener('DOMContentLoaded', () => {
             startBubbles();
         }
     });
+});
+
+// Ola dinámica generada por SVG: varias ondas que se desplazan de derecha a izquierda
+document.addEventListener('DOMContentLoaded', () => {
+    const svg = document.querySelector('.login-wave-svg');
+    const path = document.getElementById('loginWaveDynamicPath');
+    if (!svg || !path) return;
+
+    let width = svg.clientWidth || window.innerWidth;
+    const height = svg.clientHeight || 220;
+
+    // Parámetros de la ola (se interpolan hacia objetivos para evitar saltos)
+    // La bajamos un poco más y reducimos amplitud para no tapar las burbujas
+    let baseHeight = height * 0.68; // línea media de la ola, más cerca del borde inferior
+    let amplitude = 18;             // altura inicial de las crestas, más baja
+    let waves = 1.8;                // cantidad de ondas visibles (actual)
+
+    // Objetivos hacia los que interpolamos suavemente
+    let targetBaseHeight = baseHeight;
+    let targetAmplitude = amplitude;
+    let targetWaves = waves;
+    let phase = 0;                 // fase para desplazar la ola
+
+    function resizeWave() {
+        width = svg.clientWidth || window.innerWidth;
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    }
+
+    resizeWave();
+    window.addEventListener('resize', resizeWave);
+
+    function randomizeParams() {
+        // Definir nuevos objetivos: tamaños y cantidad de olas algo aleatorios, pero más bajos y más cerca del borde
+        targetAmplitude = 10 + Math.random() * 10;   // 10–20 (olas más bajitas)
+        targetWaves = 1.2 + Math.random() * 1.6;     // 1.2–2.8 ondas
+        targetBaseHeight = height * (0.62 + Math.random() * 0.12); // 62–74% alto
+    }
+
+    randomizeParams();
+    setInterval(randomizeParams, 6000);
+
+    function buildWavePath() {
+        const points = [];
+        const segments = 80; // más segmentos = curva más suave
+
+        // Frecuencia base y una frecuencia secundaria para variar tamaños/separación
+        const baseFreq = (Math.PI * 2 * waves) / width;
+        const freq2 = baseFreq * 2.3;
+        const amp2 = amplitude * 0.4;
+
+        for (let i = 0; i <= segments; i++) {
+            const x = (width / segments) * i;
+            // Combinación de dos senos para que unas olas sean más grandes y otras más pequeñas
+            const y = baseHeight
+                + Math.sin(baseFreq * x + phase) * amplitude
+                + Math.sin(freq2 * x + phase * 1.7) * amp2;
+            points.push({ x, y });
+        }
+
+        if (points.length < 2) return '';
+
+        // Construir path tipo "ola" usando curvas cuadráticas para suavizar
+        let d = `M 0 ${height} L ${points[0].x} ${points[0].y}`;
+
+        for (let i = 0; i < points.length - 1; i++) {
+            const p = points[i];
+            const next = points[i + 1];
+            const mx = (p.x + next.x) / 2;
+            const my = (p.y + next.y) / 2;
+            d += ` Q ${p.x} ${p.y} ${mx} ${my}`;
+        }
+
+        const last = points[points.length - 1];
+        // Cerrar en la parte inferior derecha y volver a la izquierda sin crear un corte visible en la esquina
+        d += ` L ${last.x} ${height} L 0 ${height} Z`;
+        return d;
+    }
+
+    function animate() {
+        // Interpolar suavemente hacia los objetivos para que los cambios no sean bruscos
+        const lerpFactor = 0.02; // 2% por frame aprox.
+        amplitude += (targetAmplitude - amplitude) * lerpFactor;
+        waves += (targetWaves - waves) * lerpFactor;
+        baseHeight += (targetBaseHeight - baseHeight) * lerpFactor;
+
+        phase -= 0.03; // velocidad de desplazamiento (derecha→izquierda)
+        const d = buildWavePath();
+        if (d) path.setAttribute('d', d);
+        requestAnimationFrame(animate);
+    }
+
+    animate();
 });
 </script>
 

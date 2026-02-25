@@ -58,7 +58,7 @@ class MatrizController extends Controller
         $usaMatrsExt = \Illuminate\Support\Facades\Schema::hasTable('matrs_ext');
         foreach ($competencias as $competencia) {
             if ($usaMatrsExt) {
-                // Sólo resultados vinculados a este programa y competencia
+                // Sólo resultados vinculados a este programa y competencia (esquema antiguo con matrs_ext)
                 $resultados = Resultado::whereIn('id_resu', function($q) use ($id_prog, $competencia) {
                         $q->select('id_resu_fk')
                           ->from('matrs_ext')
@@ -68,8 +68,9 @@ class MatrizController extends Controller
                     ->orderBy('id_resu')
                     ->get();
             } else {
-                // Esquema legado: listar todos por competencia
+                // Esquema actual: resultados propios de este programa y competencia
                 $resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
+                    ->where('id_prog_fk', $id_prog)
                     ->orderBy('id_resu')
                     ->get();
             }
@@ -134,6 +135,7 @@ class MatrizController extends Controller
         $usaMatrsExt = \Illuminate\Support\Facades\Schema::hasTable('matrs_ext');
         foreach ($competencias as $competencia) {
             if ($usaMatrsExt) {
+                // Esquema antiguo con matrs_ext
                 $resultados = Resultado::whereIn('id_resu', function($q) use ($id_prog, $competencia) {
                         $q->select('id_resu_fk')
                           ->from('matrs_ext')
@@ -143,7 +145,9 @@ class MatrizController extends Controller
                     ->orderBy('id_resu')
                     ->get();
             } else {
+                // Esquema actual: resultados propios de este programa y competencia
                 $resultados = Resultado::where('cod_comp_fk', $competencia->cod_comp)
+                    ->where('id_prog_fk', $id_prog)
                     ->orderBy('id_resu')
                     ->get();
             }
@@ -354,8 +358,8 @@ class MatrizController extends Controller
 
         $idProg = $data['id_prog'] ?? null;
         if (!$idProg) {
-            // Si no llega en el request, inferir por matrs_ext (contexto del programa en la vista)
-            $idProg = \DB::table('matrs_ext')->where('id_resu_fk', $id_resu)->value('cod_prog_fk');
+            // Si no llega en el request, inferirlo desde la propia tabla resultado (id_prog_fk)
+            $idProg = \DB::table('resultado')->where('id_resu', $id_resu)->value('id_prog_fk');
         }
 
         $payload = [
@@ -389,9 +393,6 @@ class MatrizController extends Controller
             $programa = Programa::where('id_prog', $id_prog)->first();
 
             \DB::beginTransaction();
-            if (Schema::hasTable('matrs_ext')) {
-                \DB::table('matrs_ext')->where('cod_prog_fk', $id_prog)->delete();
-            }
             if (Schema::hasTable('programa_competencia')) {
                 \DB::table('programa_competencia')->where('id_prog_fk', $id_prog)->delete();
             }
