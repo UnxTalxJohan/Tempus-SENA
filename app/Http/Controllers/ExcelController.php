@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Auth;
 use DB;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class ExcelController extends Controller
 {
@@ -33,6 +37,89 @@ class ExcelController extends Controller
     public function showUploadForm()
     {
         return view('excel.upload');
+    }
+
+    /**
+     * Descarga una plantilla vacía de la matriz con los encabezados principales.
+     */
+    public function descargarPlantillaMatriz()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Encabezados según el nuevo formato (ver imagen de referencia)
+        $sheet->setCellValue('A1', 'Codigo del proyecto');
+        $sheet->setCellValue('B1', 'Descripcion del proyecto');
+        $sheet->setCellValue('C1', 'Codigo del programa');
+        $sheet->setCellValue('D1', 'Programa de formacion');
+        $sheet->setCellValue('E1', 'Nivel');
+        $sheet->setCellValue('F1', 'Version');
+        $sheet->setCellValue('G1', 'Nombre de la competencia Laboral/ Unidad de competencia /NCL /UC');
+        $sheet->setCellValue('H1', 'Codigo');
+        $sheet->setCellValue('I1', 'Duracion de la Competencia en Horas');
+        $sheet->setCellValue('J1', 'RESULTADOS DE APRENDIZAJE');
+        $sheet->setCellValue('K1', 'DURACION HORAS POR RESULTADO DE APRENDIZAJE(horas maximas a programar)');
+        $sheet->setCellValue('L1', 'DURACION HORAS POR RESULTADO DE APRENDIZAJE(horas minimo a programar)');
+        $sheet->setCellValue('M1', 'TRIMESTRE A PROGRAMAR');
+        $sheet->setCellValue('N1', 'HORAS A LA SEMANA A PROGRAMAR');
+        $sheet->setCellValue('O1', 'HORAS DEL TRIMESTRE A PROGRAMAR');
+
+        // Fusionar hasta la fila 3 para que coincida con la exportación
+        $sheet->mergeCells('A1:A3');
+        $sheet->mergeCells('B1:B3');
+        $sheet->mergeCells('C1:C3');
+        $sheet->mergeCells('D1:D3');
+        $sheet->mergeCells('E1:E3');
+        $sheet->mergeCells('F1:F3');
+        $sheet->mergeCells('G1:G3');
+        $sheet->mergeCells('H1:H3');
+        $sheet->mergeCells('I1:I3');
+        $sheet->mergeCells('J1:J3');
+        $sheet->mergeCells('K1:K3');
+        $sheet->mergeCells('L1:L3');
+        $sheet->mergeCells('M1:M3');
+        $sheet->mergeCells('N1:N3');
+        $sheet->mergeCells('O1:O3');
+
+        // Colores aproximados por bloques
+        $sheet->getStyle('A1:F3')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('B4C7E7');
+        $sheet->getStyle('G1:I3')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E2EFDA');
+        $sheet->getStyle('J1:M3')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('C6E0B4');
+        $sheet->getStyle('N1:O3')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+
+        $sheet->getStyle('A1:O3')->getFont()->setBold(true);
+        $sheet->getStyle('A1:O3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+
+        // Anchos de columna iguales a la exportación de matriz
+        $sheet->getColumnDimension('A')->setWidth(15); // Código proyecto
+        $sheet->getColumnDimension('B')->setWidth(25); // Descripción proyecto
+        $sheet->getColumnDimension('C')->setWidth(15); // Código programa
+        $sheet->getColumnDimension('D')->setWidth(25); // Nombre programa
+        $sheet->getColumnDimension('E')->setWidth(15); // Nivel
+        $sheet->getColumnDimension('F')->setWidth(10); // Versión
+        $sheet->getColumnDimension('G')->setWidth(45); // Nombre competencia
+        $sheet->getColumnDimension('H')->setWidth(15); // Código competencia
+        $sheet->getColumnDimension('I')->setWidth(18); // Duración competencia
+        $sheet->getColumnDimension('J')->setWidth(50); // Resultado
+        $sheet->getColumnDimension('K')->setWidth(18);
+        $sheet->getColumnDimension('L')->setWidth(18);
+        $sheet->getColumnDimension('M')->setWidth(15);
+        $sheet->getColumnDimension('N')->setWidth(15);
+        $sheet->getColumnDimension('O')->setWidth(15);
+
+        // Altura de filas de encabezado para que coincida visualmente
+        $sheet->getRowDimension(1)->setRowHeight(50);
+        $sheet->getRowDimension(2)->setRowHeight(50);
+        $sheet->getRowDimension(3)->setRowHeight(50);
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'plantilla_matriz.xlsx';
+        // Enviar como descarga
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $fileName . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
     }
     
     /**
@@ -269,10 +356,13 @@ class ExcelController extends Controller
             if (!empty($vh['missing'])) { $msg .= ' (faltan: ' . implode(', ', $vh['missing']) . ')'; }
             throw new \RuntimeException($msg . '.');
         }
-        $codigo = trim($sheet->getCell('A4')->getValue());
-        $nombre = trim($sheet->getCell('B4')->getValue());
-        $nivel = trim($sheet->getCell('C4')->getValue());
-        $version = trim($sheet->getCell('D4')->getValue());
+        // Nuevo formato de matriz: proyecto (A-B), programa (C-F)
+        $codigoProyecto = trim($sheet->getCell('A4')->getValue()); // Código del proyecto
+        $descripcionProyecto = trim($sheet->getCell('B4')->getValue()); // Descripción del proyecto
+        $codigo = trim($sheet->getCell('C4')->getValue()); // Código del programa
+        $nombre = trim($sheet->getCell('D4')->getValue()); // Nombre del programa
+        $nivel = trim($sheet->getCell('E4')->getValue());  // Nivel
+        $version = trim($sheet->getCell('F4')->getValue()); // Versión
         if (empty($nivel) || empty($nombre) || empty($codigo) || empty($version)) {
             throw new \RuntimeException('Los datos del programa son incompletos (fila 4).');
         }
@@ -283,9 +373,10 @@ class ExcelController extends Controller
         $codigosNombresCounts = []; // track counts of names per code
         $erroresCompetencias = [];
         for ($fila = 4; $fila <= $filaMaxima; $fila++) {
-            $nombre_comp = trim($sheet->getCell("E$fila")->getValue());
-            $cod_comp = trim($sheet->getCell("F$fila")->getValue());
-            $duracion = $sheet->getCell("G$fila")->getValue();
+            // Competencia: columnas G (nombre), H (código), I (duración)
+            $nombre_comp = trim($sheet->getCell("G$fila")->getValue());
+            $cod_comp = trim($sheet->getCell("H$fila")->getValue());
+            $duracion = $sheet->getCell("I$fila")->getValue();
             if (!empty($cod_comp)) {
                 $competenciaActual = [ 'codigo' => $cod_comp, 'nombre' => $nombre_comp, 'duracion' => $duracion ];
                 // Count occurrences of this name for the code
@@ -301,13 +392,18 @@ class ExcelController extends Controller
                     $competencias[$cod_comp] = [ 'codigo' => $cod_comp, 'nombre' => $nombre_comp, 'duracion' => $duracion, 'resultados' => [] ];
                 }
             }
-            $resultado = trim($sheet->getCell("H$fila")->getValue());
-            $hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
-            $hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
-            $trimestre = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
-            $hora_sema_raw = $sheet->getCell("L$fila")->getCalculatedValue();
+            // Resultado y horas: columnas J–O
+            $resultado = trim($sheet->getCell("J$fila")->getValue());
+            $hora_max = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
+            $hora_min = round($sheet->getCell("L$fila")->getCalculatedValue() ?: 0);
+            $trimestre = $sheet->getCell("M$fila")->getCalculatedValue() ?: 0;
+            $hora_sema_raw = $sheet->getCell("N$fila")->getCalculatedValue();
             $hora_sema = ($hora_sema_raw === null || $hora_sema_raw === '') ? null : $hora_sema_raw;
-            $hora_trim = $hora_sema !== null ? ($hora_sema * 11) : null;
+            // Si viene la columna de horas de trimestre (O), usarla como respaldo
+            $hora_trim_raw = $sheet->getCell("O$fila")->getCalculatedValue();
+            $hora_trim = $hora_sema !== null
+                ? ($hora_sema * 11)
+                : (($hora_trim_raw === null || $hora_trim_raw === '') ? null : $hora_trim_raw);
             if (!empty($resultado) && $competenciaActual !== null) {
                 $competencias[$competenciaActual['codigo']]['resultados'][] = [
                     'nombre' => $resultado,
@@ -335,7 +431,7 @@ class ExcelController extends Controller
             }
             throw new \RuntimeException(implode(" ", $mensajes));
         }
-        return compact('nivel','nombre','codigo','version','competencias');
+        return compact('nivel','nombre','codigo','version','competencias','codigoProyecto','descripcionProyecto');
     }
 
     /**
@@ -416,26 +512,34 @@ class ExcelController extends Controller
             return trim($s);
         };
 
+        // Nuevo formato de plantilla de matriz:
+        // A: Código del proyecto
+        // B: Descripción del proyecto
+        // C–F: Datos del programa (código, nombre, nivel, versión)
+        // G–I: Competencia (nombre, código, duración en horas)
+        // J–O: Resultados de aprendizaje y horas
         $patterns = [
-            // A: en algunas plantillas viene con typo "prorama"; aceptar ambas
-            'A' => '/codigo.*(programa|prorama)/',
-            'B' => '/programa.*formacion/',
-            'C' => '/nivel/',
-            'D' => '/version/',
-            'E' => '/nombre.*competencia|unidad.*competencia|ncl|uc/',
-            'F' => '/^codigo$/',
-            'G' => '/duracion.*competencia.*hora/',
-            'H' => '/resultados.*aprendizaje/',
-            'I' => '/horas.*(maxim|maxima|maximas)/',
-            'J' => '/horas.*(minim|minima|minimas)/',
-            'K' => '/trimestre/',
-            'L' => '/semana.*programar/',
-            'M' => '/trimestre.*programar/'
+            'A' => '/codigo.*proyecto/',
+            'B' => '/descripcion.*proyecto/',
+            // En C puede seguir apareciendo el texto "Codigo del prorama" con typo; aceptar ambas
+            'C' => '/codigo.*(programa|prorama)/',
+            'D' => '/programa.*formacion/',
+            'E' => '/nivel/',
+            'F' => '/version/',
+            'G' => '/nombre.*competencia|unidad.*competencia|ncl|uc/',
+            'H' => '/^codigo$/',
+            'I' => '/duracion.*competencia.*hora/',
+            'J' => '/resultados.*aprendizaje/',
+            'K' => '/horas.*(maxim|maxima|maximas)/',
+            'L' => '/horas.*(minim|minima|minimas)/',
+            'M' => '/trimestre/',
+            'N' => '/semana.*programar/',
+            'O' => '/trimestre.*programar/'
         ];
 
         $found = 0; $missing = [];
-        // esenciales mínimas para permitir carga
-        $required = ['A','B','D','H']; // relajamos: no exigir C (Nivel)
+        // esenciales mínimas para permitir carga en el nuevo formato
+        $required = ['A','C','D','J'];
         foreach ($patterns as $col => $regex) {
             $okCol = false;
             for ($r = 1; $r <= 5; $r++) {
@@ -444,8 +548,8 @@ class ExcelController extends Controller
             }
             if ($okCol) $found++; else if (in_array($col, $required, true)) $missing[] = $col;
         }
-        // Al menos 7 columnas deben coincidir para considerarlo compatible
-        $ok = (empty($missing) && $found >= 7);
+        // Al menos 9 columnas deben coincidir para considerarlo compatible
+        $ok = (empty($missing) && $found >= 9);
         return ['ok' => $ok, 'missing' => $missing, 'found' => $found];
     }
 
@@ -458,19 +562,65 @@ class ExcelController extends Controller
         DB::beginTransaction();
         $spreadsheet = $this->loadSpreadsheet($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
+        // Validar que el archivo corresponde a la plantilla esperada
+        $vh = $this->validateMatrixHeaders($sheet);
+        if (!$vh['ok']) {
+            $msg = 'El archivo no coincide con la plantilla de la matriz';
+            if (!empty($vh['missing'])) { $msg .= ' (faltan: ' . implode(', ', $vh['missing']) . ')'; }
+            throw new \RuntimeException($msg . '.');
+        }
         $usaTablaDuracion = Schema::hasTable('duracion');
-        $idProg = trim($sheet->getCell('A4')->getValue());
+
+        // Proyecto (nuevo bloque A–B)
+        $codigoProyecto = trim($sheet->getCell('A4')->getValue());
+        $descripcionProyecto = trim($sheet->getCell('B4')->getValue());
+
+        // Programa (C–F)
+        $idProg = trim($sheet->getCell('C4')->getValue());
+        // Usamos el mismo valor del Excel como id_prog y cod_prog
         $programa = Programa::where('id_prog', $idProg)->first();
+
+        // Resolver/crear proyecto si la tabla existe
+        $proyectoId = null;
+        if (Schema::hasTable('proyecto') && !empty($codigoProyecto)) {
+            $proyecto = \DB::table('proyecto')->where('cod_proy', $codigoProyecto)->first();
+            $now = Carbon::now();
+            if ($proyecto) {
+                $proyectoId = $proyecto->id_proy;
+                // Actualizar descripción si viene algo distinto
+                if (!empty($descripcionProyecto)) {
+                    \DB::table('proyecto')
+                        ->where('id_proy', $proyectoId)
+                        ->update([
+                            'descrip_proy' => $descripcionProyecto,
+                            'fch_ult_act' => $now,
+                        ]);
+                }
+            } else {
+                $proyectoId = \DB::table('proyecto')->insertGetId([
+                    'cod_proy' => $codigoProyecto,
+                    'descrip_proy' => $descripcionProyecto,
+                    'fch_registro' => $now,
+                    'fch_ult_act' => $now,
+                ]);
+            }
+        }
         if ($programa) {
             // Si existe y está activo, bloquear carga
             if (Schema::hasColumn('programa', 'acti') && (int)$programa->acti === 1) {
                 throw new \RuntimeException('No pueden haber 2 códigos de competencia repetidos.');
             }
             // Reactivar y refrescar datos básicos
-            $programa->nombre = trim($sheet->getCell('B4')->getValue());
-            $programa->version = trim($sheet->getCell('D4')->getValue());
-            $programa->nivel = trim($sheet->getCell('C4')->getValue());
+            $programa->nombre = trim($sheet->getCell('D4')->getValue());
+            $programa->version = trim($sheet->getCell('F4')->getValue());
+            $programa->nivel = trim($sheet->getCell('E4')->getValue());
             $programa->cant_trim = 0;
+            if (Schema::hasColumn('programa', 'cod_prog')) {
+                $programa->cod_prog = $idProg;
+            }
+            if ($proyectoId !== null && Schema::hasColumn('programa', 'cod_proy_fk')) {
+                $programa->cod_proy_fk = $proyectoId;
+            }
             if (Schema::hasColumn('programa', 'acti')) {
                 $programa->acti = 1;
             }
@@ -485,10 +635,16 @@ class ExcelController extends Controller
         } else {
             $programa = new Programa();
             $programa->id_prog = $idProg;
-            $programa->nombre = trim($sheet->getCell('B4')->getValue());
-            $programa->version = trim($sheet->getCell('D4')->getValue());
-            $programa->nivel = trim($sheet->getCell('C4')->getValue());
+            if (Schema::hasColumn('programa', 'cod_prog')) {
+                $programa->cod_prog = $idProg;
+            }
+            $programa->nombre = trim($sheet->getCell('D4')->getValue());
+            $programa->version = trim($sheet->getCell('F4')->getValue());
+            $programa->nivel = trim($sheet->getCell('E4')->getValue());
             $programa->cant_trim = 0;
+            if ($proyectoId !== null && Schema::hasColumn('programa', 'cod_proy_fk')) {
+                $programa->cod_proy_fk = $proyectoId;
+            }
             if (Schema::hasColumn('programa', 'acti')) {
                 $programa->acti = 1;
             }
@@ -503,8 +659,9 @@ class ExcelController extends Controller
         $duracionBatch = [];
 
         for ($fila = 4; $fila <= $filaMaxima; $fila++) {
-            $nombre_comp = trim($sheet->getCell("E$fila")->getValue());
-            $cod_comp = trim($sheet->getCell("F$fila")->getValue());
+            // Competencia: columnas G (nombre), H (código)
+            $nombre_comp = trim($sheet->getCell("G$fila")->getValue());
+            $cod_comp = trim($sheet->getCell("H$fila")->getValue());
             if (!empty($cod_comp)) {
                 $competenciaActual = $cod_comp;
                 if (!isset($competenciasInsertadas[$cod_comp])) {
@@ -513,7 +670,8 @@ class ExcelController extends Controller
                         $compDb = new Competencia();
                         $compDb->cod_comp = $cod_comp;
                         $compDb->nombre = $nombre_comp;
-                        $compDb->duracion_hora = $sheet->getCell("G$fila")->getValue();
+                        // Duración de la competencia: columna I
+                        $compDb->duracion_hora = $sheet->getCell("I$fila")->getValue();
                         $compDb->id_prog_fk = $programa->id_prog;
                         $compDb->save();
                     }
@@ -532,7 +690,8 @@ class ExcelController extends Controller
                     $competenciasInsertadas[$cod_comp] = true;
                 }
             }
-            $nombre_resultado = trim($sheet->getCell("H$fila")->getValue());
+            // Resultado de aprendizaje: columna J
+            $nombre_resultado = trim($sheet->getCell("J$fila")->getValue());
             if (!empty($nombre_resultado) && $competenciaActual !== null) {
                 $nombreNormalizado = preg_replace('/\s+/u', ' ', trim($nombre_resultado));
                 $nombreCorto = mb_substr($nombreNormalizado, 0, 255);
@@ -548,24 +707,29 @@ class ExcelController extends Controller
                     $resultado->cod_comp_fk = $competenciaActual;
                     $resultado->id_prog_fk = $programa->id_prog;
                     if (!$usaTablaDuracion) {
-                        $resultado->duracion_hora_max = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
-                        $resultado->duracion_hora_min = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
-                        $resultado->trim_prog = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
-                        $l_val2 = $sheet->getCell("L$fila")->getCalculatedValue();
+                        // Columnas K–O para horas
+                        $resultado->duracion_hora_max = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
+                        $resultado->duracion_hora_min = round($sheet->getCell("L$fila")->getCalculatedValue() ?: 0);
+                        $resultado->trim_prog = $sheet->getCell("M$fila")->getCalculatedValue() ?: 0;
+                        $l_val2 = $sheet->getCell("N$fila")->getCalculatedValue();
                         $resultado->hora_sema_programar = ($l_val2 === null || $l_val2 === '') ? null : $l_val2;
+                        $o_val2 = $sheet->getCell("O$fila")->getCalculatedValue();
                         $resultado->hora_trim_programar = ($resultado->hora_sema_programar !== null)
                             ? ($resultado->hora_sema_programar * 11)
-                            : null;
+                            : (($o_val2 === null || $o_val2 === '') ? null : $o_val2);
                     }
                     $resultado->save();
                 }
                 if ($usaTablaDuracion) {
-                    $d_i = $sheet->getCell("I$fila")->getCalculatedValue() ?: 0;
-                    $d_j = round($sheet->getCell("J$fila")->getCalculatedValue() ?: 0);
-                    $d_k = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
-                    $l_val = $sheet->getCell("L$fila")->getCalculatedValue();
+                    $d_i = $sheet->getCell("K$fila")->getCalculatedValue() ?: 0;
+                    $d_j = round($sheet->getCell("L$fila")->getCalculatedValue() ?: 0);
+                    $d_k = $sheet->getCell("M$fila")->getCalculatedValue() ?: 0;
+                    $l_val = $sheet->getCell("N$fila")->getCalculatedValue();
                     $h_sem = ($l_val === null || $l_val === '') ? null : $l_val;
-                    $h_trim = ($h_sem !== null) ? ($h_sem * 11) : null;
+                    $o_val = $sheet->getCell("O$fila")->getCalculatedValue();
+                    $h_trim = ($h_sem !== null)
+                        ? ($h_sem * 11)
+                        : (($o_val === null || $o_val === '') ? null : $o_val);
                     $payload = [
                         'duracion_hora_max' => $d_i,
                         'duracion_hora_min' => $d_j,

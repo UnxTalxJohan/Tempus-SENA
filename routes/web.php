@@ -24,6 +24,7 @@ Route::middleware('app.auth')->group(function () {
 
 	// Rutas para Excel
 	Route::get('/excel/upload', [ExcelController::class, 'showUploadForm'])->name('excel.upload');
+	Route::get('/excel/plantilla-matriz', [ExcelController::class, 'descargarPlantillaMatriz'])->name('excel.plantilla.matriz');
 	Route::post('/excel/preview', [ExcelController::class, 'preview'])->name('excel.preview');
 	Route::post('/excel/preview-multi', [ExcelController::class, 'previewMulti'])->name('excel.preview.multi');
 	Route::get('/excel/preview-multi-view', [ExcelController::class, 'previewMultiView'])->name('excel.preview.multi_view');

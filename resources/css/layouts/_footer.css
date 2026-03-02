@@ -1,0 +1,97 @@
+/* ============================================
+   FOOTER GLOBAL + CONTENEDOR PRINCIPAL
+   (extraído de TEMPUS-SENA-REMOTE-TMP/public/css/style.css)
+   ============================================ */
+
+.global-footer {
+    margin-top: clamp(60px, 10vh, 120px);
+}
+
+.auth-page .global-footer { margin-top: clamp(60px, 10vh, 120px); }
+
+.content-wrapper,
+.page-container { flex: 1 0 auto; }
+
+.footer-sep { height: 1px; background: #d6d6d6; }
+
+.footer-bar {
+    background: linear-gradient(135deg, #39A900 0%, #00853F 100%);
+    color: #ffffff;
+    position: relative;
+}
+
+.footer-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 18px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.footer-left { display: flex; align-items: center; gap: 10px; }
+
+.footer-left img { height: 22px; width: auto; filter: brightness(0) invert(1); }
+
+.footer-brand {
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: #ffffff;
+}
+
+.footer-right { font-size: 12px; opacity: .95; }
+
+.global-footer.inverted .footer-bar {
+    background: #ffffff;
+    color: #00853F;
+    border-top: 1px solid #e6e6e6;
+}
+
+.global-footer.inverted .footer-left img { filter: none; }
+
+.global-footer.inverted .footer-brand { color: #00853F; }
+
+.global-footer.inverted .footer-right { color: #00853F; opacity: 1; }
+
+body.login-page .footer-bar {
+    background: transparent !important;
+    color: #ffffff;
+    border-top: none;
+}
+
+body.login-page .footer-sep { background: transparent; }
+
+body.login-page .footer-brand {
+    background: transparent;
+    color: #098d49;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+body.login-page .global-footer { margin-top: 0 !important; }
+
+body.login-page .global-header {
+    background: transparent !important;
+    box-shadow: none;
+    border-bottom: none;
+}
+
+body.login-page .global-header .logo-text,
+body.login-page .global-header .nav-link {
+    color: #ffffff;
+}
+
+body.login-page .logo-section {
+    transform: translate(10px, 0px);
+}
+
+.content-wrapper {
+    padding: 20px;
+}
+
+.auth-page .content-wrapper,
+.dashboard-page .content-wrapper {
+    margin-top: clamp(60px, 10vh, 120px);
+}

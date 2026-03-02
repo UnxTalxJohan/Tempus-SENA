@@ -1,0 +1,180 @@
+/* ==========================
+   Página de carga de Excel
+   ========================== */
+
+/* Área principal de subida */
+.upload-area {
+    border: 3px dashed #39A900;
+    border-radius: 10px;
+    padding: 50px 30px;
+    text-align: center;
+    background: #f8fff5;
+    margin-bottom: 30px;
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    background: #f0fff0;
+    border-color: #00853F;
+}
+
+.upload-area.dragover {
+    background: #e8ffe8;
+    border-color: #00853F;
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 96px;
+    color: #39A900;
+    margin-bottom: 24px;
+}
+
+.upload-icon .bi {
+    font-size: 96px;
+    line-height: 1;
+}
+
+.upload-area h2 {
+    color: #00853F;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.upload-area p {
+    color: #666666;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.file-input-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.btn-select {
+    background: #39A900;
+    color: #ffffff;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.3s;
+    border: none;
+}
+
+.btn-select:hover {
+    background: #00853F;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(57, 169, 0, 0.3);
+}
+
+.selected-file {
+    margin-top: 15px;
+    padding: 12px 20px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    display: none;
+    color: #00853F;
+    font-weight: 600;
+}
+
+/* Instrucciones y cajas de información */
+.instructions {
+    background: #fff9e6;
+    border-left: 4px solid #ffc107;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.instructions h3 {
+    color: #856404;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.instructions ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.instructions li {
+    color: #666666;
+    padding: 8px 0;
+    padding-left: 25px;
+    position: relative;
+}
+
+.instructions li:before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    color: #39A900;
+    font-weight: bold;
+}
+
+.warning {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    color: #856404;
+}
+
+.warning strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Formato de ejemplo */
+.format-example {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border: 1px solid #dee2e6;
+}
+
+.format-example h3 {
+    color: #00853F;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.format-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #ffffff;
+    overflow-x: auto;
+    display: block;
+}
+
+.format-table th {
+    background: #39A900;
+    color: #ffffff;
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.format-table td {
+    padding: 8px;
+    border: 1px solid #dddddd;
+}
+
+/* Botones de acción inferiores */
+.buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
