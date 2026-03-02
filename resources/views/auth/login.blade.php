@@ -18,9 +18,7 @@
         <div class="login-wrapper">
             <div class="login-green-bar" id="loginGreenBar">
                 <div class="login-green-brand">
-                    <img src="{{ asset('images/logo-sena.svg') }}" alt="Logo SENA" class="login-green-logo">
-                    {{-- Texto TEMPUS eliminado para que no aparezca sobre el fondo --}}
-                    <div class="login-green-title" aria-hidden="true"></div>
+                    <div id="tempusDigitalClock" class="login-digital-clock" aria-hidden="false">00:00:00</div>
                 </div>
             </div>
 
@@ -97,6 +95,25 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
               bar.style.width = '260px';
         }, 120);
+    }
+
+    // Reloj digital TEMPUS: mostrar hora real en formato 12h (HH:MM:SS)
+    const digital = document.getElementById('tempusDigitalClock');
+    if (digital) {
+        const pad = (n) => String(n).padStart(2, '0');
+        const setDigitalTime = () => {
+            const now = new Date();
+            let hours24 = now.getHours();
+            let hours12 = hours24 % 12;
+            if (hours12 === 0) hours12 = 12;
+            const h = pad(hours12);
+            const m = pad(now.getMinutes());
+            const s = pad(now.getSeconds());
+			const ampm = hours24 >= 12 ? 'PM' : 'AM';
+			digital.textContent = `${h}:${m}:${s} ${ampm}`;
+        };
+        setDigitalTime();
+        setInterval(setDigitalTime, 1000);
     }
 });
 function forgotPassword(e){

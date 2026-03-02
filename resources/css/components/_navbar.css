@@ -73,53 +73,56 @@
 }
 
 .logo-section img {
-    height: 56px;
+    height: 46px;
     width: auto;
-    filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.95));
+    /* Logo en blanco, sin brillo exagerado */
+    filter: brightness(0) invert(1);
 }
 
 .logo-text {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 600;
     color: #ffffff;
-    text-shadow:
-        0 0 5px rgba(255, 255, 255, 0.8),
-        0 0 12px rgba(255, 255, 255, 0.95);
+    text-shadow: none;
     position: relative;
     cursor: default;
+    display: inline-block;
 }
 
-.logo-text .logo-tooltip {
-    position: absolute;
-    left: 50%;
-    top: 115%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.92);
-    color: #f9fafb;
-    padding: 8px 10px;
-    border-radius: 8px;
-    font-size: 11px;
-    line-height: 1.4;
-    white-space: nowrap;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    opacity: 0;
-    pointer-events: none;
-    transform-origin: top center;
-    scale: 0.95;
-    transition: opacity 0.18s ease-out, transform 0.18s ease-out;
-    z-index: 1200;
-}
-
-.logo-text .logo-tooltip span { display: block; }
-
-.logo-text .logo-tooltip strong {
-    color: #22c55e;
-    margin-right: 2px;
-}
-
-.logo-text:hover .logo-tooltip {
+.logo-main {
+    display: inline-block;
+    font-weight: 600;
     opacity: 1;
-    scale: 1;
+    transform: translateX(0) scaleX(1);
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+
+.logo-expanded {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-block;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-8px) scaleX(0.85);
+    transform-origin: left center;
+    letter-spacing: 0.01em;
+    transition: opacity 0.35s ease-out, transform 0.35s ease-out, letter-spacing 0.35s ease-out;
+}
+
+.logo-expanded strong {
+    font-weight: 700;
+}
+
+.logo-text:hover .logo-main {
+    opacity: 0;
+    transform: translateX(4px) scaleX(0.9);
+}
+
+.logo-text:hover .logo-expanded {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+    letter-spacing: 0.03em;
 }
 
 .search-section {

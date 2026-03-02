@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 /* Estilos específicos para la página de login
    (basados en public/css/styles/login.css) */
 
@@ -107,19 +108,36 @@ html, body {
 }
 
 .login-green-logo {
-    width: 92px;
-    max-width: 70%;
+    width: 78px;
+    max-width: 65%;
     height: auto;
-    filter: brightness(0) invert(1) drop-shadow(0 3px 8px rgba(0,0,0,0.35));
+    /* Logo más pequeño y sin brillo exagerado */
+    filter: brightness(0) invert(1);
 }
 
 .login-green-title {
     margin-top: 10px;
     font-weight: 800;
-    font-size: 1.08rem;
-    letter-spacing: 0.18em;
+    font-size: 1.8rem;
+    letter-spacing: 0.12em;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-transform: uppercase;
     color: #ffffff;
+}
+
+.login-digital-clock {
+    font-family: 'Seven Segment', 'Orbitron', 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    color: #e5fdf0;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .login-green-title::before,
